@@ -304,7 +304,8 @@ textarea.input{min-height:76px;resize:vertical}
   .summary-box{grid-template-columns:1fr 1fr}
   .stat-grid{grid-template-columns:1fr 1fr;gap:10px}
   .month-sel label{min-width:112px;font-size:13px}
-  .conn .txt{display:none}
+  .conn .txt,.sync-btn .txt{display:none}
+  .sync-btn{padding:6px 9px}
   .topbar{flex-wrap:nowrap;gap:8px}
   .topbar h1{min-width:0;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .month-sel button{width:28px;height:28px}
@@ -350,6 +351,7 @@ textarea.input{min-height:76px;resize:vertical}
         <label><span id="monthLabel">—</span><input type="month" id="monthInput" aria-label="Select month"></label>
         <button type="button" data-action="month-next" aria-label="Next month"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></button>
       </div>
+      <button class="btn sm sync-btn" type="button" data-action="sync-now" title="Sync now"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 01-15.5 6.2L3 16M3 12a9 9 0 0115.5-6.2L21 8"/><path d="M21 3v5h-5M3 21v-5h5"/></svg><span class="txt">Sync</span></button>
       <button class="conn" id="connTop" type="button" data-action="go" data-view="sync"><span class="dot"></span><span class="txt">Starting…</span></button>
     </header>
     <main class="content" id="view" tabindex="-1" aria-live="polite"></main>
@@ -379,6 +381,8 @@ const DEFAULT_CATEGORIES = {
   BILL: ['Utilities', 'Housing', 'Debt', 'Pet', 'Household Help', 'Subscriptions', 'Insurance', 'Other']
 };
 const ST = { UNPAID: 'UNPAID', PARTIAL: 'PARTIAL', PAID: 'PAID', OVERDUE: 'OVERDUE', OVER: 'OVER BUDGET', VOID: 'VOID' };
+/** Your Apps Script Web App URL (not secret — it returns nothing without the API key). Change it here if you redeploy to a new URL. */
+const DEFAULT_API_URL = 'https://script.google.com/macros/s/AKfycbyb0B_NPdGX72_jSS0Bx0ILRdJjSn3iyzieJ-DqxzASii3fbKHRG21_HOjcSUQZf0XU/exec';
 const IS_GAS = typeof google !== 'undefined' && google.script && google.script.run;
 const REQUEST_TIMEOUT_MS = 25000;
 const SYNC_BATCH = 50;
@@ -722,7 +726,8 @@ class ApiError extends Error {
   constructor(message, code, retryable, network) { super(message); this.code = code; this.retryable = retryable; this.network = network; }
 }
 const Api = {
-  configured() { return IS_GAS || (!!Store.meta.apiUrl && !!Store.meta.apiKey); },
+  url() { return Store.meta.apiUrl || DEFAULT_API_URL; },
+  configured() { return IS_GAS || (!!this.url() && !!Store.meta.apiKey); },
   async call(action, payload, opts) {
     opts = opts || {};
     const body = { action, apiKey: Store.meta.apiKey || '', payload: payload || {} };
@@ -735,11 +740,11 @@ const Api = {
           .handleClientRequest(JSON.stringify(body));
       }), opts.timeout || REQUEST_TIMEOUT_MS);
     } else {
-      if (!Store.meta.apiUrl) throw new ApiError('The app is not connected yet. Open Settings → Connection.', 'NOT_CONFIGURED', false);
+      if (!this.url()) throw new ApiError('The app is not connected yet. Open Settings → Connection.', 'NOT_CONFIGURED', false);
       const ctrl = new AbortController();
       const timer = setTimeout(() => ctrl.abort(), opts.timeout || REQUEST_TIMEOUT_MS);
       try {
-        const r = await fetch(Store.meta.apiUrl, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body), redirect: 'follow', signal: ctrl.signal, cache: 'no-store', credentials: 'omit' });
+        const r = await fetch(this.url(), { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body), redirect: 'follow', signal: ctrl.signal, cache: 'no-store', credentials: 'omit' });
         const text = await r.text();
         try { res = JSON.parse(text); } catch (e) {
           throw new ApiError(/<html/i.test(text) ? 'The server returned a web page instead of data. Check the Web App URL (must end in /exec) and that access is set to "Anyone".' : 'Invalid server response.', 'BAD_RESPONSE', true);
@@ -803,7 +808,7 @@ const Sync = {
         } catch (e) {
           chunk.forEach(o => Store.inFlight.delete(o.operationId));
           if (e.network) this.reachable = false;
-          for (const o of chunk) await this.markRetry(o, e.message, e.retryable !== false);
+          if (e.code !== 'UNAUTHORIZED') { for (const o of chunk) await this.markRetry(o, e.message, e.retryable !== false); }   // signed out: keep changes queued as-is
           throw e;
         }
         for (const r of result.results) {
@@ -815,12 +820,13 @@ const Sync = {
         }
       }
       await this.pull({ month: opts.month, full: opts.full });
-      this.lastError = '';
+      this.lastError = ''; this.lastErrorCode = '';
       if (pushed) await LocalDB.addLog({ type: 'SYNCED', message: pushed + ' change' + (pushed > 1 ? 's' : '') + ' synchronized' });
       if (!Store.queue.length) this.justCompleted = Date.now();
       return { pushed, failed, conflicts };
     } catch (e) {
       this.lastError = e.message;
+      this.lastErrorCode = e.code || '';
       if (!e.network) await LocalDB.addLog({ type: 'SYNC_ERROR', message: e.message });
       return { error: e.message, network: !!e.network, pushed, failed, conflicts };
     } finally {
@@ -1062,7 +1068,7 @@ const UI = {
     const pending = Store.pendingCount(), failed = Store.failedCount(), review = Store.reviewCount();
     if (Sync.running) return { state: 'syncing', text: 'Syncing…' };
     if (!navigator.onLine || Sync.reachable === false) return { state: 'offline', text: pending ? 'Offline • Saved locally' : 'Offline' };
-    if (!Api.configured()) return { state: 'pending', text: '⚠ Not connected' };
+    if (!Api.configured() || Sync.lastErrorCode === 'UNAUTHORIZED') return { state: 'pending', text: '⚠ Signed out' };
     if (failed || review) return { state: 'failed', text: review ? '⚠ Needs review' : '⚠ Sync failed' };
     if (pending) return { state: 'pending', text: '⚠ Sync pending' };
     if (Date.now() - Sync.justCompleted < 4000) return { state: 'complete', text: '✓ All changes synced' };
@@ -1126,9 +1132,10 @@ const UI = {
     const off = !navigator.onLine || Sync.reachable === false;
     const never = !Store.meta.lastSyncAt;
     if (!Api.configured()) {
-      return `<div class="banner warn"><span class="grow"><b>Not connected to Google Sheets yet.</b> Entries are saved on this device and will sync after you connect.</span><a class="btn sm" href="#/settings">Connect</a></div>`;
+      return `<div class="banner warn"><span class="grow"><b>Not signed in yet.</b> Entries are saved on this device and will sync after you sign in.</span><a class="btn sm" href="#/settings">Sign in</a></div>`;
     }
     if (off) return `<div class="banner"><span class="grow"><b>Showing locally cached data.</b> ${never ? 'No data has been downloaded yet.' : 'Last synced ' + U.fmtTime(Store.meta.lastSyncAt) + '.'} Changes are saved on this device and will sync automatically.</span></div>`;
+    if (Sync.lastErrorCode === 'UNAUTHORIZED') return `<div class="banner warn"><span class="grow"><b>You're signed out.</b> Your changes are safe on this device and will sync after you sign in.</span><a class="btn sm" href="#/settings">Sign in</a></div>`;
     if (Sync.lastError && !Sync.running) return `<div class="banner err"><span class="grow"><b>Sync problem:</b> ${U.esc(Sync.lastError)} Showing locally cached data.</span><button class="btn sm" data-action="sync-now">Retry</button></div>`;
     return '';
   },
@@ -1594,15 +1601,22 @@ const Views = {
     return `
       <div class="grid-2">
         <div class="card card-pad">
-          <h3 class="section-title" style="margin-bottom:6px">Connection</h3>
-          ${IS_GAS ? `<p class="sub" style="color:var(--ink-2)">Running inside Google Apps Script — connected to your spreadsheet automatically. The API key is only needed if you are not the script owner.</p>` :
-            `<p class="sub" style="color:var(--ink-2);margin-top:0">Paste the Web App URL (ending in <span class="mono">/exec</span>) and the API key printed by <span class="mono">initializeDatabase()</span>. Both are stored only on this device.</p>`}
+          <h3 class="section-title" style="margin-bottom:6px">${Store.meta.apiKey ? 'Signed in' : 'Sign in'}</h3>
+          ${IS_GAS ? `<p class="sub" style="color:var(--ink-2)">Running inside Google Apps Script — the spreadsheet owner is signed in automatically. Others sign in with the app password.</p>` :
+            Store.meta.apiKey ? `<p class="sub" style="color:var(--ink-2);margin-top:0">This device is connected to your Google Sheet and stays signed in, online or offline.</p>` :
+            `<p class="sub" style="color:var(--ink-2);margin-top:0">Enter your app password once. This device then stays signed in, even offline.</p>`}
           <form id="connForm" class="form-grid" style="margin-top:14px" autocomplete="off">
-            ${IS_GAS ? '' : `<div class="field full"><label for="cUrl">Web App URL</label><input id="cUrl" name="apiUrl" class="input" type="url" placeholder="https://script.google.com/macros/s/…/exec" value="${U.esc(Store.meta.apiUrl || '')}" required></div>`}
-            <div class="field full"><label for="cKey">API key</label><input id="cKey" name="apiKey" class="input" type="password" placeholder="${Store.meta.apiKey ? '•••••••• (saved)' : 'Paste your API key'}" autocomplete="new-password"><span class="hint">${Store.meta.apiKey ? 'Leave blank to keep the saved key.' : ''}</span></div>
+            <div class="field full"><label for="cKey">Password</label><input id="cKey" name="password" class="input" type="password" placeholder="${Store.meta.apiKey ? '•••••••• (signed in)' : 'Your app password'}" autocomplete="current-password"><span class="hint">${Store.meta.apiKey ? 'Enter it again only if you were signed out or changed it.' : 'Set it in the spreadsheet: Household Finances → Set app password…'}</span></div>
+            ${IS_GAS ? '' : `<details class="full"><summary class="sub" style="cursor:pointer;color:var(--muted)">Advanced: Web App URL</summary><div class="field" style="margin-top:10px"><input id="cUrl" name="apiUrl" class="input" type="url" placeholder="https://script.google.com/macros/s/…/exec" value="${U.esc(Api.url())}"><span class="hint">Already set. Change only if you redeploy Apps Script to a new URL.</span></div></details>`}
             <div class="form-error full" id="connErr"></div>
-            <div class="full" style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn primary" type="submit" data-action="save-connection">Save &amp; test connection</button>${Store.meta.apiUrl || Store.meta.apiKey ? '<button class="btn danger" type="button" data-action="disconnect">Disconnect this device</button>' : ''}</div>
+            <div class="full" style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn primary" type="submit" data-action="save-connection">${Store.meta.apiKey ? 'Sign in again' : 'Sign in'}</button>${Store.meta.apiKey ? '<button class="btn danger" type="button" data-action="disconnect">Sign out this device</button>' : ''}</div>
           </form>
+          ${!IS_GAS && Store.meta.apiKey ? `<div style="border-top:1px solid var(--line);margin-top:20px;padding-top:16px">
+            <div class="card-title" style="margin-bottom:6px">Connect another device</div>
+            <p class="sub" style="color:var(--ink-2);margin:0 0 12px">Or skip typing the password on your phone: copy a setup link and open it there once. It signs that device in, so send it only to yourself.</p>
+            <button class="btn" type="button" data-action="copy-setup-link">Copy setup link</button>
+            <div id="setupLinkBox" class="mono" style="display:none;margin-top:10px;padding:10px;background:var(--surface-2);border:1px solid var(--line);border-radius:10px"></div>
+          </div>` : ''}
         </div>
         <div class="card card-pad">
           <h3 class="section-title" style="margin-bottom:6px">Budget</h3>
@@ -2150,33 +2164,47 @@ const Actions = {
     const form = document.getElementById('connForm');
     const err = document.getElementById('connErr');
     const fd = new FormData(form);
+    const fail = msg => { err.textContent = msg; err.classList.add('show'); };
     err.classList.remove('show');
-    await UI.busy(el, 'Testing…', async () => {
-      const url = IS_GAS ? '' : String(fd.get('apiUrl') || '').trim();
-      const key = String(fd.get('apiKey') || '').trim() || Store.meta.apiKey || '';
-      if (!IS_GAS && !/^https:\/\/script\.google(usercontent)?\.com\/.+\/exec(\?.*)?$/.test(url) && !/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?\//.test(url)) { err.textContent = 'The URL must be your Apps Script Web App URL ending in /exec.'; err.classList.add('show'); return; }
-      if (!IS_GAS && !key) { err.textContent = 'Paste the API key.'; err.classList.add('show'); return; }
+    await UI.busy(el, 'Signing in…', async () => {
+      const url = IS_GAS ? '' : (String(fd.get('apiUrl') || '').trim() || DEFAULT_API_URL);
+      const password = String(fd.get('password') || '');
+      if (!IS_GAS && !/^https:\/\/script\.google(usercontent)?\.com\/.+\/exec(\?.*)?$/.test(url) && !/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?\//.test(url)) return fail('The Web App URL must be your Apps Script link ending in /exec.');
+      if (!password) return fail('Enter your password.');
+      if (!navigator.onLine) return fail('You are offline. Sign in needs the internet once; after that the app works offline.');
       const prev = { apiUrl: Store.meta.apiUrl, apiKey: Store.meta.apiKey };
-      Store.meta.apiUrl = url; Store.meta.apiKey = key;
+      Store.meta.apiUrl = url === DEFAULT_API_URL ? '' : url;
       try {
-        const r = await Api.call('ping', {}, { timeout: 20000 });
-        if (!r.authorized) throw new Error('The server is reachable but the API key was not accepted.');
-        await Store.setMeta('apiUrl', url); await Store.setMeta('apiKey', key); await Store.setMeta('serverVersion', r.version);
-        UI.toast('Connected to Google Sheets. Synchronizing…');
+        const device = (/iPhone|iPad/.test(navigator.userAgent) ? 'iPhone/iPad' : /Android/.test(navigator.userAgent) ? 'Android' : /Mac/.test(navigator.userAgent) ? 'Mac' : /Windows/.test(navigator.userAgent) ? 'Windows' : 'Browser') + ' · ' + U.fmtTime(U.nowIso());
+        const r = await Api.call('login', { password, device }, { timeout: 30000 });
+        await Store.setMeta('apiUrl', Store.meta.apiUrl || ''); await Store.setMeta('apiKey', r.token);
+        Sync.lastError = ''; Sync.lastErrorCode = '';
+        form.reset();
+        UI.toast('Signed in. Loading your data…');
         const res = await Sync.run({ manual: true, full: true });
-        if (res.error) UI.toast('Connected, but the first sync failed: ' + res.error, 'err'); else UI.toast('✓ Data loaded from Google Sheets.');
+        if (res.error) UI.toast('Signed in, but the first sync failed: ' + res.error, 'err'); else UI.toast('✓ Signed in and synced with Google Sheets.');
+        UI.render();
       } catch (ex) {
         Store.meta.apiUrl = prev.apiUrl; Store.meta.apiKey = prev.apiKey;
-        err.textContent = ex.message; err.classList.add('show');
+        fail(ex.message);
       }
     });
   },
   async disconnect() {
     const n = Store.queue.length;
-    const ok = await Modal.confirm('Disconnect this device?', (n ? `<b>${n} change(s) are not synced yet</b> and will stay queued on this device until you reconnect.<br><br>` : '') + 'The Web App URL and API key will be removed from this device. Cached data stays until you clear it.', 'Disconnect', true);
+    const ok = await Modal.confirm('Sign out this device?', (n ? `<b>${n} change(s) are not synced yet</b> and will stay queued on this device until you sign in again.<br><br>` : '') + 'You will need the password to sign in again. Cached data stays until you clear it.', 'Sign out', true);
     if (!ok) return;
-    await Store.setMeta('apiUrl', ''); await Store.setMeta('apiKey', '');
-    UI.render(); UI.toast('Disconnected.');
+    if (navigator.onLine && Store.meta.apiKey) { try { await Api.call('logout', {}, { timeout: 10000 }); } catch (e) { /* best effort */ } }
+    await Store.setMeta('apiKey', '');
+    UI.render(); UI.toast('Signed out.');
+  },
+  async 'copy-setup-link'() {
+    const link = location.origin + location.pathname + '#connect=' + encodeURIComponent(Store.meta.apiKey || '') + (Store.meta.apiUrl && Store.meta.apiUrl !== DEFAULT_API_URL ? '&url=' + encodeURIComponent(Store.meta.apiUrl) : '');
+    const box = document.getElementById('setupLinkBox');
+    let copied = false;
+    try { await navigator.clipboard.writeText(link); copied = true; } catch (e) { /* clipboard blocked — show the link instead */ }
+    if (box) { box.style.display = 'block'; box.textContent = link; }
+    UI.toast(copied ? 'Setup link copied. Open it once on your phone, then install the app.' : 'Copy the setup link shown below.');
   },
   'print': () => window.print(),
   'export-csv': () => { Reports.csv(); UI.toast('CSV exported.'); },
@@ -2269,9 +2297,24 @@ async function boot() {
   window.addEventListener('unhandledrejection', e => { console.error(e.reason); });
 
   if (LocalDB.memory) setTimeout(() => UI.toast('This browser blocked offline storage (' + LocalDB.memoryReason + '). Entries will be lost if you close the app before syncing.', 'err', 10000), 500);
+  // One-tap setup link: …/#connect=<API key>[&url=<exec URL>] (the #part never reaches GitHub's servers)
+  let justConnected = false;
+  try {
+    const m = (location.hash || '').match(/^#connect=([^&]+)(?:&url=(.+))?$/);
+    if (m) {
+      await Store.setMeta('apiKey', decodeURIComponent(m[1]).trim());
+      if (m[2]) await Store.setMeta('apiUrl', decodeURIComponent(m[2]).trim());
+      justConnected = true;
+      try { location.replace('#/dashboard'); } catch (e) { /* ignore */ }
+    }
+  } catch (e) { /* ignore malformed links */ }
   UI.view = UI.hashView() || 'dashboard';
   if (!Api.configured() && !IS_GAS && !Store.list('billInstances').length) UI.view = 'settings';
   UI.init();
+  if (justConnected) {
+    UI.toast('Connecting this device to Google Sheets…');
+    Sync.run({ manual: true, full: true }).then(r => UI.toast(r && r.error ? 'Setup link saved, but sync failed: ' + r.error : '✓ This device is connected and synced.', r && r.error ? 'err' : ''));
+  }
   Sync.start();
 }
 boot();
