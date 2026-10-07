@@ -143,6 +143,17 @@ textarea.input{min-height:76px;resize:vertical}
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px}
 .grid-3-1{display:grid;grid-template-columns:1.25fr 1fr;gap:18px;margin-bottom:18px}
 
+/* ---------- Available money ---------- */
+.avail{display:grid;grid-template-columns:1.15fr 1fr;overflow:hidden;margin-bottom:18px}
+.avail-main{background:var(--ink);color:#F7F4EF;padding:24px 26px}
+.avail-main .label{font-size:11px;letter-spacing:1.8px;text-transform:uppercase;font-weight:700;color:#CFC8BD}
+.avail-main .big{font-family:var(--serif);font-size:46px;font-weight:600;line-height:1.1;margin-top:8px;font-variant-numeric:lining-nums tabular-nums}
+.avail-main .big.neg-light{color:#F2A9A4}
+.avail-main .meta{font-size:13px;color:#E4DED4;margin-top:6px}
+.avail-side{padding:18px 24px}
+.avail-side .row{border-top:1px solid var(--line)}
+.avail-side .row:first-child{border-top:0}
+
 /* ---------- Status tags ---------- */
 .tag{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-size:11.5px;font-weight:700;letter-spacing:.6px;white-space:nowrap}
 .tag::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor}
@@ -267,6 +278,10 @@ textarea.input{min-height:76px;resize:vertical}
   .content{padding:18px 16px 110px}
   .hero h2{font-size:30px}
   .kpis{grid-template-columns:repeat(2,1fr);gap:10px}
+  .avail{grid-template-columns:1fr}
+  .avail-main{padding:20px 18px}
+  .avail-main .big{font-size:38px}
+  .avail-side{padding:14px 16px}
   .kpi{padding:14px 16px}
   .kpi .value{font-size:23px}
   .kpi.lead{grid-column:1/-1}
@@ -369,10 +384,11 @@ textarea.input{min-height:76px;resize:vertical}
  * Layers:  Util → LocalDB (IndexedDB) → Store (in-memory) → Calc (same rules as
  *          Code.gs) → Api (fetch or google.script.run) → Sync (queue engine) → UI
  * ========================================================================== */
-const APP_VERSION = '1.0.0';
+const APP_VERSION = '1.1.0';
 const TZ = 'Asia/Manila';
 const PAYMENT_METHODS = ['Cash', 'Bank Transfer', 'Online Bank', 'Credit Card', 'Debit Card', 'GCash', 'Other'];
-const FREQUENCIES = ['WEEKLY', 'MONTHLY', 'QUARTERLY', 'YEARLY', 'CUSTOM'];
+const FREQUENCIES = ['WEEKLY', 'BIWEEKLY', 'MONTHLY', 'QUARTERLY', 'YEARLY', 'CUSTOM'];
+const WEEKEND_RULES = [{ value: 'NONE', label: 'Exact date, even on weekends' }, { value: 'SUNDAY_TO_MONDAY', label: 'If Sunday → arrives Monday' }, { value: 'WEEKEND_TO_MONDAY', label: 'If Saturday/Sunday → arrives Monday' }, { value: 'WEEKEND_TO_FRIDAY', label: 'If Saturday/Sunday → arrives Friday before' }];
 const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const DEFAULT_CATEGORIES = {
@@ -459,7 +475,8 @@ const ENTITY = {
   expenses: { idField: 'expenseId', type: 'EXPENSE' },
   income: { idField: 'incomeId', type: 'INCOME' },
   budgets: { idField: 'budgetId', type: 'BUDGET' },
-  categories: { idField: 'categoryId', type: 'CATEGORY' }
+  categories: { idField: 'categoryId', type: 'CATEGORY' },
+  recurringIncome: { idField: 'recurringIncomeId', type: 'RECURRING_INCOME' }
 };
 const STORES = Object.keys(ENTITY).concat(['meta', 'queue', 'conflicts', 'dashboard', 'syncLog']);
 
@@ -469,7 +486,7 @@ const LocalDB = {
     if (!('indexedDB' in self)) return this.useMemory('IndexedDB is not available in this browser');
     try {
       this.db = await new Promise((resolve, reject) => {
-        const req = indexedDB.open('household-finances', 1);
+        const req = indexedDB.open('household-finances', 2);
         req.onupgradeneeded = () => {
           const db = req.result;
           Object.keys(ENTITY).forEach(s => { if (!db.objectStoreNames.contains(s)) db.createObjectStore(s, { keyPath: 'id' }); });
@@ -688,12 +705,47 @@ const Calc = {
     }
     return { health, reasons, budget, basis: U.round2(basis), totalSpent: s.totalSpent, projectedSpend: s.projectedSpend, remaining: U.round2(basis - s.totalSpent), percentUsed: U.round2(used * 100), percentProjected: basis > 0 ? U.round2(s.projectedSpend / basis * 100) : 0, monthElapsed: U.round2(elapsed * 100) };
   },
+  payDueText(b) {
+    const v = +b.payDueValue;
+    switch (b.payDueRule) {
+      case 'SAME_MONTH': return 'due the ' + U.ordinal(v || 1);
+      case 'NEXT_MONTH': return 'due the ' + U.ordinal(v || 1) + ' of next month';
+      case 'DAYS_AFTER': return 'due ' + v + ' day' + (v === 1 ? '' : 's') + ' after';
+      default: return 'due on arrival';
+    }
+  },
+  /** "Arrives Oct 20 · Due Fri, Nov 13" style text for a bill instance. */
+  datesText(i, today) {
+    const arr = i.arrivalDate && i.arrivalDate !== i.dueDate ? i.arrivalDate : '';
+    if (!arr) return 'Due ' + U.fmtDay(i.dueDate);
+    return (arr > (today || U.today()) ? 'Arrives ' : 'Arrived ') + U.fmtDate(arr).replace(/, \d{4}$/, '') + ' · Due ' + U.fmtDay(i.dueDate);
+  },
   upcoming(month, instances, today) {
     const cm = today.slice(0, 7);
     const horizon = U.addDays(today, 30);
     return instances.filter(i => !i.isVoid && i.status !== ST.PAID && i.status !== ST.OVER && i.status !== ST.OVERDUE &&
-      (month === cm ? (i.dueDate >= today && i.dueDate <= horizon) : i.billingPeriod === month))
+      (month === cm ? (i.dueDate >= today && (i.arrivalDate || i.dueDate) <= horizon) : i.billingPeriod === month))
       .sort((a, b) => (a.dueDate < b.dueDate ? -1 : a.dueDate > b.dueDate ? 1 : 0)).slice(0, 12);
+  },
+  /** Cash on hand & safe to spend — mirrors computeAvailable_() in Code.gs. */
+  available(today, instances) {
+    today = today || U.today();
+    instances = instances || Calc.instances(today);
+    const st = Store.settings || {};
+    const openingDate = U.isYmd(String(st.openingBalanceDate || '')) ? st.openingBalanceDate : '0000-01-01';
+    const opening = U.cents(st.openingBalance || 0);
+    let incomeIn = 0, billsOut = 0, otherOut = 0;
+    Store.list('income').forEach(r => { if (U.bool(r.isDeleted) || r.status === 'CANCELLED' || U.blank(r.actualAmount) || String(r.date) < openingDate) return; incomeIn += U.cents(r.actualAmount); });
+    Store.list('payments').forEach(p => { if (U.bool(p.isVoid) || String(p.paymentDate) < openingDate) return; billsOut += U.cents(p.amount); });
+    Store.list('expenses').forEach(e => { if (U.bool(e.isDeleted) || String(e.date) < openingDate) return; otherOut += U.cents(e.amount); });
+    const cash = opening + incomeIn - billsOut - otherOut;
+    const upcoming = Store.list('income').filter(r => !U.bool(r.isDeleted) && r.status !== 'CANCELLED' && U.blank(r.actualAmount) && String(r.date) >= today).sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+    const late = Store.list('income').filter(r => !U.bool(r.isDeleted) && r.status !== 'CANCELLED' && U.blank(r.actualAmount) && r.recurringIncomeId && String(r.date) < today && String(r.date) >= openingDate).sort((a, b) => (a.date < b.date ? -1 : 1));
+    const next = upcoming[0] || null;
+    const horizon = next ? next.date : U.addDays(today, 31);
+    const before = instances.filter(i => !i.isVoid && i.status !== ST.PAID && i.status !== ST.OVER && i.dueDate < horizon).sort((a, b) => (a.dueDate < b.dueDate ? -1 : 1));
+    const committed = before.reduce((a, i) => a + Math.max(0, U.cents(i.expectedAmount) - U.cents(i.actualAmount)), 0);
+    return { asOf: today, openingBalance: U.fromCents(opening), openingBalanceDate: openingDate === '0000-01-01' ? '' : openingDate, incomeReceived: U.fromCents(incomeIn), billsPaid: U.fromCents(billsOut), otherExpenses: U.fromCents(otherOut), cashOnHand: U.fromCents(cash), committedBeforeNextIncome: U.fromCents(committed), safeToSpend: U.fromCents(cash - committed), nextIncome: next, horizon, billsBefore: before, upcomingIncome: upcoming.slice(0, 5), lateIncome: late };
   },
   attention(month, instances, today) {
     const end = U.lastDay(month), soon = U.addDays(today, 7);
@@ -707,17 +759,18 @@ const Calc = {
   },
   scheduleText(b) {
     switch (b.frequency) {
-      case 'MONTHLY': return 'Monthly · due the ' + U.ordinal(+b.dueDay || 1);
+      case 'MONTHLY': return 'Monthly · ' + (b.payDueRule && b.payDueRule !== 'ON_ARRIVAL' ? 'arrives the ' + U.ordinal(+b.dueDay || 1) + ' · ' + Calc.payDueText(b) : 'due the ' + U.ordinal(+b.dueDay || 1));
       case 'WEEKLY': return 'Weekly · every ' + (WEEKDAYS[+b.dueWeekday] || '—');
       case 'QUARTERLY': return 'Quarterly · the ' + U.ordinal(+b.dueDay || 1);
       case 'YEARLY': return 'Yearly · ' + (U.isYmd(b.startDate) ? MONTHS[+b.startDate.slice(5, 7) - 1].slice(0, 3) + ' ' + (+b.dueDay || 1) : '');
+      case 'BIWEEKLY': return 'Every 2 weeks · from ' + U.fmtDate(b.startDate);
       case 'CUSTOM': return 'Every ' + (b.intervalDays || '?') + ' days';
       default: return b.frequency || '—';
     }
   },
   monthlyEquivalent(b) {
     const a = Number(b.amount) || 0;
-    return { WEEKLY: a * 52 / 12, MONTHLY: a, QUARTERLY: a / 3, YEARLY: a / 12, CUSTOM: a * (365.25 / 12) / Math.max(1, +b.intervalDays || 30) }[b.frequency] || 0;
+    return { WEEKLY: a * 52 / 12, BIWEEKLY: a * 26 / 12, MONTHLY: a, QUARTERLY: a / 3, YEARLY: a / 12, CUSTOM: a * (365.25 / 12) / Math.max(1, +b.intervalDays || 30) }[b.frequency] || 0;
   }
 };
 
@@ -924,12 +977,24 @@ const Sync = {
     const full = opts.full || !Store.meta.lastServerTime;
     let since = '';
     if (!full) { const t = new Date(new Date(Store.meta.lastServerTime).getTime() - 5 * 60 * 1000); since = t.toISOString(); }
-    const data = await Api.call('getAllData', { since, month: opts.month || Store.month }, { timeout: 45000 });
-    await this.mergeRecords({ recurringBills: data.recurringBills, billInstances: data.billInstances, payments: data.payments, expenses: data.expenses, income: data.income, budgets: data.budgets, categories: data.categories, settings: data.settings }, false);
+    let data = await Api.call('getAllData', { since, month: opts.month || Store.month }, { timeout: 45000 });
+    // The owner used "Start fresh": a device that last synced before the reset drops everything it saved
+    // (including queued changes made against the old data) and reloads.
+    const resetAt = data.settings && data.settings.dataResetAt;
+    if (resetAt && resetAt !== Store.meta.dataResetAt && Store.meta.lastSyncAt && Store.meta.lastSyncAt < resetAt) {
+      for (const st of Object.keys(ENTITY).concat(['queue', 'conflicts', 'dashboard'])) await LocalDB.clear(st);
+      Object.keys(ENTITY).forEach(st => { Store.data[st] = new Map(); });
+      Store.queue = []; Store.conflicts = [];
+      await LocalDB.addLog({ type: 'RESET', message: 'The data was reset in Google Sheets — this device cleared its old copy.' });
+      if (since) data = await Api.call('getAllData', { since: '', month: opts.month || Store.month }, { timeout: 45000 });
+      setTimeout(() => UI.toast('Fresh start: this device loaded the new data from Google Sheets.'), 50);
+    }
+    if (resetAt) await Store.setMeta('dataResetAt', resetAt);
+    await this.mergeRecords({ recurringIncome: data.recurringIncome, recurringBills: data.recurringBills, billInstances: data.billInstances, payments: data.payments, expenses: data.expenses, income: data.income, budgets: data.budgets, categories: data.categories, settings: data.settings }, false);
     if (data.full) {
       // Full refresh: remove synced local records that no longer exist on the server
       const pendingIds = new Set(Store.queue.map(q => q.localId || q.entityId));
-      const map = { recurringBills: data.recurringBills, billInstances: data.billInstances, payments: data.payments, expenses: data.expenses, income: data.income, budgets: data.budgets, categories: data.categories };
+      const map = { recurringIncome: data.recurringIncome, recurringBills: data.recurringBills, billInstances: data.billInstances, payments: data.payments, expenses: data.expenses, income: data.income, budgets: data.budgets, categories: data.categories };
       for (const store of Object.keys(map)) {
         const ids = new Set((map[store] || []).map(r => r[ENTITY[store].idField]));
         for (const rec of Store.list(store)) if (!ids.has(rec.id) && rec.syncStatus === 'synced' && !pendingIds.has(rec.id)) await Store.remove(store, rec.id);
@@ -1295,7 +1360,7 @@ const Views = {
     const attention = Calc.attention(Store.month, inst, today);
     const trend = U.monthRange(U.addMonths(Store.month, -5), Store.month).map(m => { const x = Calc.summary(m, inst, today); return { month: m, actualIncome: x.actualIncome, totalSpent: x.totalSpent }; });
     const miniRow = i => `<div class="row cols-mini">
-        <div class="primary-cell"><div class="name">${U.esc(i.billName)} ${localTag(i.hasLocal ? { syncStatus: 'pending' } : null)}</div><div class="sub">${i.status === ST.OVERDUE ? '<span class="neg">Overdue · </span>' : ''}Due ${U.fmtDay(i.dueDate)}${i.paymentCount ? ' · paid ' + U.peso(i.actualAmount, true) : ''}</div></div>
+        <div class="primary-cell"><div class="name">${U.esc(i.billName)} ${localTag(i.hasLocal ? { syncStatus: 'pending' } : null)}</div><div class="sub">${i.status === ST.OVERDUE ? '<span class="neg">Overdue · </span>' : ''}${U.esc(Calc.datesText(i))}${i.paymentCount ? ' · paid ' + U.peso(i.actualAmount, true) : ''}</div></div>
         <div class="num"><b>${U.peso(i.status === ST.OVER ? i.actualAmount : Math.max(0, i.remainingAmount))}</b><div>${tagFor(i.status)}</div></div>
         <div class="actions">${i.status === ST.PAID || i.status === ST.OVER ? `<button class="btn sm" data-action="bill-details" data-id="${U.esc(i.billInstanceId)}">Details</button>` : `<button class="btn sm pay" data-action="pay" data-id="${U.esc(i.billInstanceId)}">${i.paymentCount ? 'Pay balance' : 'Mark as Paid'}</button>`}</div>
       </div>`;
@@ -1309,6 +1374,7 @@ const Views = {
       </div>
       ${UI.cachedBanner()}
       ${verify ? `<div style="margin:-6px 0 14px">${verify}</div>` : ''}
+      ${this.availablePanel()}
       <div class="kpis">
         ${kpi('Monthly Budget', s.monthlyBudget, `${s.budgetSource === 'month' ? 'Planned for ' + U.monthLabel(Store.month) : 'Default budget'} · <a href="#" data-action="edit-budget" style="color:inherit">Adjust</a>`, 'lead')}
         ${kpi('Expected', s.expectedBills, `${scheduled} bill${scheduled === 1 ? '' : 's'} scheduled this month`)}
@@ -1362,6 +1428,45 @@ const Views = {
       </div>`;
   },
 
+  availablePanel() {
+    const today = U.today();
+    const a = Calc.available(today);
+    const neg = a.safeToSpend < 0;
+    const incRow = (r, late) => `<div class="row cols-mini" style="padding:10px 0">
+        <div class="primary-cell"><div class="name">${U.esc(r.source)}</div><div class="sub">${late ? '<span class="neg">Expected ' + U.esc(U.fmtDay(r.date)) + ' · not marked received</span>' : U.esc(U.fmtDay(r.date))}</div></div>
+        <div class="num"><b>${U.peso(r.expectedAmount, true)}</b></div>
+        <div class="actions"><button class="btn sm ${late ? 'pay' : ''}" data-action="receive-income" data-id="${U.esc(r.incomeId || r.id)}">Received</button></div></div>`;
+    const noBalance = !Number(Store.settings.openingBalance || 0) && !Store.settings.openingBalanceConfirmed;
+    return `<div class="card avail">
+      <div class="avail-main">
+        <div class="label">Safe to spend <span style="opacity:.7">· as of ${U.esc(U.fmtDay(today))}</span></div>
+        <div class="big ${neg ? 'neg-light' : ''}" title="${U.esc(U.peso(a.safeToSpend))}">${U.peso(a.safeToSpend, true)}</div>
+        <div class="meta">Cash on hand <b>${U.peso(a.cashOnHand, true)}</b>${a.committedBeforeNextIncome > 0 ? ` − <b>${U.peso(a.committedBeforeNextIncome, true)}</b> for ${a.billsBefore.length} bill${a.billsBefore.length === 1 ? '' : 's'} due ${a.nextIncome ? 'before ' + U.esc(U.fmtDay(a.nextIncome.date)) : 'in the next 31 days'}` : ' · no unpaid bills due before the next income'}</div>
+        <div class="meta" style="margin-top:10px;opacity:.85">${a.nextIncome ? `Next income: <b>${U.esc(a.nextIncome.source)}</b> · ${U.peso(a.nextIncome.expectedAmount, true)} on ${U.esc(U.fmtDay(a.nextIncome.date))}` : 'No upcoming income scheduled.'}</div>
+        ${noBalance ? `<button class="btn sm" style="margin-top:14px;background:transparent;color:#F7F4EF;border-color:rgba(255,255,255,.35)" data-action="edit-opening-balance">Set your starting balance</button>` : `<div class="meta" style="margin-top:6px;opacity:.65">Starting balance ${U.peso(a.openingBalance, true)}${a.openingBalanceDate ? ' on ' + U.esc(U.fmtDate(a.openingBalanceDate)) : ''} · received ${U.peso(a.incomeReceived, true)} · paid out ${U.peso(a.billsPaid + a.otherExpenses, true)}</div>`}
+      </div>
+      <div class="avail-side">
+        <div class="card-title" style="margin-bottom:4px">Income</div>
+        <div class="list">${a.lateIncome.slice(0, 3).map(r => incRow(r, true)).join('')}${a.upcomingIncome.slice(0, 4).map(r => incRow(r, false)).join('') || (a.lateIncome.length ? '' : '<div class="empty" style="padding:18px 0">No expected income. Add one under Income.</div>')}</div>
+        <a class="btn sm ghost" href="#/income" style="margin-top:6px">All income</a>
+      </div>
+    </div>`;
+  },
+  recurringIncomeCard() {
+    const list = Store.list('recurringIncome').sort((a, b) => (U.bool(b.isActive) - U.bool(a.isActive)) || String(a.source).localeCompare(b.source));
+    if (!list.length) return `<div class="card card-pad" style="margin-bottom:18px"><div class="card-title" style="margin-bottom:6px">Recurring income</div><p class="sub" style="color:var(--ink-2);margin:0">No schedules yet. Add one and its expected payments appear automatically every month.</p></div>`;
+    const monthly = list.filter(r => U.bool(r.isActive)).reduce((a, r) => a + Math.round(Calc.monthlyEquivalent(r) * 100), 0);
+    return `<div class="card" style="margin-bottom:18px"><div class="card-head"><h3 class="card-title">Recurring income</h3><span class="sub" style="font-size:12.5px;color:var(--muted)">≈ ${U.peso(U.fromCents(monthly), true)} / month</span></div>
+      <div class="list" style="margin-top:8px">${list.map(r => `<div class="row cols-rec ${U.bool(r.isActive) ? '' : 'dim'}">
+        <div class="primary-cell"><div class="name">${U.esc(r.source)} ${localTag(r)}</div><div class="sub">${U.esc(r.category)} · ${U.esc(r.paymentMethod)}</div></div>
+        <div class="num" data-label="Expected"><b>${U.peso(r.amount)}</b></div>
+        <div data-label="Schedule">${U.esc(Calc.scheduleText(r))}${r.weekendRule && r.weekendRule !== 'NONE' ? '<div class="sub">' + U.esc((WEEKEND_RULES.find(w => w.value === r.weekendRule) || {}).label || '') + '</div>' : ''}</div>
+        <div data-label="Method">${U.esc(r.paymentMethod)}</div>
+        <div class="status-cell">${U.bool(r.isActive) ? '<span class="tag PAID">ACTIVE</span>' : '<span class="tag VOID">PAUSED</span>'}</div>
+        <div class="actions"><button class="btn sm" data-action="edit-recurring-income" data-id="${U.esc(r.id)}">Edit</button>${U.bool(r.isActive) ? `<button class="btn sm danger" data-action="toggle-recurring-income" data-id="${U.esc(r.id)}" data-on="0">Pause</button>` : `<button class="btn sm" data-action="toggle-recurring-income" data-id="${U.esc(r.id)}" data-on="1">Resume</button>`}</div>
+      </div>`).join('')}</div></div>`;
+  },
+
   /* ============================== BILLS ============================== */
   bills() {
     const f = UI.filters.bills;
@@ -1390,7 +1495,7 @@ const Views = {
       te += U.cents(i.expectedAmount); tp += U.cents(i.actualAmount); tr += Math.max(0, U.cents(i.remainingAmount));
       const done = i.status === ST.PAID || i.status === ST.OVER;
       return `<div class="row cols-bills">
-        <div class="primary-cell"><div class="name">${U.esc(i.billName)} ${localTag(i.hasLocal ? { syncStatus: 'pending' } : null)}</div><div class="sub">${U.esc(i.category || '')}${i.frequency ? ' · ' + U.esc(i.frequency.toLowerCase()) : ''}${i.notes ? ' · ' + U.esc(i.notes) : ''}</div></div>
+        <div class="primary-cell"><div class="name">${U.esc(i.billName)} ${localTag(i.hasLocal ? { syncStatus: 'pending' } : null)}</div><div class="sub">${i.arrivalDate && i.arrivalDate !== i.dueDate ? (i.arrivalDate > U.today() ? 'Arrives ' : 'Arrived ') + U.esc(U.fmtDate(i.arrivalDate)) + ' · ' : ''}${U.esc(i.category || '')}${i.frequency ? ' · ' + U.esc(i.frequency.toLowerCase()) : ''}${i.notes ? ' · ' + U.esc(i.notes) : ''}</div></div>
         <div data-label="Due">${U.fmtDate(i.dueDate)}</div>
         <div class="num" data-label="Expected">${U.peso(i.expectedAmount)}</div>
         <div class="num" data-label="Paid">${i.paymentCount ? U.peso(i.actualAmount) : '<span style="color:var(--muted)">—</span>'}</div>
@@ -1443,7 +1548,8 @@ const Views = {
   income() {
     const f = UI.filters.income;
     return `${UI.cachedBanner()}
-      <div class="toolbar"><div class="left"><h2 class="section-title">Income</h2></div><button class="btn primary" data-action="add-income">${svgIcon('plus', 16)} Add income</button></div>
+      <div class="toolbar"><div class="left"><h2 class="section-title">Income</h2></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" data-action="add-recurring-income">${svgIcon('recurring', 16)} Add recurring income</button><button class="btn primary" data-action="add-income">${svgIcon('plus', 16)} Add other income</button></div></div>
+      ${this.recurringIncomeCard()}
       <div class="filters">
         <div class="field grow"><label for="fiS">Search</label><input id="fiS" class="input" type="search" placeholder="Source, note, status" value="${U.esc(f.search)}" data-filter="income.search"></div>
         <div class="field"><label for="fiC">Category</label><select id="fiC" class="input" data-filter="income.category">${UI.options(Store.categories('INCOME'), f.category, 'All categories')}</select></div>
@@ -1467,7 +1573,7 @@ const Views = {
         <div class="num" data-label="Expected">${U.peso(r.expectedAmount)}</div>
         <div class="num" data-label="Received">${U.blank(r.actualAmount) ? '<span style="color:var(--muted)">—</span>' : U.peso(r.actualAmount)}</div>
         <div class="status-cell">${tagFor(r.status || 'PENDING')}</div>
-        <div class="actions"><button class="btn sm" data-action="edit-income" data-id="${U.esc(r.id)}">Edit</button><button class="btn sm danger" data-action="delete-income" data-id="${U.esc(r.id)}">Delete</button></div>
+        <div class="actions">${U.blank(r.actualAmount) && r.status !== 'CANCELLED' ? `<button class="btn sm pay" data-action="receive-income" data-id="${U.esc(r.id)}">Mark received</button>` : ''}<button class="btn sm" data-action="edit-income" data-id="${U.esc(r.id)}">Edit</button>${r.recurringIncomeId ? '' : `<button class="btn sm danger" data-action="delete-income" data-id="${U.esc(r.id)}">Delete</button>`}</div>
       </div>`).join('')}</div>
       <div class="list-foot"><span>${list.length} entr${list.length === 1 ? 'y' : 'ies'} · ${U.esc(this.scopeLabel(f))}</span><span>Expected ${U.peso(U.fromCents(te))} · Received ${U.peso(U.fromCents(ta))}</span></div>`;
   },
@@ -1623,6 +1729,12 @@ const Views = {
           <p class="sub" style="color:var(--ink-2);margin-top:0">The planned budget for each month. Months without their own value use the default.</p>
           <dl class="kv" style="margin:14px 0"><dt>${U.esc(U.monthLabel(Store.month))}</dt><dd>${U.peso(b.amount)} ${b.source === 'default' ? '<span class="sub">(default)</span>' : ''}</dd><dt>Default monthly budget</dt><dd>${U.peso(s.defaultMonthlyBudget || 0)}</dd><dt>Watch threshold</dt><dd>${Math.round(Number(s.watchThreshold || 0.9) * 100)}% of budget</dd></dl>
           <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn primary" data-action="edit-budget">Adjust ${U.esc(U.monthLabel(Store.month))}</button><button class="btn" data-action="edit-default-budget">Change default</button></div>
+          <div style="border-top:1px solid var(--line);margin-top:20px;padding-top:16px">
+            <div class="card-title" style="margin-bottom:6px">Starting balance</div>
+            <p class="sub" style="color:var(--ink-2);margin:0 0 10px">Money you already had on the start date. Cash on hand and Safe to spend count everything received and spent from that date on, and carry over month to month.</p>
+            <dl class="kv" style="margin:0 0 12px"><dt>Amount</dt><dd>${U.peso(s.openingBalance || 0)}</dd><dt>As of</dt><dd>${U.isYmd(s.openingBalanceDate || '') ? U.fmtDate(s.openingBalanceDate) : '—'}</dd></dl>
+            <button class="btn" data-action="edit-opening-balance">Set starting balance</button>
+          </div>
         </div>
       </div>
       <div class="grid-2">
@@ -1891,7 +2003,7 @@ const Forms = {
         <div class="card" style="box-shadow:none;margin-bottom:16px">${pays.length ? pays.map(p => `<div class="row" style="grid-template-columns:1fr auto auto;padding:10px 16px;${U.bool(p.isVoid) ? 'opacity:.5;text-decoration:line-through' : ''}"><div><div class="name">${U.fmtDate(p.paymentDate)} · ${U.esc(p.paymentMethod)} ${localTag(p)}</div>${p.notes ? `<div class="sub">${U.esc(p.notes)}</div>` : ''}</div><div class="num"><b>${U.peso(p.amount)}</b></div><div>${U.bool(p.isVoid) ? '<span class="sub">voided</span>' : `<button type="button" class="btn sm danger" data-action="void-payment" data-id="${U.esc(p.id)}">Void</button>`}</div></div>`).join('') : '<div class="empty" style="padding:18px">No payments yet — actual amount is blank, so this bill is unpaid.</div>'}</div>
         <div class="form-grid">
           ${F.money('expectedAmount', 'Expected amount (this month only)', inst.expectedAmount, { required: true, hint: inst.manualOverride ? 'Manually adjusted for this month.' : 'Changing this affects only this bill instance.' })}
-          ${F.date('dueDate', 'Due date', inst.dueDate, { required: true })}
+          ${F.date('dueDate', 'Payment due date', inst.dueDate, { required: true, hint: inst.arrivalDate && inst.arrivalDate !== inst.dueDate ? 'Bill arrived/arrives ' + U.esc(U.fmtDate(inst.arrivalDate)) + '.' : '' })}
           ${F.select('paymentMethod', 'Default payment method', PAYMENT_METHODS, inst.paymentMethod || 'Cash')}
           <div class="field"><label>Instance ID</label><div class="mono" style="padding-top:10px;color:var(--muted)">${U.esc(inst.billInstanceId)}</div></div>
           ${F.notes(inst.notes)}
@@ -1969,7 +2081,9 @@ const Forms = {
         ${F.select('category', 'Category', Store.categories('BILL'), cur ? cur.category : 'Utilities')}
         ${F.money('amount', 'Default amount', cur ? cur.amount : '', { required: true })}
         ${F.select('frequency', 'Frequency', FREQUENCIES.map(f => ({ value: f, label: f.charAt(0) + f.slice(1).toLowerCase() })), freq)}
-        <div class="field" data-show="MONTHLY QUARTERLY YEARLY"><label for="f_dueDay">Due day of month</label><input id="f_dueDay" name="dueDay" class="input" type="number" min="1" max="31" value="${U.esc(cur && cur.dueDay ? cur.dueDay : 15)}"><span class="hint">31 means "last day" in shorter months.</span></div>
+        <div class="field" data-show="MONTHLY QUARTERLY YEARLY"><label for="f_dueDay">Bill arrives (day of month)</label><input id="f_dueDay" name="dueDay" class="input" type="number" min="1" max="31" value="${U.esc(cur && cur.dueDay ? cur.dueDay : 15)}"><span class="hint">When the bill/statement comes in. 31 = last day in shorter months.</span></div>
+        <div class="field"><label for="f_payDueRule">Payment due</label><select id="f_payDueRule" name="payDueRule" class="input">${UI.options([{ value: 'ON_ARRIVAL', label: 'Same day it arrives' }, { value: 'SAME_MONTH', label: 'On a day in the same month' }, { value: 'NEXT_MONTH', label: 'On a day in the next month' }, { value: 'DAYS_AFTER', label: 'A number of days after it arrives' }], cur && cur.payDueRule ? cur.payDueRule : 'ON_ARRIVAL')}</select></div>
+        <div class="field" data-due="SAME_MONTH NEXT_MONTH DAYS_AFTER"><label for="f_payDueValue" id="l_payDueValue">Due day</label><input id="f_payDueValue" name="payDueValue" class="input" type="number" min="0" max="120" value="${U.esc(cur && cur.payDueValue !== '' && cur.payDueValue !== undefined ? cur.payDueValue : '')}"><span class="hint" id="h_payDue"></span></div>
         <div class="field" data-show="WEEKLY">${''}<label for="f_dueWeekday">Due every</label><select id="f_dueWeekday" name="dueWeekday" class="input">${UI.options(WEEKDAYS.map((d, i) => ({ value: i, label: d })), cur && cur.dueWeekday !== '' && cur.dueWeekday !== undefined ? cur.dueWeekday : 6)}</select></div>
         <div class="field" data-show="CUSTOM"><label for="f_intervalDays">Repeat every (days)</label><input id="f_intervalDays" name="intervalDays" class="input" type="number" min="1" max="3660" value="${U.esc(cur && cur.intervalDays ? cur.intervalDays : 14)}"><span class="hint">Counted from the start date.</span></div>
         ${F.select('paymentMethod', 'Payment method', PAYMENT_METHODS, cur ? cur.paymentMethod : 'Cash')}
@@ -1982,11 +2096,22 @@ const Forms = {
         const sel = form.querySelector('[name=frequency]');
         const sync = () => form.querySelectorAll('[data-show]').forEach(el => { el.style.display = el.dataset.show.split(' ').includes(sel.value) ? '' : 'none'; });
         sel.addEventListener('change', sync); sync();
+        const dr = form.querySelector('[name=payDueRule]'), lab = form.querySelector('#l_payDueValue'), hint = form.querySelector('#h_payDue'), arr = form.querySelector('[name=dueDay]'), val = form.querySelector('[name=payDueValue]');
+        const syncDue = () => {
+          form.querySelectorAll('[data-due]').forEach(el => { el.style.display = el.dataset.due.split(' ').includes(dr.value) ? '' : 'none'; });
+          lab.textContent = dr.value === 'DAYS_AFTER' ? 'Days after it arrives' : 'Due day of month';
+          const a = +arr.value, v = +val.value;
+          hint.textContent = dr.value === 'NEXT_MONTH' && a && v ? `e.g. arrives Oct ${a}, due Nov ${v}` : dr.value === 'SAME_MONTH' && a && v ? `e.g. arrives Oct ${a}, due Oct ${v}` : dr.value === 'DAYS_AFTER' && v ? `e.g. arrives Oct ${a || 1}, due ${v} days later` : '';
+        };
+        [dr, arr, val].forEach(x => x.addEventListener('input', syncDue)); dr.addEventListener('change', syncDue); syncDue();
       },
       async onSubmit(fd) {
         const frequency = fd.get('frequency');
         const rec = { name: F.req(fd, 'name', 'Name'), category: fd.get('category'), amount: F.amount(fd, 'amount', 'Amount'), frequency, dueDay: '', dueWeekday: '', intervalDays: '', paymentMethod: fd.get('paymentMethod'), startDate: F.date10(fd, 'startDate', 'Start date'), endDate: F.date10(fd, 'endDate', 'End date', true), notes: String(fd.get('notes') || '').trim() };
-        if (['MONTHLY', 'QUARTERLY', 'YEARLY'].includes(frequency)) { const d = parseInt(fd.get('dueDay'), 10); if (!(d >= 1 && d <= 31)) throw new Error('Due day must be between 1 and 31.'); rec.dueDay = d; }
+        if (['MONTHLY', 'QUARTERLY', 'YEARLY'].includes(frequency)) { const d = parseInt(fd.get('dueDay'), 10); if (!(d >= 1 && d <= 31)) throw new Error('Arrival day must be between 1 and 31.'); rec.dueDay = d; }
+        rec.payDueRule = fd.get('payDueRule') || 'ON_ARRIVAL'; rec.payDueValue = '';
+        if (rec.payDueRule === 'SAME_MONTH' || rec.payDueRule === 'NEXT_MONTH') { const v = parseInt(fd.get('payDueValue'), 10); if (!(v >= 1 && v <= 31)) throw new Error('Payment due day must be between 1 and 31.'); rec.payDueValue = v; }
+        if (rec.payDueRule === 'DAYS_AFTER') { const v = parseInt(fd.get('payDueValue'), 10); if (!(v >= 0 && v <= 120)) throw new Error('Days after arrival must be between 0 and 120.'); rec.payDueValue = v; }
         if (frequency === 'WEEKLY') rec.dueWeekday = parseInt(fd.get('dueWeekday'), 10);
         if (frequency === 'CUSTOM') { const n = parseInt(fd.get('intervalDays'), 10); if (!(n >= 1 && n <= 3660)) throw new Error('Interval must be between 1 and 3660 days.'); rec.intervalDays = n; }
         if (rec.endDate && rec.endDate < rec.startDate) throw new Error('End date cannot be before the start date.');
@@ -2037,6 +2162,103 @@ const Forms = {
       }
     });
   },
+  recurringIncome(id) {
+    const cur = id ? Store.get('recurringIncome', id) : null;
+    const riId = cur ? cur.id : U.uid('RI');
+    const cm = U.curMonth();
+    const freq = cur ? cur.frequency : 'MONTHLY';
+    Modal.open({
+      title: cur ? 'Edit recurring income' : 'Add recurring income', eyebrow: 'Income schedule', wide: true,
+      body: `<div class="form-grid">
+        ${F.text('source', 'Name', cur ? cur.source : '', { required: true, attrs: 'placeholder="e.g. Mia – HSI (15th)"', max: 120 })}
+        ${F.select('category', 'Category', Store.categories('INCOME'), cur ? cur.category : 'Salary')}
+        ${F.money('amount', 'Expected amount', cur ? cur.amount : '', { required: true })}
+        ${F.select('frequency', 'How often', FREQUENCIES.map(f => ({ value: f, label: f === 'BIWEEKLY' ? 'Every 2 weeks' : f.charAt(0) + f.slice(1).toLowerCase() })), freq)}
+        <div class="field" data-show="MONTHLY QUARTERLY YEARLY"><label for="f_dueDay">Pay day of month</label><input id="f_dueDay" name="dueDay" class="input" type="number" min="1" max="31" value="${U.esc(cur && cur.dueDay ? cur.dueDay : 15)}"><span class="hint">30 or 31 = last day in shorter months.</span></div>
+        <div class="field" data-show="WEEKLY"><label for="f_dueWeekday">Arrives every</label><select id="f_dueWeekday" name="dueWeekday" class="input">${UI.options(WEEKDAYS.map((d, i) => ({ value: i, label: d })), cur && cur.dueWeekday !== '' && cur.dueWeekday !== undefined ? cur.dueWeekday : 1)}</select></div>
+        <div class="field" data-show="CUSTOM"><label for="f_intervalDays">Repeat every (days)</label><input id="f_intervalDays" name="intervalDays" class="input" type="number" min="1" max="3660" value="${U.esc(cur && cur.intervalDays ? cur.intervalDays : 14)}"></div>
+        ${F.select('weekendRule', 'If payday is on a weekend', WEEKEND_RULES, cur ? cur.weekendRule : 'NONE')}
+        ${F.select('paymentMethod', 'Received via', PAYMENT_METHODS, cur ? cur.paymentMethod : 'Online Bank')}
+        ${F.date('startDate', 'Start date', cur ? cur.startDate : cm + '-01', { required: true, hint: 'For "Every 2 weeks" pick a real payday — it repeats every 14 days from it.' })}
+        ${F.date('endDate', 'End date (optional)', cur ? cur.endDate : '')}
+        ${cur ? `<div class="field full"><label for="f_applyFrom">Apply changes to expected payments from</label><input id="f_applyFrom" name="applyFrom" class="input" type="month" min="${cm}" value="${cm}"><span class="hint">Income already marked received is never changed.</span></div>` : ''}
+        ${F.notes(cur ? cur.notes : '')}</div>`,
+      foot: `<button type="button" class="btn" data-close>Cancel</button><button type="submit" class="btn primary">${cur ? 'Save changes' : 'Create schedule'}</button>`,
+      onOpen(form) {
+        const sel = form.querySelector('[name=frequency]');
+        const sync = () => form.querySelectorAll('[data-show]').forEach(el => { el.style.display = el.dataset.show.split(' ').includes(sel.value) ? '' : 'none'; });
+        sel.addEventListener('change', sync); sync();
+      },
+      async onSubmit(fd) {
+        const frequency = fd.get('frequency');
+        const rec = { source: F.req(fd, 'source', 'Name'), category: fd.get('category'), amount: F.amount(fd, 'amount', 'Expected amount'), frequency, dueDay: '', dueWeekday: '', intervalDays: '', weekendRule: fd.get('weekendRule'), paymentMethod: fd.get('paymentMethod'), startDate: F.date10(fd, 'startDate', 'Start date'), endDate: F.date10(fd, 'endDate', 'End date', true), notes: String(fd.get('notes') || '').trim() };
+        if (['MONTHLY', 'QUARTERLY', 'YEARLY'].includes(frequency)) { const d = parseInt(fd.get('dueDay'), 10); if (!(d >= 1 && d <= 31)) throw new Error('Pay day must be between 1 and 31.'); rec.dueDay = d; }
+        if (frequency === 'WEEKLY') rec.dueWeekday = parseInt(fd.get('dueWeekday'), 10);
+        if (frequency === 'CUSTOM') { const n = parseInt(fd.get('intervalDays'), 10); if (!(n >= 1 && n <= 3660)) throw new Error('Interval must be between 1 and 3660 days.'); rec.intervalDays = n; }
+        if (rec.endDate && rec.endDate < rec.startDate) throw new Error('End date cannot be before the start date.');
+        if (!cur && Store.list('recurringIncome').some(b => U.bool(b.isActive) && String(b.source).toLowerCase() === rec.source.toLowerCase())) throw new Error('An active income with this name already exists.');
+        let outcome;
+        if (cur) {
+          let applyFrom = String(fd.get('applyFrom') || cm); if (!U.isYm(applyFrom) || applyFrom < cm) applyFrom = cm;
+          outcome = await Data.update('recurringIncome', cur.id, rec, Modal.current.opId, { applyFrom });
+        } else {
+          outcome = await Data.create('recurringIncome', Object.assign({ recurringIncomeId: riId, isActive: true }, rec), Modal.current.opId);
+        }
+        Modal.close();
+        if (outcome === 'nochange') UI.toast('No changes to save.');
+        else if (outcome === 'synced') UI.toast(cur ? 'Income schedule updated. Future expected payments adjusted.' : 'Income schedule created — expected payments added.');
+        else UI.saveOutcome(outcome, 'Income schedule');
+        UI.refresh();
+      }
+    });
+  },
+  receiveIncome(id) {
+    const cur = Store.get('income', id);
+    if (!cur) return UI.toast('That income entry is not on this device yet. Try syncing.', 'err');
+    const today = U.today();
+    const dateDefault = cur.date && cur.date < today ? cur.date : today;
+    Modal.open({
+      title: 'Mark income received', eyebrow: cur.source,
+      body: `<div class="summary-box"><div><span>Expected</span><b>${U.peso(cur.expectedAmount)}</b></div><div><span>Scheduled</span><b>${U.esc(U.fmtDate(cur.date))}</b></div><div><span>Via</span><b>${U.esc(cur.paymentMethod || '—')}</b></div></div>
+        <div class="form-grid">
+          ${F.money('actualAmount', 'Amount received', U.blank(cur.actualAmount) ? cur.expectedAmount : cur.actualAmount, { required: true, hint: 'Type the exact amount that arrived.' })}
+          ${F.date('date', 'Date received', dateDefault, { required: true, hint: 'Counts toward the month of this date.' })}
+          ${F.select('paymentMethod', 'Received via', PAYMENT_METHODS, cur.paymentMethod || 'Online Bank', { full: true })}
+          ${F.notes(cur.notes)}
+        </div>`,
+      foot: `<button type="button" class="btn" data-close>Cancel</button><button type="submit" class="btn primary">Save</button>`,
+      async onSubmit(fd) {
+        const actual = F.amount(fd, 'actualAmount', 'Amount received');
+        const exp = cur.expectedAmount;
+        const status = U.blank(exp) || U.cents(actual) >= U.cents(exp) ? 'RECEIVED' : U.cents(actual) > 0 ? 'PARTIAL' : 'PENDING';
+        const outcome = await Data.update('income', cur.id, { actualAmount: actual, date: F.date10(fd, 'date', 'Date received'), paymentMethod: fd.get('paymentMethod'), notes: String(fd.get('notes') || '').trim(), status }, Modal.current.opId);
+        Modal.close();
+        if (outcome === 'synced') UI.toast(cur.source + ': ' + U.peso(actual) + ' received.'); else UI.saveOutcome(outcome, 'Income');
+        UI.refresh();
+      }
+    });
+  },
+  openingBalance() {
+    const st = Store.settings;
+    Modal.open({
+      title: 'Starting balance', eyebrow: 'Cash on hand',
+      body: `<p class="sub" style="color:var(--ink-2);margin:0 0 14px">How much money did the household have available on the start date? Everything received and spent from that date on is added and subtracted automatically, and the balance carries over month to month.</p>
+        <div class="form-grid">
+          <div class="field"><label for="f_ob">Amount</label><div class="money-wrap"><span>₱</span><input id="f_ob" name="openingBalance" class="input" inputmode="decimal" value="${U.esc(Number(st.openingBalance || 0).toFixed(2))}"></div><span class="hint">Use a minus sign if you were short.</span></div>
+          ${F.date('openingBalanceDate', 'As of', U.isYmd(st.openingBalanceDate || '') ? st.openingBalanceDate : U.curMonth() + '-01', { required: true, hint: 'Usually the 1st of this month.' })}
+        </div>`,
+      async onSubmit(fd) {
+        const raw = String(fd.get('openingBalance') || '').replace(/[₱,\s]/g, '');
+        const v = Number(raw);
+        if (raw === '' || !isFinite(v)) throw new Error('Enter the amount (0 is fine).');
+        const date = F.date10(fd, 'openingBalanceDate', 'Date');
+        Store.settings = Object.assign({}, Store.settings, { openingBalance: String(U.round2(v)), openingBalanceDate: date });
+        await Store.setMeta('settings', Store.settings);
+        const outcome = await Sync.commit({ operationId: Modal.current.opId, entityType: 'SETTINGS', action: 'UPDATE', localId: 'SETTINGS', payload: { openingBalance: U.round2(v), openingBalanceDate: date } });
+        Modal.close(); UI.saveOutcome(outcome, 'Starting balance'); UI.refresh();
+      }
+    });
+  },
   more() {
     Modal.open({ title: 'More', foot: null, body: `<div class="more-sheet">${['recurring', 'payments', 'reports', 'sync', 'settings'].map(id => `<a href="#/${id}" data-nav="${id}">${svgIcon(id, 20)}${VIEWS.find(v => v.id === id).label}${id === 'sync' && Store.queue.length ? ` <span class="tag PARTIAL" style="margin-left:auto">${Store.queue.length}</span>` : ''}</a>`).join('')}</div>` });
   }
@@ -2056,6 +2278,22 @@ const Actions = {
   'add-income': () => Forms.income(),
   'edit-income': el => Forms.income(el.dataset.id),
   'add-recurring': () => Forms.recurring(),
+  'add-recurring-income': () => Forms.recurringIncome(),
+  'edit-recurring-income': el => Forms.recurringIncome(el.dataset.id),
+  'receive-income': el => Forms.receiveIncome(el.dataset.id),
+  'edit-opening-balance': () => Forms.openingBalance(),
+  async 'toggle-recurring-income'(el) {
+    const r = Store.get('recurringIncome', el.dataset.id);
+    if (!r) return;
+    const on = el.dataset.on === '1';
+    const ok = await Modal.confirm((on ? 'Resume ' : 'Pause ') + r.source + '?', on ? 'Expected payments will be added again from today onward.' : 'Future expected payments from this source will be cancelled. Income already received stays.', on ? 'Resume' : 'Pause', !on);
+    if (!ok) return;
+    r.isActive = on; r.syncStatus = 'pending'; r.updatedAt = U.nowIso();
+    await Store.save('recurringIncome', r);
+    const outcome = await Sync.commit({ operationId: U.opId(), entityType: 'RECURRING_INCOME', action: on ? 'ENABLE' : 'DISABLE', localId: r.id, entityId: r.id, payload: { recurringIncomeId: r.id } });
+    if (outcome === 'synced') UI.toast(r.source + (on ? ' resumed.' : ' paused.')); else UI.saveOutcome(outcome, 'Change');
+    UI.refresh();
+  },
   'edit-recurring': el => Forms.recurring(el.dataset.id),
   'edit-budget': () => Forms.budget(),
   'edit-default-budget': () => Forms.defaultBudget(),
@@ -2245,7 +2483,8 @@ const Verify = {
       const d = await Api.call('getDashboardData', { month }, { timeout: 30000 });
       const local = Calc.summary(month, null, d.today || U.today());
       const keys = ['monthlyBudget', 'expectedBills', 'actualBills', 'otherExpenses', 'unpaidAmount', 'overBudgetAmount', 'expectedIncome', 'actualIncome', 'netCashFlow'];
-      const diff = keys.filter(k => U.cents(local[k]) !== U.cents(d.summary[k]));
+      let diff = keys.filter(k => U.cents(local[k]) !== U.cents(d.summary[k]));
+      if (d.available && U.cents(Calc.available(d.today || U.today()).cashOnHand) !== U.cents(d.available.cashOnHand)) diff = diff.concat(['cashOnHand']);
       Store.verified[month] = { ok: !diff.length, at: U.nowIso(), diff };
       if (diff.length) {
         console.warn('Local and server totals differ:', diff, local, d.summary);
