@@ -1,0 +1,2280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Household Finances</title>
+<meta name="description" content="Household Finances — Budget & Bill Monitoring">
+<meta name="theme-color" content="#2B2926">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Finances">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F4F1EC; --surface:#FFFFFF; --surface-2:#FAF8F5; --surface-3:#F1EDE6;
+  --ink:#2B2926; --ink-2:#57524B; --muted:#8A8379; --line:#E7E1D8; --line-2:#D8D0C4;
+  --gold:#A8865A; --focus:#2470A8;
+  --paid:#3E7A55; --paid-bg:#E6F0E9;
+  --partial:#94661A; --partial-bg:#F5ECD8;
+  --unpaid:#6B665E; --unpaid-bg:#ECE8E2;
+  --overdue:#B0363A; --overdue-bg:#F6E1DF;
+  --over:#76468F; --over-bg:#EEE4F3;
+  --void:#9A948B; --void-bg:#F1EFEB;
+  --c-expected:#8F877B; --c-actual:#2B2926; --c-income:#2470A8; --c-out:#C0643A;
+  --radius:14px; --radius-sm:10px;
+  --shadow:0 1px 2px rgba(43,41,38,.04),0 6px 24px rgba(43,41,38,.05);
+  --shadow-lg:0 20px 60px rgba(43,41,38,.18);
+  --sans:'DM Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --serif:'Playfair Display',Georgia,'Times New Roman',serif;
+  --sidebar:248px;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:inherit}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+
+/* ---------- Layout ---------- */
+.app{display:grid;grid-template-columns:var(--sidebar) 1fr;min-height:100vh}
+.sidebar{position:sticky;top:0;height:100vh;background:var(--surface);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:28px 18px 18px}
+.brand{padding:0 10px 26px;border-bottom:1px solid var(--line);margin-bottom:16px}
+.brand-title{font-family:var(--serif);font-size:23px;line-height:1.1;font-weight:600;letter-spacing:.2px}
+.brand-sub{margin-top:8px;font-size:10.5px;letter-spacing:2.2px;text-transform:uppercase;color:var(--muted);font-weight:600}
+.brand-rule{width:28px;height:2px;background:var(--gold);margin-top:14px}
+.nav{display:flex;flex-direction:column;gap:2px;flex:1;overflow:auto}
+.nav a{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;text-decoration:none;color:var(--ink-2);font-weight:500;font-size:14.5px}
+.nav a svg{width:18px;height:18px;flex:none;stroke:currentColor}
+.nav a:hover{background:var(--surface-2);color:var(--ink)}
+.nav a.active{background:var(--ink);color:#F7F4EF}
+.nav .badge{margin-left:auto;background:var(--partial-bg);color:var(--partial);font-size:11px;font-weight:700;border-radius:20px;padding:1px 8px}
+.nav a.active .badge{background:rgba(255,255,255,.18);color:#fff}
+.sidebar-foot{border-top:1px solid var(--line);padding-top:14px;display:flex;flex-direction:column;gap:10px}
+.main{min-width:0;display:flex;flex-direction:column}
+.topbar{position:sticky;top:0;z-index:20;background:rgba(244,241,236,.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding:14px 36px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.topbar h1{font-family:var(--serif);font-weight:600;font-size:22px;margin:0;flex:1;min-width:140px;letter-spacing:.2px}
+.content{padding:28px 36px 60px;max-width:1320px;width:100%;margin:0 auto}
+.bottomnav{display:none}
+
+/* ---------- Status pill (connection) ---------- */
+.conn{display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;background:var(--surface);border:1px solid var(--line);font-size:12.5px;font-weight:600;color:var(--ink-2);cursor:pointer;white-space:nowrap}
+.conn .dot{width:8px;height:8px;border-radius:50%;background:var(--paid);flex:none}
+.conn[data-state=offline] .dot{background:var(--unpaid)}
+.conn[data-state=syncing] .dot{background:var(--focus);animation:pulse 1s infinite}
+.conn[data-state=pending] .dot,.conn[data-state=failed] .dot{display:none}
+.conn[data-state=pending]{color:var(--partial);background:var(--partial-bg);border-color:transparent}
+.conn[data-state=failed]{color:var(--overdue);background:var(--overdue-bg);border-color:transparent}
+.conn[data-state=complete]{color:var(--paid);background:var(--paid-bg);border-color:transparent}
+.conn[data-state=complete] .dot{display:none}
+@keyframes pulse{50%{opacity:.3}}
+
+/* ---------- Month selector ---------- */
+.month-sel{display:inline-flex;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:3px}
+.month-sel button{border:0;background:transparent;width:32px;height:32px;border-radius:50%;cursor:pointer;display:grid;place-items:center;color:var(--ink-2)}
+.month-sel button:hover{background:var(--surface-3)}
+.month-sel label{position:relative;padding:0 10px;font-weight:600;font-size:14px;min-width:132px;text-align:center;cursor:pointer}
+.month-sel input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%}
+
+/* ---------- Buttons & forms ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:10px;border:1px solid var(--line-2);background:var(--surface);padding:9px 16px;font-weight:600;font-size:14px;cursor:pointer;color:var(--ink);text-decoration:none;white-space:nowrap;min-height:40px;transition:background .15s,border-color .15s}
+.btn:hover{background:var(--surface-2);border-color:var(--ink-2)}
+.btn.primary{background:var(--ink);color:#F7F4EF;border-color:var(--ink)}
+.btn.primary:hover{background:#45413B}
+.btn.danger{color:var(--overdue);border-color:#E7C3C0}
+.btn.danger:hover{background:var(--overdue-bg)}
+.btn.ghost{border-color:transparent;background:transparent}
+.btn.ghost:hover{background:var(--surface-3)}
+.btn.sm{padding:5px 11px;font-size:13px;min-height:32px;border-radius:8px}
+.btn.pay{background:var(--ink);color:#F7F4EF;border-color:var(--ink)}
+.btn[disabled],.btn.busy{opacity:.55;cursor:not-allowed;pointer-events:none}
+.btn svg{width:16px;height:16px}
+.spinner{width:14px;height:14px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field label{font-size:12px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;color:var(--ink-2)}
+.field .hint{font-size:12px;color:var(--muted)}
+.input,select.input,textarea.input{width:100%;border:1px solid var(--line-2);background:var(--surface);border-radius:10px;padding:10px 12px;font-size:15px;min-height:44px;outline:none;transition:border-color .15s,box-shadow .15s}
+textarea.input{min-height:76px;resize:vertical}
+.input:focus{border-color:var(--ink-2);box-shadow:0 0 0 3px rgba(43,41,38,.08)}
+.input.invalid{border-color:var(--overdue)}
+.money-wrap{position:relative}
+.money-wrap span{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-weight:600}
+.money-wrap .input{padding-left:28px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-grid .full{grid-column:1/-1}
+.form-error{color:var(--overdue);background:var(--overdue-bg);border-radius:10px;padding:10px 12px;font-size:13.5px;display:none}
+.form-error.show{display:block}
+.filters{display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin-bottom:18px}
+.filters .field{flex:1 1 160px;max-width:260px}
+.filters .field.grow{flex:2 1 220px;max-width:none}
+.toolbar{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:18px}
+.toolbar .left{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+
+/* ---------- Cards ---------- */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+.card-pad{padding:22px 24px}
+.card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 24px 0}
+.card-title{font-size:11.5px;letter-spacing:2px;text-transform:uppercase;font-weight:700;color:var(--ink-2);margin:0}
+.section-title{font-family:var(--serif);font-size:20px;font-weight:600;margin:0}
+.eyebrow{font-size:11px;letter-spacing:2.2px;text-transform:uppercase;color:var(--muted);font-weight:700}
+.hero{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:24px}
+.hero h2{font-family:var(--serif);font-size:38px;line-height:1.05;font-weight:600;margin:6px 0 0;letter-spacing:.2px}
+.hero .sub{font-size:11.5px;letter-spacing:2.6px;text-transform:uppercase;color:var(--muted);font-weight:700;margin-top:10px}
+.hero-actions{display:flex;gap:10px;flex-wrap:wrap}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px}
+.kpi{padding:18px 20px;position:relative;overflow:hidden}
+.kpi .label{font-size:11px;letter-spacing:1.8px;text-transform:uppercase;font-weight:700;color:var(--muted)}
+.kpi .value{font-family:var(--serif);font-size:30px;font-weight:600;margin-top:6px;letter-spacing:.2px;font-variant-numeric:lining-nums tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kpi .meta{font-size:12.5px;color:var(--ink-2);margin-top:4px}
+.kpi.lead{background:var(--ink);color:#F7F4EF;border-color:var(--ink)}
+.kpi.lead .label,.kpi.lead .meta{color:#CFC8BD}
+.kpi .tone{position:absolute;left:0;top:18px;bottom:18px;width:3px;border-radius:0 3px 3px 0}
+.neg{color:var(--overdue)}
+.pos{color:var(--paid)}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px}
+.grid-3-1{display:grid;grid-template-columns:1.25fr 1fr;gap:18px;margin-bottom:18px}
+
+/* ---------- Status tags ---------- */
+.tag{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-size:11.5px;font-weight:700;letter-spacing:.6px;white-space:nowrap}
+.tag::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor}
+.tag.PAID{color:var(--paid);background:var(--paid-bg)}
+.tag.PARTIAL{color:var(--partial);background:var(--partial-bg)}
+.tag.UNPAID{color:var(--unpaid);background:var(--unpaid-bg)}
+.tag.OVERDUE{color:var(--overdue);background:var(--overdue-bg)}
+.tag.OVER{color:var(--over);background:var(--over-bg)}
+.tag.VOID{color:var(--void);background:var(--void-bg)}
+.tag.RECEIVED{color:var(--paid);background:var(--paid-bg)}
+.tag.PENDING{color:var(--unpaid);background:var(--unpaid-bg)}
+.tag.CANCELLED{color:var(--void);background:var(--void-bg)}
+.tag.local{color:var(--partial);background:var(--partial-bg)}
+.tag.local::before{display:none}
+.health{display:inline-flex;align-items:center;gap:8px;font-weight:700;letter-spacing:1.6px;font-size:13px;padding:6px 14px;border-radius:999px}
+.health.ON{color:var(--paid);background:var(--paid-bg)}
+.health.WATCH{color:var(--partial);background:var(--partial-bg)}
+.health.OVER{color:var(--overdue);background:var(--overdue-bg)}
+
+/* ---------- Lists (table on desktop, cards on mobile) ---------- */
+.list{display:flex;flex-direction:column}
+.row{display:grid;align-items:center;gap:14px;padding:14px 24px;border-top:1px solid var(--line)}
+.row:first-child{border-top:0}
+.row.head{font-size:11px;letter-spacing:1.6px;text-transform:uppercase;color:var(--muted);font-weight:700;padding-top:14px;padding-bottom:10px;border-top:0}
+.row .name{font-weight:600}
+.row .sub{font-size:12.5px;color:var(--muted)}
+.row .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.row .actions{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}
+.row:hover:not(.head){background:var(--surface-2)}
+.cols-bills{grid-template-columns:minmax(150px,2fr) 110px 110px 110px 110px 120px 180px}
+.cols-exp{grid-template-columns:110px minmax(150px,2fr) 130px 130px 120px 130px}
+.cols-inc{grid-template-columns:110px minmax(140px,2fr) 110px 120px 120px 110px 130px}
+.cols-pay{grid-template-columns:110px minmax(150px,2fr) 110px 130px minmax(100px,1fr) 100px}
+.cols-rec{grid-template-columns:minmax(150px,2fr) 120px minmax(150px,1.4fr) 130px 100px 190px}
+.cols-mini{grid-template-columns:1fr auto auto;padding:12px 24px}
+.dim{opacity:.55}
+.empty{padding:40px 24px;text-align:center;color:var(--muted)}
+.empty .section-title{color:var(--ink);margin-bottom:6px;font-size:18px}
+.list-foot{display:flex;justify-content:space-between;gap:12px;padding:14px 24px;border-top:1px solid var(--line);background:var(--surface-2);border-radius:0 0 var(--radius) var(--radius);font-weight:600;flex-wrap:wrap}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.chip{border:1px solid var(--line-2);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:13px;font-weight:600;cursor:pointer;color:var(--ink-2)}
+.chip.on{background:var(--ink);border-color:var(--ink);color:#F7F4EF}
+.chip b{font-variant-numeric:tabular-nums}
+
+/* ---------- Health / progress ---------- */
+.meter{position:relative;height:10px;border-radius:10px;background:var(--surface-3);overflow:visible;margin:18px 0 8px}
+.meter .fill{position:absolute;left:0;top:0;bottom:0;border-radius:10px;background:var(--ink)}
+.meter .proj{position:absolute;top:-5px;bottom:-5px;width:2px;background:var(--gold)}
+.meter-legend{display:flex;justify-content:space-between;font-size:12.5px;color:var(--ink-2);gap:10px;flex-wrap:wrap}
+.reasons{margin:14px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px}
+.reasons li{font-size:13.5px;color:var(--ink-2);padding-left:18px;position:relative}
+.reasons li::before{content:'';position:absolute;left:2px;top:8px;width:6px;height:6px;border-radius:50%;background:var(--gold)}
+
+/* ---------- Charts ---------- */
+.chart{padding:8px 24px 22px}
+.chart svg{display:block;width:100%;height:auto;overflow:visible}
+.chart text{font-family:var(--sans);fill:var(--ink-2);font-size:11px}
+.chart .axis{stroke:var(--line-2);stroke-width:1}
+.chart .grid{stroke:var(--line);stroke-width:1}
+.chart [data-tip]{cursor:default}
+.chart [data-tip]:hover{opacity:.82}
+.legend{display:flex;gap:16px;flex-wrap:wrap;padding:12px 24px 0;font-size:12.5px;color:var(--ink-2)}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+.tooltip{position:fixed;z-index:100;pointer-events:none;background:var(--ink);color:#F7F4EF;font-size:12.5px;padding:8px 11px;border-radius:8px;box-shadow:var(--shadow-lg);max-width:260px;opacity:0;transition:opacity .1s;white-space:pre-line}
+.tooltip.show{opacity:1}
+
+/* ---------- Banner, toast, modal ---------- */
+.banner{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:12px;background:var(--surface-3);border:1px solid var(--line-2);color:var(--ink-2);font-size:13.5px;margin-bottom:18px;flex-wrap:wrap}
+.banner.warn{background:var(--partial-bg);border-color:transparent;color:#6E4C10}
+.banner.err{background:var(--overdue-bg);border-color:transparent;color:#7D2427}
+.banner .grow{flex:1;min-width:200px}
+.toasts{position:fixed;right:22px;bottom:22px;z-index:200;display:flex;flex-direction:column;gap:10px;max-width:min(380px,calc(100vw - 32px))}
+.toast{background:var(--ink);color:#F7F4EF;padding:12px 16px;border-radius:12px;box-shadow:var(--shadow-lg);font-size:14px;display:flex;gap:10px;align-items:flex-start;animation:toastIn .2s ease-out}
+.toast.err{background:#7D2427}
+.toast.warn{background:#6E4C10}
+.toast .x{margin-left:auto;background:none;border:0;color:inherit;opacity:.7;cursor:pointer;font-size:16px;line-height:1}
+@keyframes toastIn{from{transform:translateY(8px);opacity:0}}
+.modal-back{position:fixed;inset:0;background:rgba(43,41,38,.42);z-index:150;display:flex;align-items:center;justify-content:center;padding:20px;animation:fade .15s}
+@keyframes fade{from{opacity:0}}
+.modal{background:var(--surface);border-radius:18px;box-shadow:var(--shadow-lg);width:min(560px,100%);max-height:calc(100vh - 40px);display:flex;flex-direction:column;overflow:hidden}
+.modal.wide{width:min(760px,100%)}
+.modal-head{padding:22px 26px 6px;display:flex;align-items:flex-start;gap:12px}
+.modal-head h3{font-family:var(--serif);font-size:23px;font-weight:600;margin:0;flex:1}
+.modal-head .eyebrow{display:block;margin-bottom:4px}
+.modal-body{padding:14px 26px 8px;overflow:auto}
+.modal-foot{padding:16px 26px 22px;display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;border-top:1px solid var(--line);margin-top:10px}
+.close-x{border:0;background:var(--surface-3);width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:18px;color:var(--ink-2)}
+.summary-box{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:16px}
+.summary-box div span{display:block;font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted);font-weight:700}
+.summary-box div b{font-size:17px;font-variant-numeric:tabular-nums}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:8px 18px;font-size:14px}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0;font-weight:600;text-align:right}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;word-break:break-all}
+.report-table{width:100%;border-collapse:collapse;font-size:13.5px}
+.report-table th{text-align:left;font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted);font-weight:700;padding:10px 12px;border-bottom:1px solid var(--line-2);white-space:nowrap}
+.report-table td{padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+.report-table td.n,.report-table th.n{text-align:right;font-variant-numeric:tabular-nums}
+.report-table tfoot td{font-weight:700;border-top:1px solid var(--ink);border-bottom:0}
+.table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.install-card{display:none}
+.install-card.show{display:flex}
+.print-only{display:none}
+
+/* ---------- Responsive ---------- */
+@media (max-width:1180px){
+  .kpis{grid-template-columns:repeat(3,1fr)}
+  .cols-bills{grid-template-columns:minmax(140px,2fr) 100px 100px 100px 120px 160px}
+  .cols-bills .c-diff{display:none}
+}
+@media (max-width:1020px){
+  .grid-2,.grid-3-1{grid-template-columns:1fr}
+  .stat-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media (max-width:900px){
+  .app{grid-template-columns:1fr}
+  .sidebar{display:none}
+  .topbar{padding:12px 16px;gap:10px}
+  .topbar h1{font-size:19px}
+  .content{padding:18px 16px 110px}
+  .hero h2{font-size:30px}
+  .kpis{grid-template-columns:repeat(2,1fr);gap:10px}
+  .kpi{padding:14px 16px}
+  .kpi .value{font-size:23px}
+  .kpi.lead{grid-column:1/-1}
+  .bottomnav{display:grid;grid-template-columns:repeat(5,1fr);position:fixed;left:0;right:0;bottom:0;z-index:40;background:rgba(255,255,255,.96);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:1px solid var(--line);padding:6px 6px calc(6px + env(safe-area-inset-bottom))}
+  .bottomnav a,.bottomnav button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 2px;font-size:10.5px;font-weight:600;color:var(--muted);text-decoration:none;background:none;border:0;cursor:pointer;border-radius:10px;position:relative}
+  .bottomnav svg{width:21px;height:21px;stroke:currentColor}
+  .bottomnav .active{color:var(--ink)}
+  .bottomnav .badge{position:absolute;top:2px;right:calc(50% - 20px);background:var(--overdue);color:#fff;font-size:10px;border-radius:10px;padding:0 5px;line-height:16px}
+  .row.head{display:none}
+  .row{grid-template-columns:1fr auto !important;gap:6px 12px;padding:14px 16px}
+  .row > [data-label]{display:flex;justify-content:space-between;gap:10px;grid-column:1/-1;font-size:13.5px;text-align:left}
+  .row > [data-label]::before{content:attr(data-label);color:var(--muted);font-size:12px;font-weight:600}
+  .row > .primary-cell{grid-column:1/2}
+  .row > .status-cell{grid-column:2/3;grid-row:1;justify-self:end}
+  .row .actions{grid-column:1/-1;justify-content:flex-start;margin-top:4px}
+  .row .actions .btn{flex:1}
+  .cols-mini{grid-template-columns:1fr auto !important}
+  .cols-mini > .num{grid-column:2}
+  .card-head{padding:16px 16px 0}
+  .card-pad{padding:18px 16px}
+  .chart{padding:8px 12px 18px}
+  .legend{padding:12px 16px 0}
+  .list-foot{padding:12px 16px}
+  .filters .field{max-width:none;flex:1 1 140px}
+  .modal-back{align-items:flex-end;padding:0}
+  .modal,.modal.wide{width:100%;border-radius:20px 20px 0 0;max-height:92vh}
+  .modal-head{padding:20px 18px 4px}
+  .modal-body{padding:12px 18px 6px}
+  .modal-foot{padding:14px 18px calc(18px + env(safe-area-inset-bottom))}
+  .modal-foot .btn{flex:1}
+  .toasts{left:16px;right:16px;bottom:84px;max-width:none}
+}
+@media (max-width:520px){
+  .form-grid{grid-template-columns:1fr}
+  .summary-box{grid-template-columns:1fr 1fr}
+  .stat-grid{grid-template-columns:1fr 1fr;gap:10px}
+  .month-sel label{min-width:112px;font-size:13px}
+  .conn .txt{display:none}
+  .topbar{flex-wrap:nowrap;gap:8px}
+  .topbar h1{min-width:0;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .month-sel button{width:28px;height:28px}
+  .conn{padding:8px}
+  .hero-actions{width:100%}
+  .hero-actions .btn{flex:1}
+}
+.more-sheet a{display:flex;align-items:center;gap:14px;padding:14px 6px;border-bottom:1px solid var(--line);text-decoration:none;font-weight:600}
+.more-sheet a svg{width:20px;height:20px;stroke:currentColor}
+
+/* ---------- Print ---------- */
+@media print{
+  @page{margin:14mm}
+  body{background:#fff;font-size:11pt}
+  .sidebar,.topbar,.bottomnav,.toasts,.no-print,.banner,.filters,.toolbar .btn{display:none !important}
+  .app{display:block}
+  .content{padding:0;max-width:none}
+  .card{box-shadow:none;border:1px solid #ccc;break-inside:avoid}
+  .print-only{display:block}
+  .report-table td,.report-table th{padding:6px 8px}
+}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <aside class="sidebar" aria-label="Main navigation">
+    <div class="brand">
+      <div class="brand-title">Household<br>Finances</div>
+      <div class="brand-sub">Budget &amp; Bill Monitoring</div>
+      <div class="brand-rule"></div>
+    </div>
+    <nav class="nav" id="sideNav"></nav>
+    <div class="sidebar-foot">
+      <button class="btn sm install-card" id="installBtnSide" type="button" data-action="install">Install app</button>
+      <button class="conn" id="connSide" type="button" data-action="go" data-view="sync"><span class="dot"></span><span class="txt">Starting…</span></button>
+    </div>
+  </aside>
+  <div class="main">
+    <header class="topbar">
+      <h1 id="pageTitle">Dashboard</h1>
+      <div class="month-sel" id="monthSel">
+        <button type="button" data-action="month-prev" aria-label="Previous month"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button>
+        <label><span id="monthLabel">—</span><input type="month" id="monthInput" aria-label="Select month"></label>
+        <button type="button" data-action="month-next" aria-label="Next month"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></button>
+      </div>
+      <button class="conn" id="connTop" type="button" data-action="go" data-view="sync"><span class="dot"></span><span class="txt">Starting…</span></button>
+    </header>
+    <main class="content" id="view" tabindex="-1" aria-live="polite"></main>
+  </div>
+  <nav class="bottomnav" id="bottomNav" aria-label="Main navigation"></nav>
+</div>
+<div id="modalRoot"></div>
+<div class="toasts" id="toasts" role="status" aria-live="polite"></div>
+<div class="tooltip" id="tooltip" role="tooltip"></div>
+<noscript><p style="padding:20px">Household Finances needs JavaScript enabled.</p></noscript>
+<script>
+'use strict';
+/* =============================================================================
+ * HOUSEHOLD FINANCES — frontend (offline-first)
+ * Layers:  Util → LocalDB (IndexedDB) → Store (in-memory) → Calc (same rules as
+ *          Code.gs) → Api (fetch or google.script.run) → Sync (queue engine) → UI
+ * ========================================================================== */
+const APP_VERSION = '1.0.0';
+const TZ = 'Asia/Manila';
+const PAYMENT_METHODS = ['Cash', 'Bank Transfer', 'Online Bank', 'Credit Card', 'Debit Card', 'GCash', 'Other'];
+const FREQUENCIES = ['WEEKLY', 'MONTHLY', 'QUARTERLY', 'YEARLY', 'CUSTOM'];
+const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const DEFAULT_CATEGORIES = {
+  EXPENSE: ['Groceries', 'Transportation', 'Pet', 'Shopping', 'Dining', 'Medical', 'Home', 'Entertainment', 'Other'],
+  INCOME: ['Salary', 'Side Income', 'Freelance', 'Bonus', 'Other'],
+  BILL: ['Utilities', 'Housing', 'Debt', 'Pet', 'Household Help', 'Subscriptions', 'Insurance', 'Other']
+};
+const ST = { UNPAID: 'UNPAID', PARTIAL: 'PARTIAL', PAID: 'PAID', OVERDUE: 'OVERDUE', OVER: 'OVER BUDGET', VOID: 'VOID' };
+const IS_GAS = typeof google !== 'undefined' && google.script && google.script.run;
+const REQUEST_TIMEOUT_MS = 25000;
+const SYNC_BATCH = 50;
+
+/* ------------------------------------------------------------------ Util */
+const U = {
+  pad2: n => (n < 10 ? '0' : '') + n,
+  today() {
+    try {
+      const p = Object.fromEntries(new Intl.DateTimeFormat('en-CA', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date()).map(x => [x.type, x.value]));
+      return `${p.year}-${p.month}-${p.day}`;
+    } catch (e) {
+      const d = new Date(Date.now() + 8 * 3600 * 1000);   // Manila is UTC+8 with no DST
+      return d.toISOString().slice(0, 10);
+    }
+  },
+  nowIso: () => new Date().toISOString(),
+  curMonth: () => U.today().slice(0, 7),
+  isYmd: s => typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s),
+  isYm: s => typeof s === 'string' && /^\d{4}-(0[1-9]|1[0-2])$/.test(s),
+  dim: (y, m) => new Date(Date.UTC(y, m, 0)).getUTCDate(),
+  ymdToDays: s => Math.floor(Date.UTC(+s.slice(0, 4), +s.slice(5, 7) - 1, +s.slice(8, 10)) / 86400000),
+  daysToYmd(n) { const d = new Date(n * 86400000); return d.getUTCFullYear() + '-' + U.pad2(d.getUTCMonth() + 1) + '-' + U.pad2(d.getUTCDate()); },
+  addDays: (s, n) => U.daysToYmd(U.ymdToDays(s) + n),
+  mIdx: ym => (+ym.slice(0, 4)) * 12 + (+ym.slice(5, 7) - 1),
+  idxM: i => Math.floor(i / 12) + '-' + U.pad2((i % 12) + 1),
+  addMonths: (ym, n) => U.idxM(U.mIdx(ym) + n),
+  monthRange(a, b) { const out = []; for (let i = U.mIdx(a); i <= U.mIdx(b) && out.length < 240; i++) out.push(U.idxM(i)); return out; },
+  lastDay: ym => ym + '-' + U.pad2(U.dim(+ym.slice(0, 4), +ym.slice(5, 7))),
+  monthLabel: ym => U.isYm(ym) ? MONTHS[+ym.slice(5, 7) - 1] + ' ' + ym.slice(0, 4) : '—',
+  monthShort: ym => U.isYm(ym) ? MONTHS[+ym.slice(5, 7) - 1].slice(0, 3) + ' ' + ym.slice(2, 4) : '—',
+  /** Philippine style display, e.g. "Oct 15, 2026" — built from the string, never via Date, so no TZ shift. */
+  fmtDate(s) { if (!U.isYmd(s)) return s || '—'; return MONTHS[+s.slice(5, 7) - 1].slice(0, 3) + ' ' + (+s.slice(8, 10)) + ', ' + s.slice(0, 4); },
+  fmtDay(s) { if (!U.isYmd(s)) return s || '—'; const wd = WEEKDAYS[new Date(U.ymdToDays(s) * 86400000).getUTCDay()].slice(0, 3); return wd + ', ' + MONTHS[+s.slice(5, 7) - 1].slice(0, 3) + ' ' + (+s.slice(8, 10)); },
+  fmtTime(iso) {
+    if (!iso) return '—';
+    try { return new Intl.DateTimeFormat('en-PH', { timeZone: TZ, month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).format(new Date(iso)); } catch (e) { return iso; }
+  },
+  cents: v => (v === '' || v === null || v === undefined || !isFinite(Number(v))) ? 0 : Math.round(Number(v) * 100),
+  fromCents: c => Math.round(c) / 100,
+  round2: n => Math.round(Number(n) * 100) / 100,
+  blank: v => v === '' || v === null || v === undefined,
+  peso(n, compact) {
+    if (U.blank(n) || !isFinite(Number(n))) return '—';
+    const v = Number(n);
+    try {
+      return new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: compact ? 0 : 2, maximumFractionDigits: compact ? 0 : 2 }).format(compact ? Math.round(v) : v);
+    } catch (e) { return '₱' + v.toFixed(compact ? 0 : 2); }
+  },
+  parseMoney(v) {
+    if (U.blank(v) || String(v).trim() === '') return '';
+    const n = Number(String(v).replace(/[₱,\s]/g, ''));
+    return isFinite(n) ? U.round2(n) : NaN;
+  },
+  hex(n) { const a = new Uint8Array(n); (self.crypto || window.crypto).getRandomValues(a); return Array.from(a, b => b.toString(16).padStart(2, '0')).join('').toUpperCase(); },
+  uid: prefix => prefix + '-' + U.hex(8),
+  opId: () => 'OP' + U.hex(10),
+  esc: s => String(s === undefined || s === null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])),
+  sleep: ms => new Promise(r => setTimeout(r, ms)),
+  debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; },
+  bool: v => v === true || String(v).toLowerCase() === 'true',
+  withTimeout(p, ms, msg) {
+    let t;
+    return Promise.race([p, new Promise((_, rej) => { t = setTimeout(() => rej(Object.assign(new Error(msg || 'The request timed out.'), { code: 'TIMEOUT', retryable: true, network: true })), ms); })]).finally(() => clearTimeout(t));
+  },
+  ordinal(n) { const s = ['th', 'st', 'nd', 'rd'], v = n % 100; return n + (s[(v - 20) % 10] || s[v] || s[0]); }
+};
+
+/* ------------------------------------------------------------------ LocalDB (IndexedDB with in-memory fallback) */
+const ENTITY = {
+  recurringBills: { idField: 'recurringBillId', type: 'RECURRING_BILL' },
+  billInstances: { idField: 'billInstanceId', type: 'BILL_INSTANCE' },
+  payments: { idField: 'paymentId', type: 'PAYMENT' },
+  expenses: { idField: 'expenseId', type: 'EXPENSE' },
+  income: { idField: 'incomeId', type: 'INCOME' },
+  budgets: { idField: 'budgetId', type: 'BUDGET' },
+  categories: { idField: 'categoryId', type: 'CATEGORY' }
+};
+const STORES = Object.keys(ENTITY).concat(['meta', 'queue', 'conflicts', 'dashboard', 'syncLog']);
+
+const LocalDB = {
+  db: null, memory: null, persistent: false,
+  async open() {
+    if (!('indexedDB' in self)) return this.useMemory('IndexedDB is not available in this browser');
+    try {
+      this.db = await new Promise((resolve, reject) => {
+        const req = indexedDB.open('household-finances', 1);
+        req.onupgradeneeded = () => {
+          const db = req.result;
+          Object.keys(ENTITY).forEach(s => { if (!db.objectStoreNames.contains(s)) db.createObjectStore(s, { keyPath: 'id' }); });
+          if (!db.objectStoreNames.contains('meta')) db.createObjectStore('meta', { keyPath: 'key' });
+          if (!db.objectStoreNames.contains('queue')) db.createObjectStore('queue', { keyPath: 'operationId' }).createIndex('createdAt', 'createdAt');
+          if (!db.objectStoreNames.contains('conflicts')) db.createObjectStore('conflicts', { keyPath: 'operationId' });
+          if (!db.objectStoreNames.contains('dashboard')) db.createObjectStore('dashboard', { keyPath: 'month' });
+          if (!db.objectStoreNames.contains('syncLog')) db.createObjectStore('syncLog', { keyPath: 'id', autoIncrement: true });
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+        req.onblocked = () => reject(new Error('Database upgrade blocked by another open tab.'));
+      });
+      this.db.onversionchange = () => { this.db.close(); location.reload(); };
+      return true;
+    } catch (e) {
+      return this.useMemory(e.message || 'IndexedDB failed to open');
+    }
+  },
+  useMemory(reason) {
+    console.warn('LocalDB fallback to memory:', reason);
+    this.memory = {}; STORES.forEach(s => { this.memory[s] = new Map(); });
+    this.memoryReason = reason;
+    return false;
+  },
+  keyOf(store, rec) { return store === 'meta' ? rec.key : store === 'queue' || store === 'conflicts' ? rec.operationId : store === 'dashboard' ? rec.month : rec.id; },
+  run(store, mode, fn) {
+    if (this.memory) return Promise.resolve(fn(null));
+    return new Promise((resolve, reject) => {
+      const tx = this.db.transaction(store, mode);
+      const os = tx.objectStore(store);
+      let result;
+      Promise.resolve(fn(os)).then(r => { result = r; });
+      tx.oncomplete = () => resolve(result);
+      tx.onerror = () => reject(tx.error);
+      tx.onabort = () => reject(tx.error || new Error('Transaction aborted'));
+    });
+  },
+  getAll(store) {
+    if (this.memory) return Promise.resolve(Array.from(this.memory[store].values()).map(x => JSON.parse(JSON.stringify(x))));
+    return new Promise((resolve, reject) => {
+      const req = this.db.transaction(store, 'readonly').objectStore(store).getAll();
+      req.onsuccess = () => resolve(req.result || []);
+      req.onerror = () => reject(req.error);
+    });
+  },
+  put(store, rec) { return this.putMany(store, [rec]); },
+  putMany(store, recs) {
+    if (!recs.length) return Promise.resolve();
+    if (this.memory) { recs.forEach(r => this.memory[store].set(this.keyOf(store, r), JSON.parse(JSON.stringify(r)))); return Promise.resolve(); }
+    return this.run(store, 'readwrite', os => { recs.forEach(r => os.put(r)); });
+  },
+  del(store, key) {
+    if (this.memory) { this.memory[store].delete(key); return Promise.resolve(); }
+    return this.run(store, 'readwrite', os => { os.delete(key); });
+  },
+  clear(store) {
+    if (this.memory) { this.memory[store].clear(); return Promise.resolve(); }
+    return this.run(store, 'readwrite', os => { os.clear(); });
+  },
+  async addLog(entry) {
+    const rec = Object.assign({ at: U.nowIso() }, entry);
+    if (this.memory) { rec.id = Date.now() + Math.random(); this.memory.syncLog.set(rec.id, rec); }
+    else await this.run('syncLog', 'readwrite', os => { os.add(rec); });
+    Store.log.unshift(rec);
+    if (Store.log.length > 200) Store.log.length = 200;
+  }
+};
+
+/* ------------------------------------------------------------------ Store (in-memory mirror of IndexedDB) */
+const Store = {
+  data: {}, meta: {}, queue: [], conflicts: [], log: [], settings: {}, inFlight: new Set(),
+  month: U.curMonth(),
+  async load() {
+    for (const s of Object.keys(ENTITY)) {
+      this.data[s] = new Map((await LocalDB.getAll(s)).map(r => [r.id, r]));
+    }
+    (await LocalDB.getAll('meta')).forEach(m => { this.meta[m.key] = m.value; });
+    this.queue = (await LocalDB.getAll('queue')).sort((a, b) => (a.createdAt < b.createdAt ? -1 : 1));
+    this.conflicts = await LocalDB.getAll('conflicts');
+    this.log = (await LocalDB.getAll('syncLog')).sort((a, b) => (a.at < b.at ? 1 : -1)).slice(0, 200);
+    this.settings = this.meta.settings || {};
+    if (!this.meta.clientId) await this.setMeta('clientId', U.uid('DEV'));
+  },
+  async setMeta(key, value) { this.meta[key] = value; await LocalDB.put('meta', { key, value }); },
+  list(store) { return Array.from((this.data[store] || new Map()).values()); },
+  get(store, id) { return (this.data[store] || new Map()).get(id) || null; },
+  async save(store, rec) {
+    if (!rec.id) rec.id = rec[ENTITY[store].idField];
+    this.data[store].set(rec.id, rec);
+    await LocalDB.put(store, rec);
+    return rec;
+  },
+  async remove(store, id) { this.data[store].delete(id); await LocalDB.del(store, id); },
+  categories(type) {
+    const list = this.list('categories').filter(c => c.type === type && U.bool(c.isActive)).sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0)).map(c => c.name);
+    return list.length ? list : DEFAULT_CATEGORIES[type];
+  },
+  pendingCount() { return this.queue.filter(o => o.status === 'PENDING' || o.status === 'RETRY').length; },
+  failedCount() { return this.queue.filter(o => o.status === 'FAILED' || o.status === 'REJECTED').length; },
+  reviewCount() { return this.queue.filter(o => o.status === 'NEEDS_REVIEW').length; }
+};
+
+/* ------------------------------------------------------------------ Calc (mirrors Code.gs rules exactly) */
+const Calc = {
+  status(expected, actual, dueDate, today, isVoid) {
+    if (isVoid) return ST.VOID;
+    const has = !U.blank(actual);
+    const exp = U.cents(expected), act = has ? U.cents(actual) : 0;
+    if (has && act > exp) return ST.OVER;
+    if (has && act >= exp) return ST.PAID;
+    if (dueDate && dueDate < today) return ST.OVERDUE;
+    if (has && act > 0) return ST.PARTIAL;
+    return ST.UNPAID;
+  },
+  paymentsByInstance() {
+    const map = new Map();
+    Store.list('payments').forEach(p => { if (!U.bool(p.isVoid)) { if (!map.has(p.billInstanceId)) map.set(p.billInstanceId, []); map.get(p.billInstanceId).push(p); } });
+    return map;
+  },
+  /** Derived view of an instance from its (local + synced) payments. Never mutates the stored record. */
+  derive(inst, payMap, today) {
+    const pays = payMap.get(inst.billInstanceId) || [];
+    let cents = 0, lastDate = '', lastMethod = '';
+    pays.forEach(p => { cents += U.cents(p.amount); if (!lastDate || p.paymentDate >= lastDate) { lastDate = p.paymentDate; lastMethod = p.paymentMethod; } });
+    const exp = U.cents(inst.expectedAmount);
+    const d = Object.assign({}, inst);
+    d.paymentCount = pays.length;
+    d.actualAmount = pays.length ? U.fromCents(cents) : '';
+    d.remainingAmount = U.fromCents(exp - (pays.length ? cents : 0));
+    d.difference = pays.length ? U.fromCents(exp - cents) : '';
+    d.paidDate = pays.length && cents >= exp ? lastDate : '';
+    if (lastMethod) d.paymentMethod = lastMethod;
+    d.isVoid = U.bool(inst.isVoid) && !pays.length;
+    d.status = Calc.status(d.expectedAmount, d.actualAmount, d.dueDate, today, d.isVoid);
+    d.hasLocal = pays.some(p => p.syncStatus !== 'synced') || (inst.syncStatus && inst.syncStatus !== 'synced');
+    return d;
+  },
+  instances(today) {
+    today = today || U.today();
+    const payMap = Calc.paymentsByInstance();
+    return Store.list('billInstances').map(i => Calc.derive(i, payMap, today));
+  },
+  budgetFor(month) {
+    const row = Store.list('budgets').find(b => b.month === month);
+    if (row && !U.blank(row.plannedAmount)) return { amount: Number(row.plannedAmount), source: 'month', row };
+    const def = Number(Store.settings.defaultMonthlyBudget || 0);
+    return { amount: isFinite(def) ? def : 0, source: 'default', row: null };
+  },
+  summary(month, instances, today) {
+    today = today || U.today();
+    instances = instances || Calc.instances(today);
+    const c = { expectedBills: 0, actualBills: 0, paidBills: 0, unpaidBills: 0, partialBills: 0, overdueBills: 0, overBudgetAmount: 0, unpaidAmount: 0, otherExpenses: 0, expectedIncome: 0, actualIncome: 0, projected: 0 };
+    const counts = { PAID: 0, PARTIAL: 0, UNPAID: 0, OVERDUE: 0, 'OVER BUDGET': 0 };
+    const byCategory = {}, byBill = {};
+    instances.forEach(i => {
+      if (i.billingPeriod !== month || i.isVoid) return;
+      const exp = U.cents(i.expectedAmount), act = U.cents(i.actualAmount);
+      c.expectedBills += exp; c.actualBills += act; c.projected += Math.max(exp, act);
+      if (counts[i.status] !== undefined) counts[i.status]++;
+      if (i.status === ST.PAID || i.status === ST.OVER) c.paidBills += act;
+      else c.unpaidAmount += Math.max(0, exp - act);
+      if (i.status === ST.UNPAID) c.unpaidBills += exp;
+      if (i.status === ST.PARTIAL) c.partialBills += Math.max(0, exp - act);
+      if (i.status === ST.OVERDUE) c.overdueBills += Math.max(0, exp - act);
+      if (act > exp) c.overBudgetAmount += act - exp;
+      const cat = i.category || 'Other'; byCategory[cat] = (byCategory[cat] || 0) + act;
+      const bk = i.recurringBillId || i.billName;
+      if (!byBill[bk]) byBill[bk] = { name: i.billName, expected: 0, actual: 0 };
+      byBill[bk].expected += exp; byBill[bk].actual += act;
+    });
+    Store.list('expenses').forEach(e => {
+      if (U.bool(e.isDeleted) || String(e.date).slice(0, 7) !== month) return;
+      const a = U.cents(e.amount); c.otherExpenses += a;
+      const cat = e.category || 'Other'; byCategory[cat] = (byCategory[cat] || 0) + a;
+    });
+    Store.list('income').forEach(r => {
+      if (U.bool(r.isDeleted) || r.status === 'CANCELLED' || String(r.date).slice(0, 7) !== month) return;
+      c.expectedIncome += U.cents(r.expectedAmount); c.actualIncome += U.cents(r.actualAmount);
+    });
+    const planned = Calc.budgetFor(month);
+    const budgetCents = Math.round(planned.amount * 100);
+    const totalSpent = c.actualBills + c.otherExpenses;
+    const f = U.fromCents;
+    const s = {
+      month, monthlyBudget: f(budgetCents), budgetSource: planned.source,
+      expectedBills: f(c.expectedBills), actualBills: f(c.actualBills), paidBills: f(c.paidBills), unpaidBills: f(c.unpaidBills),
+      partialBills: f(c.partialBills), overdueBills: f(c.overdueBills), overBudgetBills: f(c.overBudgetAmount),
+      unpaidAmount: f(c.unpaidAmount), overBudgetAmount: f(c.overBudgetAmount), otherExpenses: f(c.otherExpenses),
+      expectedIncome: f(c.expectedIncome), actualIncome: f(c.actualIncome), totalMoneyIn: f(c.actualIncome), totalMoneyOut: f(totalSpent),
+      totalSpent: f(totalSpent), projectedSpend: f(c.projected + c.otherExpenses), remaining: f(budgetCents - totalSpent),
+      netCashFlow: f(c.actualIncome - c.actualBills - c.otherExpenses), counts,
+      byCategory: Object.keys(byCategory).map(k => ({ category: k, amount: f(byCategory[k]) })).filter(x => x.amount > 0).sort((a, b) => b.amount - a.amount),
+      byBill: Object.keys(byBill).map(k => ({ name: byBill[k].name, expected: f(byBill[k].expected), actual: f(byBill[k].actual) })).sort((a, b) => b.expected - a.expected)
+    };
+    s.budget = Calc.budget(s, today, Number(Store.settings.watchThreshold || 0.9));
+    return s;
+  },
+  budget(s, today, watch) {
+    const budget = s.monthlyBudget, reasons = [];
+    let health = 'ON TRACK';
+    const basis = budget > 0 ? budget : s.expectedBills;
+    const used = basis > 0 ? s.totalSpent / basis : (s.totalSpent > 0 ? 1 : 0);
+    const cm = today.slice(0, 7);
+    const elapsed = s.month < cm ? 1 : s.month > cm ? 0 : (+today.slice(8, 10)) / U.dim(+cm.slice(0, 4), +cm.slice(5, 7));
+    const P = n => U.peso(n);
+    if (basis > 0 && s.totalSpent > basis) { health = 'OVER BUDGET'; reasons.push('Spending exceeds the budget by ' + P(s.totalSpent - basis) + '.'); }
+    else {
+      if (basis > 0 && s.projectedSpend > basis) reasons.push('Projected spending ' + P(s.projectedSpend) + ' exceeds the budget by ' + P(s.projectedSpend - basis) + '.');
+      if (basis > 0 && used >= (watch || 0.9)) reasons.push(Math.round(used * 100) + '% of the budget is already used.');
+      if (s.counts.OVERDUE > 0) reasons.push(s.counts.OVERDUE + ' overdue bill' + (s.counts.OVERDUE > 1 ? 's' : '') + ' (' + P(s.overdueBills) + ' outstanding).');
+      if (s.counts['OVER BUDGET'] > 0) reasons.push(s.counts['OVER BUDGET'] + ' bill' + (s.counts['OVER BUDGET'] > 1 ? 's' : '') + ' paid above the expected amount (+' + P(s.overBudgetAmount) + ').');
+      if (basis > 0 && elapsed > 0 && elapsed < 1 && used > elapsed + 0.15 && used < (watch || 0.9)) reasons.push('Spending pace (' + Math.round(used * 100) + '% used) is ahead of the month (' + Math.round(elapsed * 100) + '% elapsed).');
+      if (s.expectedIncome > 0 && s.projectedSpend > s.expectedIncome) reasons.push('Expected income ' + P(s.expectedIncome) + ' does not cover projected spending.');
+      if (reasons.length) health = 'WATCH';
+    }
+    return { health, reasons, budget, basis: U.round2(basis), totalSpent: s.totalSpent, projectedSpend: s.projectedSpend, remaining: U.round2(basis - s.totalSpent), percentUsed: U.round2(used * 100), percentProjected: basis > 0 ? U.round2(s.projectedSpend / basis * 100) : 0, monthElapsed: U.round2(elapsed * 100) };
+  },
+  upcoming(month, instances, today) {
+    const cm = today.slice(0, 7);
+    const horizon = U.addDays(today, 30);
+    return instances.filter(i => !i.isVoid && i.status !== ST.PAID && i.status !== ST.OVER && i.status !== ST.OVERDUE &&
+      (month === cm ? (i.dueDate >= today && i.dueDate <= horizon) : i.billingPeriod === month))
+      .sort((a, b) => (a.dueDate < b.dueDate ? -1 : a.dueDate > b.dueDate ? 1 : 0)).slice(0, 12);
+  },
+  attention(month, instances, today) {
+    const end = U.lastDay(month), soon = U.addDays(today, 7);
+    const rank = { 'OVERDUE': 0, 'OVER BUDGET': 1, 'PARTIAL': 2, 'UNPAID': 3 };
+    return instances.filter(i => {
+      if (i.isVoid) return false;
+      if (i.status === ST.OVERDUE) return i.dueDate <= end;
+      if (i.billingPeriod !== month) return false;
+      return i.status === ST.OVER || i.status === ST.PARTIAL || (i.status === ST.UNPAID && i.dueDate <= soon);
+    }).sort((a, b) => (rank[a.status] - rank[b.status]) || (a.dueDate < b.dueDate ? -1 : a.dueDate > b.dueDate ? 1 : 0)).slice(0, 20);
+  },
+  scheduleText(b) {
+    switch (b.frequency) {
+      case 'MONTHLY': return 'Monthly · due the ' + U.ordinal(+b.dueDay || 1);
+      case 'WEEKLY': return 'Weekly · every ' + (WEEKDAYS[+b.dueWeekday] || '—');
+      case 'QUARTERLY': return 'Quarterly · the ' + U.ordinal(+b.dueDay || 1);
+      case 'YEARLY': return 'Yearly · ' + (U.isYmd(b.startDate) ? MONTHS[+b.startDate.slice(5, 7) - 1].slice(0, 3) + ' ' + (+b.dueDay || 1) : '');
+      case 'CUSTOM': return 'Every ' + (b.intervalDays || '?') + ' days';
+      default: return b.frequency || '—';
+    }
+  },
+  monthlyEquivalent(b) {
+    const a = Number(b.amount) || 0;
+    return { WEEKLY: a * 52 / 12, MONTHLY: a, QUARTERLY: a / 3, YEARLY: a / 12, CUSTOM: a * (365.25 / 12) / Math.max(1, +b.intervalDays || 30) }[b.frequency] || 0;
+  }
+};
+
+/* ------------------------------------------------------------------ Api */
+class ApiError extends Error {
+  constructor(message, code, retryable, network) { super(message); this.code = code; this.retryable = retryable; this.network = network; }
+}
+const Api = {
+  configured() { return IS_GAS || (!!Store.meta.apiUrl && !!Store.meta.apiKey); },
+  async call(action, payload, opts) {
+    opts = opts || {};
+    const body = { action, apiKey: Store.meta.apiKey || '', payload: payload || {} };
+    let res;
+    if (IS_GAS) {
+      res = await U.withTimeout(new Promise((resolve, reject) => {
+        google.script.run
+          .withSuccessHandler(s => { try { resolve(JSON.parse(s)); } catch (e) { reject(new ApiError('Invalid server response.', 'BAD_RESPONSE', true)); } })
+          .withFailureHandler(err => reject(new ApiError((err && err.message) || 'Network error', 'NETWORK', true, true)))
+          .handleClientRequest(JSON.stringify(body));
+      }), opts.timeout || REQUEST_TIMEOUT_MS);
+    } else {
+      if (!Store.meta.apiUrl) throw new ApiError('The app is not connected yet. Open Settings → Connection.', 'NOT_CONFIGURED', false);
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), opts.timeout || REQUEST_TIMEOUT_MS);
+      try {
+        const r = await fetch(Store.meta.apiUrl, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body), redirect: 'follow', signal: ctrl.signal, cache: 'no-store', credentials: 'omit' });
+        const text = await r.text();
+        try { res = JSON.parse(text); } catch (e) {
+          throw new ApiError(/<html/i.test(text) ? 'The server returned a web page instead of data. Check the Web App URL (must end in /exec) and that access is set to "Anyone".' : 'Invalid server response.', 'BAD_RESPONSE', true);
+        }
+      } catch (e) {
+        if (e instanceof ApiError) throw e;
+        if (e.name === 'AbortError') throw new ApiError('The server took too long to respond.', 'TIMEOUT', true, true);
+        throw new ApiError('Cannot reach the server (' + (e.message || 'network error') + ').', 'NETWORK', true, true);
+      } finally { clearTimeout(timer); }
+    }
+    if (!res || typeof res !== 'object') throw new ApiError('Invalid server response.', 'BAD_RESPONSE', true);
+    if (!res.ok) throw new ApiError(res.error && res.error.message || 'Server error', res.error && res.error.code || 'SERVER_ERROR', !!(res.error && res.error.retryable));
+    Sync.lastServerContact = Date.now();
+    Sync.reachable = true;
+    return res.data;
+  }
+};
+
+/* ------------------------------------------------------------------ Sync engine */
+const Sync = {
+  running: null, reachable: navigator.onLine, lastServerContact: 0, lastError: '', justCompleted: 0, timer: null,
+  online() { return navigator.onLine && this.reachable !== false; },
+
+  /** Writes an operation durably to the IndexedDB queue BEFORE any network attempt. */
+  async enqueue(op) {
+    op = Object.assign({ operationId: U.opId(), createdAt: U.nowIso(), clientUpdatedAt: U.nowIso(), status: 'PENDING', retryCount: 0, nextAttemptAt: 0, lastError: '' }, op);
+    const existing = Store.queue.findIndex(q => q.operationId === op.operationId);
+    if (existing >= 0) return Store.queue[existing];          // same operationId = same intent (double click)
+    Store.queue.push(op);
+    await LocalDB.put('queue', op);
+    UI.updateStatus();
+    return op;
+  },
+  async updateOp(op) { await LocalDB.put('queue', op); },
+  async removeOp(opId) {
+    Store.queue = Store.queue.filter(q => q.operationId !== opId);
+    await LocalDB.del('queue', opId);
+  },
+  isQueued(opId) { return Store.queue.some(q => q.operationId === opId); },
+
+  /** Runs one sync cycle: push queued operations, then pull server changes. Concurrent callers share the same run. */
+  run(opts) {
+    if (this.running) return this.running;
+    this.running = this._run(opts || {}).finally(() => { this.running = null; UI.updateStatus(); });
+    UI.updateStatus();
+    return this.running;
+  },
+  async _run(opts) {
+    if (!Api.configured()) return { skipped: 'not-configured' };
+    if (!navigator.onLine) { this.reachable = false; return { skipped: 'offline' }; }
+    let pushed = 0, failed = 0, conflicts = 0;
+    try {
+      const now = Date.now();
+      const ready = Store.queue.filter(o => (o.status === 'PENDING' || o.status === 'RETRY' || o.status === 'FAILED' || (opts.manual && o.status === 'REJECTED')) && (opts.manual || !o.nextAttemptAt || o.nextAttemptAt <= now));
+      for (let i = 0; i < ready.length; i += SYNC_BATCH) {
+        const chunk = ready.slice(i, i + SYNC_BATCH);
+        chunk.forEach(o => Store.inFlight.add(o.operationId));
+        let result;
+        try {
+          result = await Api.call('syncOfflineOperations', { clientId: Store.meta.clientId, operations: chunk.map(o => this.wire(o)) }, { timeout: 45000 });
+        } catch (e) {
+          chunk.forEach(o => Store.inFlight.delete(o.operationId));
+          if (e.network) this.reachable = false;
+          for (const o of chunk) await this.markRetry(o, e.message, e.retryable !== false);
+          throw e;
+        }
+        for (const r of result.results) {
+          const op = chunk.find(o => o.operationId === r.operationId);
+          Store.inFlight.delete(r.operationId);
+          if (!op) continue;
+          const outcome = await this.applyResult(op, r);
+          if (outcome === 'ok') pushed++; else if (outcome === 'review') conflicts++; else failed++;
+        }
+      }
+      await this.pull({ month: opts.month, full: opts.full });
+      this.lastError = '';
+      if (pushed) await LocalDB.addLog({ type: 'SYNCED', message: pushed + ' change' + (pushed > 1 ? 's' : '') + ' synchronized' });
+      if (!Store.queue.length) this.justCompleted = Date.now();
+      return { pushed, failed, conflicts };
+    } catch (e) {
+      this.lastError = e.message;
+      if (!e.network) await LocalDB.addLog({ type: 'SYNC_ERROR', message: e.message });
+      return { error: e.message, network: !!e.network, pushed, failed, conflicts };
+    } finally {
+      UI.refresh();
+    }
+  },
+  wire(o) {
+    const w = { operationId: o.operationId, entityType: o.entityType, action: o.action, localId: o.localId, payload: o.payload, createdAt: o.createdAt, clientUpdatedAt: o.clientUpdatedAt };
+    if (o.baseUpdatedAt) w.baseUpdatedAt = o.baseUpdatedAt;
+    if (o.baseValues) w.baseValues = o.baseValues;
+    if (o.changedFields) w.changedFields = o.changedFields;
+    if (o.force) w.force = true;
+    return w;
+  },
+  async markRetry(o, message, retryable) {
+    o.retryCount = (o.retryCount || 0) + 1;
+    o.lastError = message;
+    if (retryable) {
+      o.status = o.retryCount >= 5 ? 'FAILED' : 'RETRY';
+      o.nextAttemptAt = Date.now() + Math.min(10 * 60 * 1000, 5000 * Math.pow(2, o.retryCount - 1));
+    } else {
+      o.status = 'REJECTED';
+    }
+    await this.updateOp(o);
+    await this.markEntity(o, o.status === 'REJECTED' ? 'failed' : 'pending');
+  },
+  async markEntity(o, syncStatus) {
+    const store = Object.keys(ENTITY).find(s => ENTITY[s].type === o.entityType);
+    if (!store) return;
+    const rec = Store.get(store, o.localId || o.entityId);
+    if (rec) { rec.syncStatus = syncStatus; rec.syncError = syncStatus === 'failed' ? o.lastError : ''; await Store.save(store, rec); }
+  },
+  async applyResult(op, r) {
+    if (r.status === 'SUCCESS' || r.status === 'DUPLICATE' || r.status === 'CONFLICT_RESOLVED') {
+      await this.removeOp(op.operationId);
+      if (r.serverId && op.localId && r.serverId !== op.localId) await this.remapId(op.entityType, op.localId, r.serverId);
+      await this.mergeRecords(r.records || {}, true);
+      if (r.status === 'CONFLICT_RESOLVED') await LocalDB.addLog({ type: 'CONFLICT_RESOLVED', message: r.message, operationId: op.operationId });
+      return 'ok';
+    }
+    if (r.status === 'NEEDS_REVIEW') {
+      op.status = 'NEEDS_REVIEW'; op.lastError = r.message;
+      await this.updateOp(op);
+      const c = { operationId: op.operationId, entityType: op.entityType, entityId: op.localId || op.entityId, message: r.message, conflict: r.conflict || null, op, at: U.nowIso() };
+      Store.conflicts = Store.conflicts.filter(x => x.operationId !== op.operationId).concat([c]);
+      await LocalDB.put('conflicts', c);
+      await this.markEntity(op, 'conflict');
+      await LocalDB.addLog({ type: 'CONFLICT', message: r.message, operationId: op.operationId });
+      return 'review';
+    }
+    await this.markRetry(op, r.message || 'Sync failed', r.retryable !== false);
+    await LocalDB.addLog({ type: 'FAILED', message: (r.message || 'Sync failed') + (r.retryable === false ? '' : ' — will retry'), operationId: op.operationId });
+    return 'failed';
+  },
+  async remapId(entityType, oldId, newId) {
+    const store = Object.keys(ENTITY).find(s => ENTITY[s].type === entityType);
+    if (!store) return;
+    const rec = Store.get(store, oldId);
+    if (rec) { await Store.remove(store, oldId); rec.id = newId; rec[ENTITY[store].idField] = newId; rec.serverId = newId; await Store.save(store, rec); }
+    for (const q of Store.queue) {
+      let changed = false;
+      if (q.localId === oldId) { q.localId = newId; changed = true; }
+      if (q.entityId === oldId) { q.entityId = newId; changed = true; }
+      if (q.payload && q.payload[ENTITY[store].idField] === oldId) { q.payload[ENTITY[store].idField] = newId; changed = true; }
+      if (changed) await this.updateOp(q);
+    }
+  },
+  /** Merge server records. Local records with unsynced edits are kept (their queued ops will win or conflict on the server). */
+  async mergeRecords(recs, fromOwnOp) {
+    const now = U.nowIso();
+    const pendingIds = new Set(Store.queue.map(q => q.localId || q.entityId).filter(Boolean));
+    for (const store of Object.keys(ENTITY)) {
+      const list = recs[store];
+      if (!Array.isArray(list) || !list.length) continue;
+      const out = [];
+      for (const r of list) {
+        if (!r) continue;
+        const id = r[ENTITY[store].idField];
+        if (!id) continue;
+        const local = Store.get(store, id);
+        if (local && pendingIds.has(id)) {
+          // a queued change for this record is still waiting — keep local content, refresh the server baseline only
+          local.serverUpdatedAt = r.updatedAt; local.serverId = id;
+          out.push(local); continue;
+        }
+        out.push(Object.assign({}, r, { id, localId: local ? local.localId || id : id, serverId: id, syncStatus: 'synced', syncError: '', serverUpdatedAt: r.updatedAt, lastSyncedAt: now }));
+      }
+      out.forEach(r => Store.data[store].set(r.id, r));
+      await LocalDB.putMany(store, out);
+    }
+    if (recs.settings && typeof recs.settings === 'object' && !Array.isArray(recs.settings)) { Store.settings = recs.settings; await Store.setMeta('settings', recs.settings); }
+  },
+  async pull(opts) {
+    opts = opts || {};
+    const full = opts.full || !Store.meta.lastServerTime;
+    let since = '';
+    if (!full) { const t = new Date(new Date(Store.meta.lastServerTime).getTime() - 5 * 60 * 1000); since = t.toISOString(); }
+    const data = await Api.call('getAllData', { since, month: opts.month || Store.month }, { timeout: 45000 });
+    await this.mergeRecords({ recurringBills: data.recurringBills, billInstances: data.billInstances, payments: data.payments, expenses: data.expenses, income: data.income, budgets: data.budgets, categories: data.categories, settings: data.settings }, false);
+    if (data.full) {
+      // Full refresh: remove synced local records that no longer exist on the server
+      const pendingIds = new Set(Store.queue.map(q => q.localId || q.entityId));
+      const map = { recurringBills: data.recurringBills, billInstances: data.billInstances, payments: data.payments, expenses: data.expenses, income: data.income, budgets: data.budgets, categories: data.categories };
+      for (const store of Object.keys(map)) {
+        const ids = new Set((map[store] || []).map(r => r[ENTITY[store].idField]));
+        for (const rec of Store.list(store)) if (!ids.has(rec.id) && rec.syncStatus === 'synced' && !pendingIds.has(rec.id)) await Store.remove(store, rec.id);
+      }
+    }
+    await Store.setMeta('lastServerTime', data.serverTime);
+    await Store.setMeta('lastSyncAt', U.nowIso());
+    if (data.today) Store.serverToday = data.today;
+    return data;
+  },
+  schedule(ms) {
+    clearTimeout(this.timer);
+    this.timer = setTimeout(() => this.run(), ms || 0);
+  },
+  start() {
+    window.addEventListener('online', () => { this.reachable = true; UI.updateStatus(); UI.toast('Back online. Synchronizing…'); this.run(); });
+    window.addEventListener('offline', () => { this.reachable = false; UI.updateStatus(); UI.refresh(); });
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') this.run(); });
+    setInterval(() => {
+      if (!Api.configured()) return;
+      const due = Store.queue.some(o => (o.status === 'PENDING' || o.status === 'RETRY') && (!o.nextAttemptAt || o.nextAttemptAt <= Date.now()));
+      const stale = Date.now() - this.lastServerContact > 5 * 60 * 1000;
+      if (navigator.onLine && (due || stale || this.reachable === false)) this.run();
+    }, 20000);
+    this.run();
+  },
+  /**
+   * Save path used by every form: the operation is persisted locally first, then (if online)
+   * pushed immediately. Returns 'synced' | 'local' | 'review' | 'rejected'.
+   */
+  async commit(op) {
+    await this.enqueue(op);
+    UI.refresh();
+    if (!Api.configured() || !navigator.onLine) return 'local';
+    try { await U.withTimeout(this.run(), 20000, 'Still syncing in the background.'); } catch (e) { return 'local'; }
+    const q = Store.queue.find(x => x.operationId === op.operationId);
+    if (!q) return 'synced';
+    if (q.status === 'NEEDS_REVIEW') return 'review';
+    if (q.status === 'REJECTED') { this.lastRejection = q.lastError; return 'rejected'; }
+    return 'local';
+  }
+};
+
+/* ------------------------------------------------------------------ Icons */
+const ICON = {
+  dashboard: '<path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>',
+  bills: '<path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6M9 13h7M9 17h5"/>',
+  expenses: '<path d="M3 6h18l-2 13H5L3 6z"/><path d="M8 6V4h8v2"/>',
+  income: '<path d="M12 20V4M5 11l7-7 7 7"/>',
+  recurring: '<path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 014-4h14M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 01-4 4H3"/>',
+  payments: '<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>',
+  reports: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+  sync: '<path d="M21 12a9 9 0 01-15.5 6.2L3 16M3 12a9 9 0 0115.5-6.2L21 8"/><path d="M21 3v5h-5M3 21v-5h5"/>',
+  settings: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/>',
+  more: '<circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>'
+};
+const svgIcon = (name, w) => `<svg viewBox="0 0 24 24" width="${w || 18}" height="${w || 18}" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[name] || ''}</svg>`;
+
+const VIEWS = [
+  { id: 'dashboard', label: 'Dashboard' }, { id: 'bills', label: 'Bills' }, { id: 'expenses', label: 'Expenses' },
+  { id: 'income', label: 'Income' }, { id: 'recurring', label: 'Recurring Bills' }, { id: 'payments', label: 'Payments' },
+  { id: 'reports', label: 'Reports' }, { id: 'sync', label: 'Sync / Offline' }, { id: 'settings', label: 'Settings' }
+];
+const MONTH_VIEWS = ['dashboard', 'bills', 'expenses', 'income', 'payments'];
+
+/* ------------------------------------------------------------------ UI core */
+const UI = {
+  view: 'dashboard',
+  filters: { bills: { search: '', status: '', category: '' }, expenses: { search: '', category: '', from: '', to: '', allMonths: false }, income: { search: '', category: '', from: '', to: '', allMonths: false }, payments: { search: '', bill: '', method: '', from: '', to: '', allMonths: false }, reports: { type: 'summary', from: '', to: '' } },
+  deferredInstall: null,
+
+  init() {
+    document.getElementById('sideNav').innerHTML = VIEWS.map(v => `<a href="#/${v.id}" data-nav="${v.id}">${svgIcon(v.id)}<span>${v.label}</span><span class="badge" data-badge="${v.id}" hidden></span></a>`).join('');
+    document.getElementById('bottomNav').innerHTML = ['dashboard', 'bills', 'expenses', 'income'].map(id => `<a href="#/${id}" data-nav="${id}">${svgIcon(id, 21)}<span>${id === 'dashboard' ? 'Home' : VIEWS.find(v => v.id === id).label}</span><span class="badge" data-badge="${id}" hidden></span></a>`).join('') +
+      `<button type="button" data-action="more" data-nav="more">${svgIcon('more', 21)}<span>More</span><span class="badge" data-badge="more" hidden></span></button>`;
+    document.addEventListener('click', e => this.onClick(e));
+    document.addEventListener('input', e => this.onInput(e));
+    document.addEventListener('change', e => this.onChange(e));
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') Modal.close(); });
+    window.addEventListener('hashchange', () => { const v = this.hashView(); if (v && v !== this.view) this.route(v); });
+    window.addEventListener('resize', U.debounce(() => Charts.drawAll(), 150));
+    const mi = document.getElementById('monthInput');
+    mi.addEventListener('change', () => { if (U.isYm(mi.value)) this.setMonth(mi.value); });
+    Tooltip.init();
+    this.go(this.view || this.hashView() || 'dashboard');
+  },
+  /** Reads the view from the URL hash; returns '' when the hash is unavailable (e.g. sandboxed previews). */
+  hashView() {
+    try { const id = (location.hash || '').replace(/^#\/?/, '').split('?')[0]; return VIEWS.some(v => v.id === id) ? id : ''; } catch (e) { return ''; }
+  },
+  /** Navigates without depending on the History API, so the app also works inside iframes / srcdoc previews. */
+  go(view) {
+    if (!VIEWS.some(v => v.id === view)) view = 'dashboard';
+    this.route(view);
+    try { if (location.hash !== '#/' + view) location.hash = '#/' + view; } catch (e) { /* URL not writable here — in-memory routing still works */ }
+  },
+  route(view) {
+    const id = view || this.hashView() || this.view || 'dashboard';
+    this.view = VIEWS.some(v => v.id === id) ? id : 'dashboard';
+    document.querySelectorAll('[data-nav]').forEach(a => a.classList.toggle('active', a.dataset.nav === this.view || (a.dataset.nav === 'more' && !['dashboard', 'bills', 'expenses', 'income'].includes(this.view))));
+    document.getElementById('pageTitle').textContent = VIEWS.find(v => v.id === this.view).label;
+    document.getElementById('monthSel').style.visibility = MONTH_VIEWS.includes(this.view) ? 'visible' : 'hidden';
+    Modal.close();
+    this.render();
+    document.getElementById('view').scrollTop = 0;
+    window.scrollTo(0, 0);
+  },
+  setMonth(ym) {
+    Store.month = ym;
+    this.render();
+    const has = Store.list('billInstances').some(i => i.billingPeriod === ym);
+    if (!has && Api.configured() && navigator.onLine && U.mIdx(ym) <= U.mIdx(U.curMonth()) + 24) Sync.run({ month: ym });
+  },
+  render() {
+    document.getElementById('monthLabel').textContent = U.monthLabel(Store.month);
+    document.getElementById('monthInput').value = Store.month;
+    const el = document.getElementById('view');
+    const fn = Views[this.view];
+    try {
+      el.innerHTML = fn ? fn.call(Views) : '';
+    } catch (e) {
+      console.error(e);
+      el.innerHTML = `<div class="banner err">Something went wrong rendering this page: ${U.esc(e.message)}</div>`;
+    }
+    Charts.drawAll();
+    this.updateStatus();
+  },
+  /** Re-render after data changes without stealing focus from a filter the user is typing in. */
+  refresh() {
+    const a = document.activeElement;
+    if (a && a.closest && a.closest('#view .filters')) { const lb = document.getElementById('listBody'); if (lb && Views[this.view + 'List']) { lb.innerHTML = Views[this.view + 'List'](); this.updateStatus(); return; } }
+    this.render();
+  },
+  status() {
+    const pending = Store.pendingCount(), failed = Store.failedCount(), review = Store.reviewCount();
+    if (Sync.running) return { state: 'syncing', text: 'Syncing…' };
+    if (!navigator.onLine || Sync.reachable === false) return { state: 'offline', text: pending ? 'Offline • Saved locally' : 'Offline' };
+    if (!Api.configured()) return { state: 'pending', text: '⚠ Not connected' };
+    if (failed || review) return { state: 'failed', text: review ? '⚠ Needs review' : '⚠ Sync failed' };
+    if (pending) return { state: 'pending', text: '⚠ Sync pending' };
+    if (Date.now() - Sync.justCompleted < 4000) return { state: 'complete', text: '✓ All changes synced' };
+    return { state: 'online', text: 'Online • Synced' };
+  },
+  updateStatus() {
+    const s = this.status();
+    ['connTop', 'connSide'].forEach(id => { const el = document.getElementById(id); if (!el) return; el.dataset.state = s.state; el.querySelector('.txt').textContent = s.text; el.title = s.text + (Store.meta.lastSyncAt ? ' — last synced ' + U.fmtTime(Store.meta.lastSyncAt) : ''); });
+    const n = Store.queue.length;
+    document.querySelectorAll('[data-badge="sync"],[data-badge="more"]').forEach(b => { b.hidden = !n; b.textContent = n; });
+    const today = U.today();
+    const overdue = Calc.instances(today).filter(i => i.status === ST.OVERDUE).length;
+    document.querySelectorAll('[data-badge="bills"]').forEach(b => { b.hidden = !overdue; b.textContent = overdue; });
+    if (this._completeTimer) clearTimeout(this._completeTimer);
+    if (s.state === 'complete') this._completeTimer = setTimeout(() => this.updateStatus(), 4100);
+  },
+  toast(message, kind, ms) {
+    const box = document.getElementById('toasts');
+    const t = document.createElement('div');
+    t.className = 'toast' + (kind ? ' ' + kind : '');
+    t.innerHTML = `<span>${U.esc(message)}</span><button class="x" aria-label="Dismiss">×</button>`;
+    t.querySelector('.x').onclick = () => t.remove();
+    box.appendChild(t);
+    while (box.children.length > 4) box.firstChild.remove();
+    setTimeout(() => t.remove(), ms || (kind === 'err' ? 7000 : 4000));
+  },
+  /** Disables a button, shows a label + spinner, and always restores it. */
+  async busy(btn, label, fn) {
+    if (btn && btn.dataset.busy === '1') return;
+    const orig = btn ? btn.innerHTML : '';
+    if (btn) { btn.dataset.busy = '1'; btn.disabled = true; btn.classList.add('busy'); btn.innerHTML = `<span class="spinner"></span>${U.esc(label || 'Saving…')}`; }
+    try { return await fn(); }
+    finally { if (btn && btn.isConnected) { btn.dataset.busy = ''; btn.disabled = false; btn.classList.remove('busy'); btn.innerHTML = orig; } }
+  },
+  saveOutcome(outcome, noun) {
+    if (outcome === 'synced') this.toast(noun + ' saved.');
+    else if (outcome === 'review') this.toast(noun + ' changed on another device too. Review it in Sync / Offline.', 'warn', 7000);
+    else if (outcome === 'rejected') this.toast('Server rejected this change: ' + (Sync.lastRejection || 'invalid data') + '. See Sync / Offline.', 'err');
+    else this.toast(noun + " saved locally. It will sync when you're online.");
+  },
+  onClick(e) {
+    const link = e.target.closest('a[href^="#/"]');
+    if (link) { e.preventDefault(); Modal.close(); this.go(link.getAttribute('href').slice(2)); return; }
+    const el = e.target.closest('[data-action]');
+    if (!el) return;
+    const fn = Actions[el.dataset.action];
+    if (fn) { e.preventDefault(); fn(el, e); }
+  },
+  onInput(e) {
+    const f = e.target.closest('[data-filter]');
+    if (!f) return;
+    const [view, key] = f.dataset.filter.split('.');
+    this.filters[view][key] = f.type === 'checkbox' ? f.checked : f.value;
+    const lb = document.getElementById('listBody');
+    if (lb && Views[view + 'List']) lb.innerHTML = Views[view + 'List']();
+  },
+  onChange(e) {
+    if (e.target.matches('select[data-filter], input[type=date][data-filter], input[type=checkbox][data-filter], input[type=month][data-filter]')) this.onInput(e);
+  },
+  cachedBanner() {
+    const off = !navigator.onLine || Sync.reachable === false;
+    const never = !Store.meta.lastSyncAt;
+    if (!Api.configured()) {
+      return `<div class="banner warn"><span class="grow"><b>Not connected to Google Sheets yet.</b> Entries are saved on this device and will sync after you connect.</span><a class="btn sm" href="#/settings">Connect</a></div>`;
+    }
+    if (off) return `<div class="banner"><span class="grow"><b>Showing locally cached data.</b> ${never ? 'No data has been downloaded yet.' : 'Last synced ' + U.fmtTime(Store.meta.lastSyncAt) + '.'} Changes are saved on this device and will sync automatically.</span></div>`;
+    if (Sync.lastError && !Sync.running) return `<div class="banner err"><span class="grow"><b>Sync problem:</b> ${U.esc(Sync.lastError)} Showing locally cached data.</span><button class="btn sm" data-action="sync-now">Retry</button></div>`;
+    return '';
+  },
+  options(list, selected, placeholder) {
+    return (placeholder !== undefined ? `<option value="">${U.esc(placeholder)}</option>` : '') + list.map(v => { const val = typeof v === 'object' ? v.value : v; const lab = typeof v === 'object' ? v.label : v; return `<option value="${U.esc(val)}" ${String(val) === String(selected) ? 'selected' : ''}>${U.esc(lab)}</option>`; }).join('');
+  }
+};
+
+const tagFor = st => `<span class="tag ${st === 'OVER BUDGET' ? 'OVER' : U.esc(st)}">${U.esc(st)}</span>`;
+const localTag = r => r && r.syncStatus && r.syncStatus !== 'synced' ? `<span class="tag local" title="${U.esc(r.syncError || 'Not yet synced to Google Sheets')}">${r.syncStatus === 'failed' ? 'Sync failed' : r.syncStatus === 'conflict' ? 'Needs review' : 'Saved locally'}</span>` : '';
+
+/* ------------------------------------------------------------------ Tooltip */
+const Tooltip = {
+  el: null, hideTimer: null,
+  init() {
+    this.el = document.getElementById('tooltip');
+    document.addEventListener('mouseover', e => { const t = e.target.closest('[data-tip]'); if (t) this.show(t.dataset.tip, e); });
+    document.addEventListener('mousemove', e => { if (this.el.classList.contains('show')) this.place(e); });
+    document.addEventListener('mouseout', e => { if (e.target.closest('[data-tip]')) this.hide(); });
+    document.addEventListener('touchstart', e => { const t = e.target.closest('[data-tip]'); if (t) { const p = e.touches[0]; this.show(t.dataset.tip, p); clearTimeout(this.hideTimer); this.hideTimer = setTimeout(() => this.hide(), 2500); } }, { passive: true });
+  },
+  show(text, e) { this.el.textContent = text; this.el.classList.add('show'); this.place(e); },
+  place(e) {
+    const w = this.el.offsetWidth, h = this.el.offsetHeight;
+    let x = e.clientX + 14, y = e.clientY - h - 12;
+    if (x + w > innerWidth - 8) x = e.clientX - w - 14;
+    if (y < 8) y = e.clientY + 18;
+    this.el.style.left = Math.max(8, x) + 'px'; this.el.style.top = y + 'px';
+  },
+  hide() { this.el.classList.remove('show'); }
+};
+
+/* ------------------------------------------------------------------ Charts (hand-built SVG, sized to the container) */
+const Charts = {
+  pending: {},
+  css: v => getComputedStyle(document.documentElement).getPropertyValue(v).trim(),
+  drawAll() {
+    document.querySelectorAll('[data-chart]').forEach(el => {
+      const spec = this.pending[el.dataset.chart];
+      if (!spec) return;
+      const w = Math.max(260, el.clientWidth - (parseFloat(getComputedStyle(el).paddingLeft) + parseFloat(getComputedStyle(el).paddingRight)));
+      try { el.innerHTML = spec.draw(w); } catch (e) { el.innerHTML = '<div class="empty">Chart unavailable</div>'; console.error(e); }
+    });
+  },
+  register(id, draw) { this.pending[id] = { draw }; return `<div class="chart" data-chart="${id}"></div>`; },
+  niceMax(v) { if (v <= 0) return 1; const p = Math.pow(10, Math.floor(Math.log10(v))); const n = v / p; return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 2.5 ? 2.5 : n <= 5 ? 5 : 10) * p; },
+  compact(v) { if (Math.abs(v) >= 1e6) return '₱' + U.round2(v / 1e6) + 'M'; if (Math.abs(v) >= 1000) return '₱' + Math.round(v / 100) / 10 + 'k'; return '₱' + Math.round(v); },
+  trunc(s, n) { s = String(s); return s.length > n ? s.slice(0, n - 1) + '…' : s; },
+  empty(msg) { return `<div class="empty" style="padding:28px 0">${U.esc(msg)}</div>`; },
+
+  expectedVsActual(rows) {
+    return w => {
+      if (!rows.length) return this.empty('No bills for this month.');
+      const labelW = Math.min(130, w * 0.32), valW = 74, plotW = w - labelW - valW, rowH = 34;
+      const max = this.niceMax(Math.max(...rows.map(r => Math.max(r.expected, r.actual))));
+      const h = rows.length * rowH + 8;
+      const ce = this.css('--c-expected'), ca = this.css('--c-actual');
+      let s = `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img" aria-label="Expected versus actual spending by bill">`;
+      rows.forEach((r, i) => {
+        const y = i * rowH + 4;
+        const we = Math.max(r.expected > 0 ? 2 : 0, r.expected / max * plotW), wa = Math.max(r.actual > 0 ? 2 : 0, r.actual / max * plotW);
+        const tip = `${r.name}\nExpected ${U.peso(r.expected)}\nActual ${r.actual ? U.peso(r.actual) : '— (not paid)'}`;
+        s += `<g data-tip="${U.esc(tip)}"><rect x="0" y="${y - 2}" width="${w}" height="${rowH - 2}" fill="transparent"/>`;
+        s += `<text x="0" y="${y + 17}" style="font-weight:600;fill:${this.css('--ink')}">${U.esc(this.trunc(r.name, Math.floor(labelW / 7)))}</text>`;
+        s += `<rect x="${labelW}" y="${y + 3}" width="${we}" height="9" rx="3" fill="${ce}"/>`;
+        s += `<rect x="${labelW}" y="${y + 15}" width="${wa}" height="9" rx="3" fill="${ca}"/>`;
+        s += `<text x="${w}" y="${y + 23}" text-anchor="end" style="font-variant-numeric:tabular-nums">${r.actual ? U.peso(r.actual, true) : '—'}</text></g>`;
+      });
+      return s + '</svg>';
+    };
+  },
+  incomeVsOut(trend) {
+    return w => {
+      const h = 220, padL = 52, padB = 26, padT = 10, plotW = w - padL - 4, plotH = h - padB - padT;
+      const max = this.niceMax(Math.max(1, ...trend.map(t => Math.max(t.actualIncome, t.totalSpent))));
+      const ci = this.css('--c-income'), co = this.css('--c-out');
+      let s = `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img" aria-label="Income versus money out, last six months">`;
+      for (let k = 0; k <= 4; k++) {
+        const y = padT + plotH - plotH * k / 4;
+        s += `<line class="grid" x1="${padL}" x2="${w}" y1="${y}" y2="${y}"/><text x="${padL - 8}" y="${y + 4}" text-anchor="end">${this.compact(max * k / 4)}</text>`;
+      }
+      const group = plotW / trend.length, bw = Math.min(22, (group - 14) / 2);
+      trend.forEach((t, i) => {
+        const cx = padL + group * i + group / 2;
+        const hi = t.actualIncome / max * plotH, ho = t.totalSpent / max * plotH;
+        const tip = `${U.monthLabel(t.month)}\nIncome received ${U.peso(t.actualIncome)}\nMoney out ${U.peso(t.totalSpent)}\nNet ${U.peso(t.actualIncome - t.totalSpent)}`;
+        s += `<g data-tip="${U.esc(tip)}"><rect x="${cx - group / 2}" y="${padT}" width="${group}" height="${plotH}" fill="transparent"/>`;
+        s += `<rect x="${cx - bw - 1}" y="${padT + plotH - hi}" width="${bw}" height="${Math.max(0, hi)}" rx="3" fill="${ci}"/>`;
+        s += `<rect x="${cx + 1}" y="${padT + plotH - ho}" width="${bw}" height="${Math.max(0, ho)}" rx="3" fill="${co}"/>`;
+        s += `<text x="${cx}" y="${h - 8}" text-anchor="middle" style="${t.month === Store.month ? 'font-weight:700;fill:' + this.css('--ink') : ''}">${U.monthShort(t.month)}</text></g>`;
+      });
+      s += `<line class="axis" x1="${padL}" x2="${w}" y1="${padT + plotH}" y2="${padT + plotH}"/>`;
+      return s + '</svg>';
+    };
+  },
+  categories(rows) {
+    return w => {
+      if (!rows.length) return this.empty('No spending recorded this month yet.');
+      let list = rows.slice(0, 7);
+      if (rows.length > 7) list.push({ category: 'All other', amount: rows.slice(7).reduce((a, b) => a + b.amount, 0) });
+      const total = rows.reduce((a, b) => a + b.amount, 0);
+      const labelW = Math.min(120, w * 0.3), valW = 92, plotW = w - labelW - valW, rowH = 28;
+      const max = Math.max(...list.map(r => r.amount));
+      const h = list.length * rowH;
+      let s = `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img" aria-label="Spending by category">`;
+      list.forEach((r, i) => {
+        const y = i * rowH;
+        const bw = Math.max(2, r.amount / max * plotW);
+        s += `<g data-tip="${U.esc(r.category + '\n' + U.peso(r.amount) + ' · ' + Math.round(r.amount / total * 100) + '% of spending')}"><rect x="0" y="${y}" width="${w}" height="${rowH}" fill="transparent"/>`;
+        s += `<text x="0" y="${y + 17}">${U.esc(this.trunc(r.category, Math.floor(labelW / 6.5)))}</text>`;
+        s += `<rect x="${labelW}" y="${y + 8}" width="${bw}" height="11" rx="3" fill="${this.css('--ink')}"/>`;
+        s += `<text x="${w}" y="${y + 17}" text-anchor="end" style="font-variant-numeric:tabular-nums;fill:${this.css('--ink')}">${U.peso(r.amount, true)}</text></g>`;
+      });
+      return s + '</svg>';
+    };
+  },
+  status(counts) {
+    const order = [['PAID', '--paid', 'Paid'], ['PARTIAL', '--partial', 'Partial'], ['UNPAID', '--unpaid', 'Unpaid'], ['OVERDUE', '--overdue', 'Overdue'], ['OVER BUDGET', '--over', 'Over budget']];
+    return w => {
+      const total = order.reduce((a, o) => a + (counts[o[0]] || 0), 0);
+      if (!total) return this.empty('No bills for this month.');
+      const h = 22; let x = 0;
+      let s = `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img" aria-label="Bill payment status">`;
+      const segs = order.filter(o => counts[o[0]]);
+      const gaps = (segs.length - 1) * 2, avail = w - gaps;
+      segs.forEach((o, i) => {
+        const sw = counts[o[0]] / total * avail;
+        s += `<rect data-tip="${U.esc(o[2] + ': ' + counts[o[0]] + ' bill' + (counts[o[0]] > 1 ? 's' : ''))}" x="${x}" y="0" width="${Math.max(1, sw)}" height="${h}" rx="4" fill="${this.css(o[1])}"/>`;
+        x += sw + 2;
+      });
+      s += '</svg>';
+      s += `<div class="legend" style="padding:14px 0 0">${order.map(o => `<span><i style="background:var(${o[1]})"></i>${o[2]} <b>${counts[o[0]] || 0}</b></span>`).join('')}</div>`;
+      return s;
+    };
+  }
+};
+
+/* ------------------------------------------------------------------ Views */
+const Views = {
+  /* ============================== DASHBOARD ============================== */
+  dashboard() {
+    const today = U.today();
+    const inst = Calc.instances(today);
+    const s = Calc.summary(Store.month, inst, today);
+    const b = s.budget;
+    const scheduled = inst.filter(i => i.billingPeriod === Store.month && !i.isVoid).length;
+    const unpaidN = s.counts.UNPAID + s.counts.PARTIAL + s.counts.OVERDUE;
+    const incomePct = s.expectedIncome > 0 ? Math.round(s.actualIncome / s.expectedIncome * 100) : null;
+    const v = Store.verified && Store.verified[Store.month];
+    const verify = !Api.configured() ? '' : v ? (v.ok ? `<span class="eyebrow" style="color:var(--paid)">✓ Totals verified with Google Sheets · ${U.fmtTime(v.at)}</span>` : `<span class="eyebrow" style="color:var(--partial)">⚠ Local totals differ from the server — refreshing</span>`) : '';
+    const kpi = (label, value, meta, cls, tone) => `<div class="card kpi ${cls || ''}">${tone ? `<span class="tone" style="background:var(${tone})"></span>` : ''}<div class="label">${label}</div><div class="value ${value < 0 && !cls ? 'neg' : ''}" title="${U.esc(U.peso(value))}">${U.peso(value, true)}</div><div class="meta">${meta}</div></div>`;
+    Charts.pending = {};
+    const healthCls = b.health === 'ON TRACK' ? 'ON' : b.health === 'WATCH' ? 'WATCH' : 'OVER';
+    const pct = Math.min(100, Math.max(0, b.percentUsed));
+    const proj = Math.min(100, Math.max(0, b.percentProjected));
+    const upcoming = Calc.upcoming(Store.month, inst, today);
+    const attention = Calc.attention(Store.month, inst, today);
+    const trend = U.monthRange(U.addMonths(Store.month, -5), Store.month).map(m => { const x = Calc.summary(m, inst, today); return { month: m, actualIncome: x.actualIncome, totalSpent: x.totalSpent }; });
+    const miniRow = i => `<div class="row cols-mini">
+        <div class="primary-cell"><div class="name">${U.esc(i.billName)} ${localTag(i.hasLocal ? { syncStatus: 'pending' } : null)}</div><div class="sub">${i.status === ST.OVERDUE ? '<span class="neg">Overdue · </span>' : ''}Due ${U.fmtDay(i.dueDate)}${i.paymentCount ? ' · paid ' + U.peso(i.actualAmount, true) : ''}</div></div>
+        <div class="num"><b>${U.peso(i.status === ST.OVER ? i.actualAmount : Math.max(0, i.remainingAmount))}</b><div>${tagFor(i.status)}</div></div>
+        <div class="actions">${i.status === ST.PAID || i.status === ST.OVER ? `<button class="btn sm" data-action="bill-details" data-id="${U.esc(i.billInstanceId)}">Details</button>` : `<button class="btn sm pay" data-action="pay" data-id="${U.esc(i.billInstanceId)}">${i.paymentCount ? 'Pay balance' : 'Mark as Paid'}</button>`}</div>
+      </div>`;
+    return `
+      <div class="hero">
+        <div><div class="eyebrow">${U.esc(U.monthLabel(Store.month))}</div><h2>Household Finances</h2><div class="sub">Budget &amp; Bill Monitoring</div></div>
+        <div class="hero-actions no-print">
+          <button class="btn" data-action="add-income">${svgIcon('plus', 16)} Add income</button>
+          <button class="btn primary" data-action="add-expense">${svgIcon('plus', 16)} Add expense</button>
+        </div>
+      </div>
+      ${UI.cachedBanner()}
+      ${verify ? `<div style="margin:-6px 0 14px">${verify}</div>` : ''}
+      <div class="kpis">
+        ${kpi('Monthly Budget', s.monthlyBudget, `${s.budgetSource === 'month' ? 'Planned for ' + U.monthLabel(Store.month) : 'Default budget'} · <a href="#" data-action="edit-budget" style="color:inherit">Adjust</a>`, 'lead')}
+        ${kpi('Expected', s.expectedBills, `${scheduled} bill${scheduled === 1 ? '' : 's'} scheduled this month`)}
+        ${kpi('Actual', s.totalSpent, `Bills ${U.peso(s.actualBills, true)} · Other ${U.peso(s.otherExpenses, true)}`)}
+        ${kpi('Remaining', s.remaining, s.remaining < 0 ? 'Over the planned budget' : 'Budget left after spending', '', s.remaining < 0 ? '--overdue' : '--paid')}
+        ${kpi('Unpaid', s.unpaidAmount, `${unpaidN} open · ${s.counts.OVERDUE} overdue`, '', s.counts.OVERDUE ? '--overdue' : '')}
+        ${kpi('Over Budget', s.overBudgetAmount, `${s.counts['OVER BUDGET']} bill${s.counts['OVER BUDGET'] === 1 ? '' : 's'} above expected`, '', s.overBudgetAmount > 0 ? '--over' : '')}
+        ${kpi('Expected Income', s.expectedIncome, 'Planned for this month')}
+        ${kpi('Actual Income', s.actualIncome, incomePct === null ? 'Received this month' : incomePct + '% of expected received')}
+        ${kpi('Net Cash Flow', s.netCashFlow, 'Income − bills − other expenses', '', s.netCashFlow < 0 ? '--overdue' : '--paid')}
+      </div>
+
+      <div class="grid-3-1">
+        <div class="card">
+          <div class="card-head"><h3 class="card-title">Budget Health</h3><span class="health ${healthCls}">${U.esc(b.health)}</span></div>
+          <div class="card-pad" style="padding-top:8px">
+            <div class="meter" aria-label="Budget used ${Math.round(b.percentUsed)}%"><div class="fill" style="width:${pct}%"></div>${b.basis > 0 ? `<div class="proj" style="left:${proj}%" data-tip="Projected if every scheduled bill is paid: ${U.esc(U.peso(b.projectedSpend))}"></div>` : ''}</div>
+            <div class="meter-legend"><span><b>${U.peso(b.totalSpent, true)}</b> spent · ${Math.round(b.percentUsed)}% of ${U.peso(b.basis, true)}</span><span><span style="display:inline-block;width:10px;height:2px;background:var(--gold);vertical-align:middle"></span> Projected ${U.peso(b.projectedSpend, true)}</span></div>
+            ${b.reasons.length ? `<ul class="reasons">${b.reasons.map(r => `<li>${U.esc(r)}</li>`).join('')}</ul>` : `<p class="sub" style="color:var(--ink-2);margin:14px 0 0">Spending, projected bills and income are all within plan for ${U.esc(U.monthLabel(Store.month))}.</p>`}
+            <div style="margin-top:22px"><div class="card-title" style="margin-bottom:10px">Bill Payment Status</div>${Charts.register('status', Charts.status(s.counts))}</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h3 class="card-title">Bills Requiring Attention</h3><a class="btn sm ghost" href="#/bills">All bills</a></div>
+          <div class="list" style="margin-top:8px">${attention.length ? attention.slice(0, 8).map(miniRow).join('') + (attention.length > 8 ? `<div class="list-foot"><span>+${attention.length - 8} more</span><a href="#/bills">View all bills</a></div>` : '') : '<div class="empty">Nothing needs attention right now.</div>'}</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-head"><h3 class="card-title">Upcoming Bills</h3><span class="sub" style="font-size:12.5px;color:var(--muted)">${Store.month === today.slice(0, 7) ? 'Next 30 days' : U.esc(U.monthLabel(Store.month))}</span></div>
+          <div class="list" style="margin-top:8px">${upcoming.length ? upcoming.slice(0, 8).map(miniRow).join('') + (upcoming.length > 8 ? `<div class="list-foot"><span>+${upcoming.length - 8} more</span><a href="#/bills">View all bills</a></div>` : '') : '<div class="empty">No upcoming unpaid bills.</div>'}</div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h3 class="card-title">Spending by Category</h3><span class="sub" style="font-size:12.5px;color:var(--muted)">Bills paid + other expenses</span></div>
+          ${Charts.register('cat', Charts.categories(s.byCategory))}
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-head"><h3 class="card-title">Expected vs Actual Spending</h3></div>
+          <div class="legend"><span><i style="background:var(--c-expected)"></i>Expected</span><span><i style="background:var(--c-actual)"></i>Actual paid</span></div>
+          ${Charts.register('eva', Charts.expectedVsActual(s.byBill))}
+        </div>
+        <div class="card">
+          <div class="card-head"><h3 class="card-title">Income vs Expenses</h3><span class="sub" style="font-size:12.5px;color:var(--muted)">Last 6 months</span></div>
+          <div class="legend"><span><i style="background:var(--c-income)"></i>Income received</span><span><i style="background:var(--c-out)"></i>Money out (bills + expenses)</span></div>
+          ${Charts.register('ivo', Charts.incomeVsOut(trend))}
+        </div>
+      </div>`;
+  },
+
+  /* ============================== BILLS ============================== */
+  bills() {
+    const f = UI.filters.bills;
+    const cats = Array.from(new Set(Store.list('billInstances').map(i => i.category).filter(Boolean))).sort();
+    const inst = Calc.instances().filter(i => i.billingPeriod === Store.month && !i.isVoid);
+    const count = st => inst.filter(i => i.status === st).length;
+    return `${UI.cachedBanner()}
+      <div class="toolbar"><div class="left"><h2 class="section-title">Bills · ${U.esc(U.monthLabel(Store.month))}</h2></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn" href="#/recurring">Manage recurring</a></div></div>
+      <div class="chips">${[['', 'All', inst.length], ['OVERDUE', 'Overdue', count('OVERDUE')], ['UNPAID', 'Unpaid', count('UNPAID')], ['PARTIAL', 'Partial', count('PARTIAL')], ['PAID', 'Paid', count('PAID')], ['OVER BUDGET', 'Over budget', count('OVER BUDGET')]].map(c => `<button class="chip ${f.status === c[0] ? 'on' : ''}" data-action="bill-chip" data-status="${c[0]}">${c[1]} <b>${c[2]}</b></button>`).join('')}</div>
+      <div class="filters">
+        <div class="field grow"><label for="fbS">Search</label><input id="fbS" class="input" type="search" placeholder="Bill name, category or note" value="${U.esc(f.search)}" data-filter="bills.search"></div>
+        <div class="field"><label for="fbSt">Status</label><select id="fbSt" class="input" data-filter="bills.status">${UI.options([{ value: 'OVERDUE', label: 'Overdue' }, { value: 'UNPAID', label: 'Unpaid' }, { value: 'PARTIAL', label: 'Partial' }, { value: 'PAID', label: 'Paid' }, { value: 'OVER BUDGET', label: 'Over budget' }], f.status, 'All statuses')}</select></div>
+        <div class="field"><label for="fbC">Category</label><select id="fbC" class="input" data-filter="bills.category">${UI.options(cats, f.category, 'All categories')}</select></div>
+      </div>
+      <div class="card" id="listBody">${this.billsList()}</div>`;
+  },
+  billsList() {
+    const f = UI.filters.bills, q = f.search.trim().toLowerCase();
+    const list = Calc.instances().filter(i => i.billingPeriod === Store.month && !i.isVoid && (!f.status || i.status === f.status) && (!f.category || i.category === f.category) &&
+      (!q || [i.billName, i.category, i.notes, i.status].join(' ').toLowerCase().includes(q)))
+      .sort((a, b) => (a.dueDate < b.dueDate ? -1 : a.dueDate > b.dueDate ? 1 : String(a.billName).localeCompare(b.billName)));
+    if (!list.length) return `<div class="empty"><div class="section-title">No bills found</div>${Store.list('billInstances').length ? 'Try another filter or month.' : (Api.configured() ? 'Bills appear after the first sync.' : 'Connect to Google Sheets in Settings to load your bills.')}</div>`;
+    let te = 0, tp = 0, tr = 0;
+    const rows = list.map(i => {
+      te += U.cents(i.expectedAmount); tp += U.cents(i.actualAmount); tr += Math.max(0, U.cents(i.remainingAmount));
+      const done = i.status === ST.PAID || i.status === ST.OVER;
+      return `<div class="row cols-bills">
+        <div class="primary-cell"><div class="name">${U.esc(i.billName)} ${localTag(i.hasLocal ? { syncStatus: 'pending' } : null)}</div><div class="sub">${U.esc(i.category || '')}${i.frequency ? ' · ' + U.esc(i.frequency.toLowerCase()) : ''}${i.notes ? ' · ' + U.esc(i.notes) : ''}</div></div>
+        <div data-label="Due">${U.fmtDate(i.dueDate)}</div>
+        <div class="num" data-label="Expected">${U.peso(i.expectedAmount)}</div>
+        <div class="num" data-label="Paid">${i.paymentCount ? U.peso(i.actualAmount) : '<span style="color:var(--muted)">—</span>'}</div>
+        <div class="num c-diff" data-label="${i.remainingAmount < 0 ? 'Overpaid' : 'Remaining'}">${i.remainingAmount < 0 ? '<span style="color:var(--over)">+' + U.peso(-i.remainingAmount) + '</span>' : U.peso(i.remainingAmount)}</div>
+        <div class="status-cell">${tagFor(i.status)}</div>
+        <div class="actions">${done ? '' : `<button class="btn sm pay" data-action="pay" data-id="${U.esc(i.billInstanceId)}">${i.paymentCount ? 'Pay balance' : 'Mark as Paid'}</button>`}<button class="btn sm" data-action="bill-details" data-id="${U.esc(i.billInstanceId)}">Details</button></div>
+      </div>`;
+    }).join('');
+    return `<div class="list"><div class="row head cols-bills"><div>Bill</div><div>Due</div><div class="num">Expected</div><div class="num">Paid</div><div class="num c-diff">Remaining</div><div>Status</div><div></div></div>${rows}</div>
+      <div class="list-foot"><span>${list.length} bill${list.length === 1 ? '' : 's'}</span><span>Expected ${U.peso(U.fromCents(te))} · Paid ${U.peso(U.fromCents(tp))} · Remaining ${U.peso(U.fromCents(tr))}</span></div>`;
+  },
+
+  /* ============================== EXPENSES ============================== */
+  expenses() {
+    const f = UI.filters.expenses;
+    return `${UI.cachedBanner()}
+      <div class="toolbar"><div class="left"><h2 class="section-title">Other Expenses</h2></div><button class="btn primary" data-action="add-expense">${svgIcon('plus', 16)} Add expense</button></div>
+      <div class="filters">
+        <div class="field grow"><label for="feS">Search</label><input id="feS" class="input" type="search" placeholder="Description, note, method" value="${U.esc(f.search)}" data-filter="expenses.search"></div>
+        <div class="field"><label for="feC">Category</label><select id="feC" class="input" data-filter="expenses.category">${UI.options(Store.categories('EXPENSE'), f.category, 'All categories')}</select></div>
+        <div class="field"><label for="feF">From</label><input id="feF" class="input" type="date" value="${U.esc(f.from)}" data-filter="expenses.from"></div>
+        <div class="field"><label for="feT">To</label><input id="feT" class="input" type="date" value="${U.esc(f.to)}" data-filter="expenses.to"></div>
+      </div>
+      <div class="card" id="listBody">${this.expensesList()}</div>`;
+  },
+  dateScope(f, d) {
+    if (f.from || f.to) return (!f.from || d >= f.from) && (!f.to || d <= f.to);
+    return String(d).slice(0, 7) === Store.month;
+  },
+  scopeLabel(f) { return f.from || f.to ? (f.from ? U.fmtDate(f.from) : 'Start') + ' – ' + (f.to ? U.fmtDate(f.to) : 'today') : U.monthLabel(Store.month); },
+  expensesList() {
+    const f = UI.filters.expenses, q = f.search.trim().toLowerCase();
+    const list = Store.list('expenses').filter(e => !U.bool(e.isDeleted) && this.dateScope(f, e.date) && (!f.category || e.category === f.category) &&
+      (!q || [e.description, e.category, e.notes, e.paymentMethod].join(' ').toLowerCase().includes(q))).sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : (a.createdAt < b.createdAt ? 1 : -1)));
+    if (!list.length) return `<div class="empty"><div class="section-title">No expenses</div>Nothing recorded for ${U.esc(this.scopeLabel(f))}.<div style="margin-top:14px"><button class="btn primary" data-action="add-expense">Add expense</button></div></div>`;
+    const total = list.reduce((a, e) => a + U.cents(e.amount), 0);
+    return `<div class="list"><div class="row head cols-exp"><div>Date</div><div>Description</div><div>Category</div><div>Method</div><div class="num">Amount</div><div></div></div>
+      ${list.map(e => `<div class="row cols-exp">
+        <div data-label="Date">${U.fmtDate(e.date)}</div>
+        <div class="primary-cell"><div class="name">${U.esc(e.description)} ${localTag(e)}</div>${e.notes ? `<div class="sub">${U.esc(e.notes)}</div>` : ''}</div>
+        <div data-label="Category">${U.esc(e.category)}</div>
+        <div data-label="Method">${U.esc(e.paymentMethod)}</div>
+        <div class="num status-cell"><b>${U.peso(e.amount)}</b></div>
+        <div class="actions"><button class="btn sm" data-action="edit-expense" data-id="${U.esc(e.id)}">Edit</button><button class="btn sm danger" data-action="delete-expense" data-id="${U.esc(e.id)}">Delete</button></div>
+      </div>`).join('')}</div>
+      <div class="list-foot"><span>${list.length} expense${list.length === 1 ? '' : 's'} · ${U.esc(this.scopeLabel(f))}</span><span>Total ${U.peso(U.fromCents(total))}</span></div>`;
+  },
+
+  /* ============================== INCOME ============================== */
+  income() {
+    const f = UI.filters.income;
+    return `${UI.cachedBanner()}
+      <div class="toolbar"><div class="left"><h2 class="section-title">Income</h2></div><button class="btn primary" data-action="add-income">${svgIcon('plus', 16)} Add income</button></div>
+      <div class="filters">
+        <div class="field grow"><label for="fiS">Search</label><input id="fiS" class="input" type="search" placeholder="Source, note, status" value="${U.esc(f.search)}" data-filter="income.search"></div>
+        <div class="field"><label for="fiC">Category</label><select id="fiC" class="input" data-filter="income.category">${UI.options(Store.categories('INCOME'), f.category, 'All categories')}</select></div>
+        <div class="field"><label for="fiF">From</label><input id="fiF" class="input" type="date" value="${U.esc(f.from)}" data-filter="income.from"></div>
+        <div class="field"><label for="fiT">To</label><input id="fiT" class="input" type="date" value="${U.esc(f.to)}" data-filter="income.to"></div>
+      </div>
+      <div class="card" id="listBody">${this.incomeList()}</div>`;
+  },
+  incomeList() {
+    const f = UI.filters.income, q = f.search.trim().toLowerCase();
+    const list = Store.list('income').filter(r => !U.bool(r.isDeleted) && this.dateScope(f, r.date) && (!f.category || r.category === f.category) &&
+      (!q || [r.source, r.category, r.notes, r.paymentMethod, r.status].join(' ').toLowerCase().includes(q))).sort((a, b) => (a.date < b.date ? 1 : -1));
+    if (!list.length) return `<div class="empty"><div class="section-title">No income recorded</div>Nothing for ${U.esc(this.scopeLabel(f))}.<div style="margin-top:14px"><button class="btn primary" data-action="add-income">Add income</button></div></div>`;
+    let te = 0, ta = 0;
+    list.forEach(r => { if (r.status !== 'CANCELLED') { te += U.cents(r.expectedAmount); ta += U.cents(r.actualAmount); } });
+    return `<div class="list"><div class="row head cols-inc"><div>Date</div><div>Source</div><div>Category</div><div class="num">Expected</div><div class="num">Received</div><div>Status</div><div></div></div>
+      ${list.map(r => `<div class="row cols-inc ${r.status === 'CANCELLED' ? 'dim' : ''}">
+        <div data-label="Date">${U.fmtDate(r.date)}</div>
+        <div class="primary-cell"><div class="name">${U.esc(r.source)} ${localTag(r)}</div><div class="sub">${U.esc(r.paymentMethod || '')}${r.notes ? ' · ' + U.esc(r.notes) : ''}</div></div>
+        <div data-label="Category">${U.esc(r.category)}</div>
+        <div class="num" data-label="Expected">${U.peso(r.expectedAmount)}</div>
+        <div class="num" data-label="Received">${U.blank(r.actualAmount) ? '<span style="color:var(--muted)">—</span>' : U.peso(r.actualAmount)}</div>
+        <div class="status-cell">${tagFor(r.status || 'PENDING')}</div>
+        <div class="actions"><button class="btn sm" data-action="edit-income" data-id="${U.esc(r.id)}">Edit</button><button class="btn sm danger" data-action="delete-income" data-id="${U.esc(r.id)}">Delete</button></div>
+      </div>`).join('')}</div>
+      <div class="list-foot"><span>${list.length} entr${list.length === 1 ? 'y' : 'ies'} · ${U.esc(this.scopeLabel(f))}</span><span>Expected ${U.peso(U.fromCents(te))} · Received ${U.peso(U.fromCents(ta))}</span></div>`;
+  },
+
+  /* ============================== RECURRING ============================== */
+  recurring() {
+    const list = Store.list('recurringBills').sort((a, b) => (U.bool(b.isActive) - U.bool(a.isActive)) || FREQUENCIES.indexOf(a.frequency) - FREQUENCIES.indexOf(b.frequency) || String(a.name).localeCompare(b.name));
+    const active = list.filter(b => U.bool(b.isActive));
+    const monthlyFixed = active.filter(b => b.frequency === 'MONTHLY').reduce((a, b) => a + U.cents(b.amount), 0);
+    const weekly = active.filter(b => b.frequency === 'WEEKLY').reduce((a, b) => a + U.cents(b.amount), 0);
+    const equiv = active.reduce((a, b) => a + Math.round(Calc.monthlyEquivalent(b) * 100), 0);
+    const offline = !navigator.onLine || !Api.configured();
+    return `${UI.cachedBanner()}
+      <div class="toolbar"><div class="left"><h2 class="section-title">Recurring Bills</h2></div><button class="btn primary" data-action="add-recurring">${svgIcon('plus', 16)} Add recurring bill</button></div>
+      ${offline ? '<div class="banner"><span class="grow">Changes to recurring bills are queued and applied when you are online — bill instances are generated by the server so that duplicates are impossible.</span></div>' : ''}
+      <div class="stat-grid">
+        <div class="card kpi lead"><div class="label">Fixed monthly bills</div><div class="value">${U.peso(U.fromCents(monthlyFixed), true)}</div><div class="meta">${active.filter(b => b.frequency === 'MONTHLY').length} active monthly bills</div></div>
+        <div class="card kpi"><div class="label">Weekly recurring</div><div class="value">${U.peso(U.fromCents(weekly), true)}</div><div class="meta">per week</div></div>
+        <div class="card kpi"><div class="label">Monthly equivalent</div><div class="value">${U.peso(U.fromCents(equiv), true)}</div><div class="meta">all active schedules, averaged</div></div>
+        <div class="card kpi"><div class="label">Schedules</div><div class="value">${active.length}<span style="font-size:16px;color:var(--muted)"> / ${list.length}</span></div><div class="meta">active / total</div></div>
+      </div>
+      <div class="card">${list.length ? `<div class="list"><div class="row head cols-rec"><div>Bill</div><div class="num">Amount</div><div>Schedule</div><div>Method</div><div>Status</div><div></div></div>
+      ${list.map(b => `<div class="row cols-rec ${U.bool(b.isActive) ? '' : 'dim'}">
+        <div class="primary-cell"><div class="name">${U.esc(b.name)} ${localTag(b)}</div><div class="sub">${U.esc(b.category)} · since ${U.fmtDate(b.startDate)}${b.endDate ? ' · ends ' + U.fmtDate(b.endDate) : ''}</div></div>
+        <div class="num" data-label="Amount"><b>${U.peso(b.amount)}</b></div>
+        <div data-label="Schedule">${U.esc(Calc.scheduleText(b))}</div>
+        <div data-label="Method">${U.esc(b.paymentMethod)}</div>
+        <div class="status-cell">${U.bool(b.isActive) ? '<span class="tag PAID">ACTIVE</span>' : '<span class="tag VOID">DISABLED</span>'}</div>
+        <div class="actions"><button class="btn sm" data-action="edit-recurring" data-id="${U.esc(b.id)}">Edit</button>${U.bool(b.isActive) ? `<button class="btn sm danger" data-action="toggle-recurring" data-id="${U.esc(b.id)}" data-on="0">Disable</button>` : `<button class="btn sm" data-action="toggle-recurring" data-id="${U.esc(b.id)}" data-on="1">Enable</button>`}</div>
+      </div>`).join('')}</div>` : `<div class="empty"><div class="section-title">No recurring bills yet</div>${Api.configured() ? 'They appear after the first sync.' : 'Connect to Google Sheets to load the defaults.'}</div>`}</div>`;
+  },
+
+  /* ============================== PAYMENTS ============================== */
+  payments() {
+    const f = UI.filters.payments;
+    const bills = Array.from(new Set(Store.list('payments').map(p => p.billName).filter(Boolean))).sort();
+    return `${UI.cachedBanner()}
+      <div class="toolbar"><div class="left"><h2 class="section-title">Payment History</h2></div><a class="btn" href="#/bills">Pay a bill</a></div>
+      <div class="filters">
+        <div class="field grow"><label for="fpS">Search</label><input id="fpS" class="input" type="search" placeholder="Bill, note, method" value="${U.esc(f.search)}" data-filter="payments.search"></div>
+        <div class="field"><label for="fpB">Bill</label><select id="fpB" class="input" data-filter="payments.bill">${UI.options(bills, f.bill, 'All bills')}</select></div>
+        <div class="field"><label for="fpM">Payment method</label><select id="fpM" class="input" data-filter="payments.method">${UI.options(PAYMENT_METHODS, f.method, 'All methods')}</select></div>
+        <div class="field"><label for="fpF">From</label><input id="fpF" class="input" type="date" value="${U.esc(f.from)}" data-filter="payments.from"></div>
+        <div class="field"><label for="fpT">To</label><input id="fpT" class="input" type="date" value="${U.esc(f.to)}" data-filter="payments.to"></div>
+      </div>
+      <div class="card" id="listBody">${this.paymentsList()}</div>`;
+  },
+  paymentsList() {
+    const f = UI.filters.payments, q = f.search.trim().toLowerCase();
+    const list = Store.list('payments').filter(p => !U.bool(p.isVoid) && this.dateScope(f, p.paymentDate) && (!f.bill || p.billName === f.bill) && (!f.method || p.paymentMethod === f.method) &&
+      (!q || [p.billName, p.notes, p.paymentMethod, p.billingPeriod].join(' ').toLowerCase().includes(q))).sort((a, b) => (a.paymentDate < b.paymentDate ? 1 : a.paymentDate > b.paymentDate ? -1 : (a.createdAt < b.createdAt ? 1 : -1)));
+    if (!list.length) return `<div class="empty"><div class="section-title">No payments</div>No bill payments recorded for ${U.esc(this.scopeLabel(f))}.</div>`;
+    const total = list.reduce((a, p) => a + U.cents(p.amount), 0);
+    return `<div class="list"><div class="row head cols-pay"><div>Date</div><div>Bill</div><div class="num">Amount</div><div>Method</div><div>Notes</div><div></div></div>
+      ${list.map(p => `<div class="row cols-pay">
+        <div data-label="Date">${U.fmtDate(p.paymentDate)}</div>
+        <div class="primary-cell"><div class="name">${U.esc(p.billName || p.billInstanceId)} ${localTag(p)}</div><div class="sub">for ${U.esc(U.monthLabel(p.billingPeriod))}</div></div>
+        <div class="num status-cell"><b>${U.peso(p.amount)}</b></div>
+        <div data-label="Method">${U.esc(p.paymentMethod)}</div>
+        <div data-label="Notes" class="sub">${U.esc(p.notes || '—')}</div>
+        <div class="actions"><button class="btn sm danger" data-action="void-payment" data-id="${U.esc(p.id)}">Void</button></div>
+      </div>`).join('')}</div>
+      <div class="list-foot"><span>${list.length} payment${list.length === 1 ? '' : 's'} · ${U.esc(this.scopeLabel(f))}</span><span>Total paid ${U.peso(U.fromCents(total))}</span></div>`;
+  },
+
+  /* ============================== REPORTS ============================== */
+  reports() {
+    const f = UI.filters.reports;
+    if (!f.from) f.from = Store.month; if (!f.to) f.to = Store.month;
+    const types = [{ value: 'summary', label: 'Monthly Summary' }, { value: 'income', label: 'Income Report' }, { value: 'expense', label: 'Expense Report' }, { value: 'bill', label: 'Bill Report' }, { value: 'payments', label: 'Payment History' }, { value: 'performance', label: 'Budget Performance' }];
+    return `${UI.cachedBanner()}
+      <div class="filters no-print">
+        <div class="field"><label for="frT">Report</label><select id="frT" class="input" data-action-change="report" data-filter="reports.type">${UI.options(types, f.type)}</select></div>
+        <div class="field"><label for="frF">From month</label><input id="frF" class="input" type="month" value="${U.esc(f.from)}" data-filter="reports.from"></div>
+        <div class="field"><label for="frTo">To month</label><input id="frTo" class="input" type="month" value="${U.esc(f.to)}" data-filter="reports.to"></div>
+        <div class="field" style="flex:0 0 auto;flex-direction:row;gap:8px"><button class="btn" data-action="print">Print report</button><button class="btn primary" data-action="export-csv">Export CSV</button></div>
+      </div>
+      <div id="listBody">${this.reportsList()}</div>`;
+  },
+  reportsList() {
+    const r = Reports.build();
+    const fmt = (c, v) => c.money ? (U.blank(v) ? '—' : U.peso(v)) : c.date ? U.fmtDate(v) : c.month ? U.monthLabel(v) : U.esc(v === undefined ? '' : v);
+    return `<div class="card">
+      <div class="card-pad" style="padding-bottom:6px"><div class="eyebrow">Household Finances · Report</div><h2 class="section-title" style="font-size:26px;margin-top:4px">${U.esc(r.title)}</h2><div class="sub" style="color:var(--muted)">${U.esc(r.period)} · generated ${U.esc(U.fmtTime(U.nowIso()))}${Api.configured() ? '' : ' · local data'}</div></div>
+      ${r.highlights ? `<div class="card-pad" style="padding-top:8px;padding-bottom:4px"><div class="summary-box" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr))">${r.highlights.map(h => `<div><span>${U.esc(h[0])}</span><b>${U.esc(h[1])}</b></div>`).join('')}</div></div>` : ''}
+      <div class="table-scroll" style="padding:0 12px 18px">${r.rows.length ? `<table class="report-table"><thead><tr>${r.columns.map(c => `<th class="${c.money || c.num ? 'n' : ''}">${U.esc(c.label)}</th>`).join('')}</tr></thead>
+      <tbody>${r.rows.map(row => `<tr>${r.columns.map(c => `<td class="${c.money || c.num ? 'n' : ''}">${fmt(c, row[c.key])}</td>`).join('')}</tr>`).join('')}</tbody>
+      ${r.totals ? `<tfoot><tr>${r.columns.map((c, i) => `<td class="${c.money || c.num ? 'n' : ''}">${i === 0 ? 'Total' : (r.totals[c.key] !== undefined ? fmt(c, r.totals[c.key]) : '')}</td>`).join('')}</tr></tfoot>` : ''}</table>` : '<div class="empty">No records in this period.</div>'}</div></div>`;
+  },
+
+  /* ============================== SYNC CENTER ============================== */
+  sync() {
+    const online = navigator.onLine && Sync.reachable !== false;
+    const q = Store.queue;
+    const pending = Store.pendingCount(), failed = Store.failedCount();
+    const label = o => ({ EXPENSE: 'Expense', INCOME: 'Income', PAYMENT: 'Payment', RECURRING_BILL: 'Recurring bill', BILL_INSTANCE: 'Bill', BUDGET: 'Budget', SETTINGS: 'Settings' }[o.entityType] || o.entityType) + ' · ' + ({ CREATE: 'create', UPDATE: 'update', DELETE: o.entityType === 'PAYMENT' ? 'void' : 'delete', PAYMENT: 'payment', DISABLE: 'disable', ENABLE: 'enable' }[o.action] || o.action.toLowerCase());
+    const describe = o => { const p = o.payload || {}; return [p.description || p.source || p.name || p.billName || '', p.amount !== undefined ? U.peso(p.amount) : p.actualAmount ? U.peso(p.actualAmount) : p.plannedAmount !== undefined ? U.peso(p.plannedAmount) : '', p.date || p.paymentDate || p.month || ''].filter(Boolean).join(' · '); };
+    return `
+      <div class="stat-grid">
+        <div class="card kpi ${online ? 'lead' : ''}"><div class="label">Connection status</div><div class="value" style="font-size:24px">${online ? 'ONLINE' : 'OFFLINE'}</div><div class="meta">${IS_GAS ? 'Apps Script hosted' : Api.configured() ? 'Google Sheets connected' : 'Not connected'}</div></div>
+        <div class="card kpi"><div class="label">Last successful sync</div><div class="value" style="font-size:22px">${Store.meta.lastSyncAt ? U.esc(U.fmtTime(Store.meta.lastSyncAt)) : 'Never'}</div><div class="meta">${Sync.running ? 'Syncing now…' : 'Automatic when online'}</div></div>
+        <div class="card kpi"><div class="label">Pending changes</div><div class="value">${pending}</div><div class="meta">${Store.reviewCount()} need review</div></div>
+        <div class="card kpi"><div class="label">Failed changes</div><div class="value ${failed ? 'neg' : ''}">${failed}</div><div class="meta">${failed ? 'Will be retried' : 'No errors'}</div></div>
+      </div>
+      <div class="toolbar"><div class="left"><span class="sub" style="color:var(--ink-2)">${Sync.lastError ? '<span class="neg">' + U.esc(Sync.lastError) + '</span>' : 'Every change is stored in IndexedDB first and sent with a unique operation ID, so retries can never create duplicates.'}</span></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" data-action="full-refresh">Full refresh</button><button class="btn primary" data-action="sync-now" ${Api.configured() ? '' : 'disabled'}>Sync now</button></div></div>
+      ${Store.conflicts.length ? `<div class="card" style="margin-bottom:18px"><div class="card-head"><h3 class="card-title">Needs review</h3></div><div class="list" style="margin-top:8px">${Store.conflicts.map(c => `<div class="row" style="grid-template-columns:1fr auto">
+          <div><div class="name">${U.esc(label(c.op))}</div><div class="sub">${U.esc(c.message)}</div>
+          ${c.conflict ? `<div class="sub" style="margin-top:6px">${(c.conflict.fields || []).map(fl => `<b>${U.esc(fl)}</b>: this device <b>${U.esc(fmtVal(c.conflict.local && c.conflict.local[fl]))}</b> vs server <b>${U.esc(fmtVal(c.conflict.server && c.conflict.server[fl]))}</b>`).join('<br>')}</div>` : ''}</div>
+          <div class="actions"><button class="btn sm" data-action="conflict-server" data-id="${U.esc(c.operationId)}">Keep server version</button><button class="btn sm primary" data-action="conflict-mine" data-id="${U.esc(c.operationId)}">Keep this device's version</button></div></div>`).join('')}</div></div>` : ''}
+      <div class="grid-2">
+        <div class="card"><div class="card-head"><h3 class="card-title">Sync queue</h3><span class="sub" style="color:var(--muted);font-size:12.5px">${q.length} operation${q.length === 1 ? '' : 's'}</span></div>
+          <div class="list" style="margin-top:8px">${q.length ? q.map(o => `<div class="row" style="grid-template-columns:1fr auto">
+            <div><div class="name">${U.esc(label(o))} <span class="tag ${o.status === 'REJECTED' || o.status === 'FAILED' ? 'OVERDUE' : o.status === 'NEEDS_REVIEW' ? 'PARTIAL' : 'UNPAID'}">${U.esc(o.status)}</span></div>
+            <div class="sub">${U.esc(describe(o))}</div><div class="sub">Queued ${U.esc(U.fmtTime(o.createdAt))}${o.retryCount ? ' · ' + o.retryCount + ' attempt' + (o.retryCount > 1 ? 's' : '') : ''}${o.lastError ? ' · <span class="neg">' + U.esc(o.lastError) + '</span>' : ''}</div><div class="mono" style="color:var(--muted)">${U.esc(o.operationId)}</div></div>
+            <div class="actions">${o.status !== 'NEEDS_REVIEW' ? `<button class="btn sm" data-action="retry-op" data-id="${U.esc(o.operationId)}">Retry</button>` : ''}<button class="btn sm danger" data-action="discard-op" data-id="${U.esc(o.operationId)}">Discard</button></div></div>`).join('') : '<div class="empty">✓ All changes synced. Nothing is waiting.</div>'}</div></div>
+        <div class="card"><div class="card-head"><h3 class="card-title">Recent activity &amp; sync errors</h3></div>
+          <div class="list" style="margin-top:8px">${Store.log.length ? Store.log.slice(0, 40).map(l => `<div class="row" style="grid-template-columns:1fr auto;padding:10px 24px"><div><div class="name" style="font-size:13.5px">${U.esc(l.message)}</div><div class="sub">${U.esc(l.type)}${l.operationId ? ' · ' + U.esc(l.operationId) : ''}</div></div><div class="sub">${U.esc(U.fmtTime(l.at))}</div></div>`).join('') : '<div class="empty">No activity yet.</div>'}</div></div>
+      </div>
+      <div class="card card-pad" style="margin-top:18px"><div class="card-title" style="margin-bottom:10px">On this device</div>
+        <dl class="kv"><dt>Local database</dt><dd>${LocalDB.memory ? '<span class="neg">Temporary memory only — ' + U.esc(LocalDB.memoryReason) + '</span>' : 'IndexedDB'}</dd>
+        <dt>Persistent storage</dt><dd>${LocalDB.persistent ? 'Granted (browser will not evict data)' : 'Best effort'}</dd>
+        <dt>Cached records</dt><dd>${Object.keys(ENTITY).reduce((a, s) => a + Store.list(s).length, 0)}</dd>
+        <dt>Device ID</dt><dd class="mono">${U.esc(Store.meta.clientId || '')}</dd></dl></div>`;
+  },
+
+  /* ============================== SETTINGS ============================== */
+  settings() {
+    const s = Store.settings;
+    const b = Calc.budgetFor(Store.month);
+    return `
+      <div class="grid-2">
+        <div class="card card-pad">
+          <h3 class="section-title" style="margin-bottom:6px">Connection</h3>
+          ${IS_GAS ? `<p class="sub" style="color:var(--ink-2)">Running inside Google Apps Script — connected to your spreadsheet automatically. The API key is only needed if you are not the script owner.</p>` :
+            `<p class="sub" style="color:var(--ink-2);margin-top:0">Paste the Web App URL (ending in <span class="mono">/exec</span>) and the API key printed by <span class="mono">initializeDatabase()</span>. Both are stored only on this device.</p>`}
+          <form id="connForm" class="form-grid" style="margin-top:14px" autocomplete="off">
+            ${IS_GAS ? '' : `<div class="field full"><label for="cUrl">Web App URL</label><input id="cUrl" name="apiUrl" class="input" type="url" placeholder="https://script.google.com/macros/s/…/exec" value="${U.esc(Store.meta.apiUrl || '')}" required></div>`}
+            <div class="field full"><label for="cKey">API key</label><input id="cKey" name="apiKey" class="input" type="password" placeholder="${Store.meta.apiKey ? '•••••••• (saved)' : 'Paste your API key'}" autocomplete="new-password"><span class="hint">${Store.meta.apiKey ? 'Leave blank to keep the saved key.' : ''}</span></div>
+            <div class="form-error full" id="connErr"></div>
+            <div class="full" style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn primary" type="submit" data-action="save-connection">Save &amp; test connection</button>${Store.meta.apiUrl || Store.meta.apiKey ? '<button class="btn danger" type="button" data-action="disconnect">Disconnect this device</button>' : ''}</div>
+          </form>
+        </div>
+        <div class="card card-pad">
+          <h3 class="section-title" style="margin-bottom:6px">Budget</h3>
+          <p class="sub" style="color:var(--ink-2);margin-top:0">The planned budget for each month. Months without their own value use the default.</p>
+          <dl class="kv" style="margin:14px 0"><dt>${U.esc(U.monthLabel(Store.month))}</dt><dd>${U.peso(b.amount)} ${b.source === 'default' ? '<span class="sub">(default)</span>' : ''}</dd><dt>Default monthly budget</dt><dd>${U.peso(s.defaultMonthlyBudget || 0)}</dd><dt>Watch threshold</dt><dd>${Math.round(Number(s.watchThreshold || 0.9) * 100)}% of budget</dd></dl>
+          <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn primary" data-action="edit-budget">Adjust ${U.esc(U.monthLabel(Store.month))}</button><button class="btn" data-action="edit-default-budget">Change default</button></div>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="card card-pad">
+          <h3 class="section-title" style="margin-bottom:6px">App</h3>
+          <dl class="kv" style="margin:14px 0"><dt>Version</dt><dd>${APP_VERSION}</dd><dt>Mode</dt><dd>${IS_GAS ? 'Apps Script hosted (online-first)' : 'Progressive Web App (offline-first)'}</dd>
+          <dt>Offline app shell</dt><dd id="swState">${'serviceWorker' in navigator && !IS_GAS ? (navigator.serviceWorker.controller ? 'Active' : 'Installing…') : 'Not available in this mode'}</dd>
+          <dt>Server version</dt><dd>${U.esc(Store.meta.serverVersion || '—')}</dd></dl>
+          <button class="btn install-card ${UI.deferredInstall ? 'show' : ''}" data-action="install" id="installBtnSettings">Install app on this device</button>
+          ${IS_GAS ? '<p class="sub" style="color:var(--muted)">To install as an app and open it with no internet, host the PWA files on HTTPS (see README → PWA setup).</p>' : ''}
+        </div>
+        <div class="card card-pad">
+          <h3 class="section-title" style="margin-bottom:6px">Data on this device</h3>
+          <p class="sub" style="color:var(--ink-2);margin-top:0">Google Sheets is the master copy. This device keeps a cache plus any changes not yet synced.</p>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px"><button class="btn" data-action="export-backup">Download local backup (JSON)</button><button class="btn danger" data-action="clear-local">Clear local cache</button></div>
+        </div>
+      </div>`;
+  }
+};
+function fmtVal(v) { return U.blank(v) ? '(blank)' : typeof v === 'number' ? U.peso(v) : String(v); }
+
+/* ------------------------------------------------------------------ Reports */
+const Reports = {
+  build() {
+    const f = UI.filters.reports;
+    let from = U.isYm(f.from) ? f.from : Store.month, to = U.isYm(f.to) ? f.to : from;
+    if (to < from) [from, to] = [to, from];
+    const months = U.monthRange(from, to).slice(0, 60);
+    const inRange = d => { const m = String(d).slice(0, 7); return m >= from && m <= to; };
+    const period = from === to ? U.monthLabel(from) : U.monthLabel(from) + ' – ' + U.monthLabel(to);
+    const today = U.today();
+    const inst = Calc.instances(today);
+    const sum = (rows, k) => U.fromCents(rows.reduce((a, r) => a + U.cents(r[k]), 0));
+    switch (f.type) {
+      case 'income': {
+        const rows = Store.list('income').filter(r => !U.bool(r.isDeleted) && inRange(r.date)).sort((a, b) => (a.date < b.date ? -1 : 1));
+        const active = rows.filter(r => r.status !== 'CANCELLED');
+        return { title: 'Income Report', period, rows, columns: [{ key: 'date', label: 'Date', date: true }, { key: 'source', label: 'Source' }, { key: 'category', label: 'Category' }, { key: 'paymentMethod', label: 'Method' }, { key: 'status', label: 'Status' }, { key: 'expectedAmount', label: 'Expected', money: true }, { key: 'actualAmount', label: 'Received', money: true }, { key: 'notes', label: 'Notes' }],
+          totals: { expectedAmount: sum(active, 'expectedAmount'), actualAmount: sum(active, 'actualAmount') },
+          highlights: [['Expected', U.peso(sum(active, 'expectedAmount'))], ['Received', U.peso(sum(active, 'actualAmount'))], ['Entries', String(rows.length)]] };
+      }
+      case 'expense': {
+        const rows = Store.list('expenses').filter(r => !U.bool(r.isDeleted) && inRange(r.date)).sort((a, b) => (a.date < b.date ? -1 : 1));
+        const byCat = {}; rows.forEach(r => { byCat[r.category] = (byCat[r.category] || 0) + U.cents(r.amount); });
+        const top = Object.keys(byCat).sort((a, b) => byCat[b] - byCat[a]).slice(0, 3).map(k => [k, U.peso(U.fromCents(byCat[k]))]);
+        return { title: 'Expense Report', period, rows, columns: [{ key: 'date', label: 'Date', date: true }, { key: 'description', label: 'Description' }, { key: 'category', label: 'Category' }, { key: 'paymentMethod', label: 'Method' }, { key: 'amount', label: 'Amount', money: true }, { key: 'notes', label: 'Notes' }],
+          totals: { amount: sum(rows, 'amount') }, highlights: [['Total', U.peso(sum(rows, 'amount'))], ['Entries', String(rows.length)]].concat(top) };
+      }
+      case 'bill': {
+        const rows = inst.filter(i => !i.isVoid && i.billingPeriod >= from && i.billingPeriod <= to).sort((a, b) => (a.dueDate < b.dueDate ? -1 : 1)).map(i => Object.assign({}, i, { remaining: Math.max(0, i.remainingAmount) }));
+        return { title: 'Bill Report', period, rows, columns: [{ key: 'billingPeriod', label: 'Month', month: true }, { key: 'billName', label: 'Bill' }, { key: 'category', label: 'Category' }, { key: 'dueDate', label: 'Due', date: true }, { key: 'expectedAmount', label: 'Expected', money: true }, { key: 'actualAmount', label: 'Paid', money: true }, { key: 'remaining', label: 'Remaining', money: true }, { key: 'status', label: 'Status' }, { key: 'paidDate', label: 'Paid on', date: true }],
+          totals: { expectedAmount: sum(rows, 'expectedAmount'), actualAmount: sum(rows, 'actualAmount'), remaining: sum(rows, 'remaining') },
+          highlights: [['Bills', String(rows.length)], ['Paid', String(rows.filter(r => r.status === ST.PAID || r.status === ST.OVER).length)], ['Overdue', String(rows.filter(r => r.status === ST.OVERDUE).length)], ['Outstanding', U.peso(sum(rows, 'remaining'))]] };
+      }
+      case 'payments': {
+        const rows = Store.list('payments').filter(p => !U.bool(p.isVoid) && inRange(p.paymentDate)).sort((a, b) => (a.paymentDate < b.paymentDate ? -1 : 1));
+        return { title: 'Payment History', period, rows, columns: [{ key: 'paymentDate', label: 'Date', date: true }, { key: 'billName', label: 'Bill' }, { key: 'billingPeriod', label: 'For month', month: true }, { key: 'paymentMethod', label: 'Method' }, { key: 'amount', label: 'Amount', money: true }, { key: 'notes', label: 'Notes' }, { key: 'paymentId', label: 'Payment ID' }],
+          totals: { amount: sum(rows, 'amount') }, highlights: [['Total paid', U.peso(sum(rows, 'amount'))], ['Payments', String(rows.length)]] };
+      }
+      case 'performance': {
+        const rows = months.map(m => { const s = Calc.summary(m, inst, today); return { month: m, budget: s.monthlyBudget, spent: s.totalSpent, variance: U.round2(s.monthlyBudget - s.totalSpent), used: s.budget.basis > 0 ? Math.round(s.budget.percentUsed) + '%' : '—', expectedBills: s.expectedBills, actualBills: s.actualBills, billVariance: U.round2(s.expectedBills - s.actualBills), projected: s.projectedSpend, health: s.budget.health }; });
+        return { title: 'Budget Performance', period, rows, columns: [{ key: 'month', label: 'Month', month: true }, { key: 'budget', label: 'Budget', money: true }, { key: 'spent', label: 'Spent', money: true }, { key: 'variance', label: 'Budget − Spent', money: true }, { key: 'used', label: 'Used', num: true }, { key: 'expectedBills', label: 'Expected bills', money: true }, { key: 'actualBills', label: 'Actual bills', money: true }, { key: 'billVariance', label: 'Bill variance', money: true }, { key: 'projected', label: 'Projected', money: true }, { key: 'health', label: 'Health' }],
+          totals: { budget: sum(rows, 'budget'), spent: sum(rows, 'spent'), variance: sum(rows, 'variance'), expectedBills: sum(rows, 'expectedBills'), actualBills: sum(rows, 'actualBills'), billVariance: sum(rows, 'billVariance'), projected: sum(rows, 'projected') } };
+      }
+      default: {
+        const rows = months.map(m => { const s = Calc.summary(m, inst, today); return { month: m, budget: s.monthlyBudget, expectedIncome: s.expectedIncome, actualIncome: s.actualIncome, expectedBills: s.expectedBills, actualBills: s.actualBills, paidBills: s.paidBills, unpaidBills: s.unpaidBills, partialBills: s.partialBills, overdueBills: s.overdueBills, overBudget: s.overBudgetAmount, otherExpenses: s.otherExpenses, moneyIn: s.totalMoneyIn, moneyOut: s.totalMoneyOut, net: s.netCashFlow, health: s.budget.health }; });
+        return { title: 'Monthly Summary', period, rows, columns: [{ key: 'month', label: 'Month', month: true }, { key: 'budget', label: 'Budget', money: true }, { key: 'expectedIncome', label: 'Expected income', money: true }, { key: 'actualIncome', label: 'Actual income', money: true }, { key: 'expectedBills', label: 'Expected bills', money: true }, { key: 'actualBills', label: 'Actual bills', money: true }, { key: 'paidBills', label: 'Paid bills', money: true }, { key: 'unpaidBills', label: 'Unpaid bills', money: true }, { key: 'partialBills', label: 'Partial (balance)', money: true }, { key: 'overdueBills', label: 'Overdue (balance)', money: true }, { key: 'overBudget', label: 'Over budget', money: true }, { key: 'otherExpenses', label: 'Other expenses', money: true }, { key: 'moneyIn', label: 'Money in', money: true }, { key: 'moneyOut', label: 'Money out', money: true }, { key: 'net', label: 'Net cash flow', money: true }, { key: 'health', label: 'Health' }],
+          totals: months.length > 1 ? ['budget', 'expectedIncome', 'actualIncome', 'expectedBills', 'actualBills', 'paidBills', 'unpaidBills', 'partialBills', 'overdueBills', 'overBudget', 'otherExpenses', 'moneyIn', 'moneyOut', 'net'].reduce((o, k) => (o[k] = sum(rows, k), o), {}) : null };
+      }
+    }
+  },
+  csv() {
+    const r = this.build();
+    const cell = v => { let s = U.blank(v) ? '' : String(v); if (/^[=+\-@]/.test(s) && isNaN(Number(s))) s = "'" + s; return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+    const lines = [r.columns.map(c => cell(c.label)).join(',')].concat(r.rows.map(row => r.columns.map(c => cell(c.money ? (U.blank(row[c.key]) ? '' : Number(row[c.key]).toFixed(2)) : row[c.key])).join(',')));
+    if (r.totals) lines.push(r.columns.map((c, i) => i === 0 ? 'Total' : r.totals[c.key] !== undefined ? Number(r.totals[c.key]).toFixed(2) : '').join(','));
+    download('﻿' + lines.join('\r\n'), (r.title.toLowerCase().replace(/\s+/g, '-')) + '-' + (UI.filters.reports.from || Store.month) + (UI.filters.reports.to && UI.filters.reports.to !== UI.filters.reports.from ? '_to_' + UI.filters.reports.to : '') + '.csv', 'text/csv;charset=utf-8');
+  }
+};
+function download(content, name, type) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([content], { type }));
+  a.download = name; document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+}
+
+/* ------------------------------------------------------------------ Modal */
+const Modal = {
+  current: null,
+  open({ title, eyebrow, body, foot, wide, onSubmit, onOpen }) {
+    this.close();
+    const root = document.getElementById('modalRoot');
+    const back = document.createElement('div');
+    back.className = 'modal-back';
+    back.innerHTML = `<form class="modal ${wide ? 'wide' : ''}" novalidate role="dialog" aria-modal="true" aria-label="${U.esc(title)}">
+      <div class="modal-head"><div style="flex:1">${eyebrow ? `<span class="eyebrow">${U.esc(eyebrow)}</span>` : ''}<h3>${U.esc(title)}</h3></div><button type="button" class="close-x" data-close aria-label="Close">×</button></div>
+      <div class="modal-body">${body}<div class="form-error" data-err></div></div>
+      ${foot !== null ? `<div class="modal-foot">${foot || '<button type="button" class="btn" data-close>Cancel</button><button type="submit" class="btn primary">Save</button>'}</div>` : ''}
+    </form>`;
+    root.appendChild(back);
+    const form = back.querySelector('form');
+    const state = { back, form, opId: U.opId(), submitting: false };
+    this.current = state;
+    back.addEventListener('mousedown', e => { if (e.target === back) this.close(); });
+    back.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => this.close()));
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+      if (state.submitting || !onSubmit) return;
+      const btn = form.querySelector('button[type=submit]');
+      state.submitting = true;
+      this.error('');
+      try {
+        await UI.busy(btn, btn && btn.dataset.busyLabel || 'Saving…', () => onSubmit(new FormData(form), form, state));
+      } catch (err) {
+        console.error(err);
+        this.error(err.message || 'Something went wrong.');
+      } finally { state.submitting = false; }
+    });
+    if (onOpen) onOpen(form, state);
+    const first = form.querySelector('input:not([type=hidden]):not([readonly]),select,textarea');
+    if (first && matchMedia('(min-width:901px)').matches) first.focus({ preventScroll: true });
+    return state;
+  },
+  error(msg) { if (!this.current) return; const el = this.current.form.querySelector('[data-err]'); el.textContent = msg; el.classList.toggle('show', !!msg); },
+  close() { if (this.current) { this.current.back.remove(); this.current = null; } },
+  confirm(title, message, okLabel, danger) {
+    return new Promise(resolve => {
+      let done = false;
+      const finish = v => { if (!done) { done = true; resolve(v); } };
+      this.open({ title, body: `<p style="margin:0;color:var(--ink-2)">${message}</p>`, foot: `<button type="button" class="btn" data-close>Cancel</button><button type="submit" class="btn ${danger ? 'danger' : 'primary'}">${U.esc(okLabel || 'Confirm')}</button>`, onSubmit: async () => { finish(true); this.close(); } });
+      const st = this.current;
+      st.back.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => finish(false)));
+      st.back.addEventListener('mousedown', e => { if (e.target === st.back) finish(false); });
+      const obs = new MutationObserver(() => { if (!st.back.isConnected) { obs.disconnect(); finish(false); } });
+      obs.observe(document.getElementById('modalRoot'), { childList: true });
+    });
+  }
+};
+
+/* Form helpers */
+const F = {
+  money(name, label, value, opts) { opts = opts || {}; return `<div class="field ${opts.full ? 'full' : ''}"><label for="f_${name}">${label}</label><div class="money-wrap"><span>₱</span><input id="f_${name}" name="${name}" class="input" inputmode="decimal" autocomplete="off" placeholder="${opts.placeholder || '0.00'}" value="${U.blank(value) ? '' : U.esc(Number(value).toFixed(2))}" ${opts.required ? 'required' : ''}></div>${opts.hint ? `<span class="hint" id="h_${name}">${opts.hint}</span>` : ''}</div>`; },
+  text(name, label, value, opts) { opts = opts || {}; return `<div class="field ${opts.full ? 'full' : ''}"><label for="f_${name}">${label}</label><input id="f_${name}" name="${name}" class="input" type="${opts.type || 'text'}" value="${U.esc(value || '')}" ${opts.required ? 'required' : ''} ${opts.attrs || ''} maxlength="${opts.max || 200}">${opts.hint ? `<span class="hint">${opts.hint}</span>` : ''}</div>`; },
+  date(name, label, value, opts) { opts = opts || {}; return `<div class="field ${opts.full ? 'full' : ''}"><label for="f_${name}">${label}</label><input id="f_${name}" name="${name}" class="input" type="date" value="${U.esc(value || '')}" ${opts.required ? 'required' : ''}>${opts.hint ? `<span class="hint">${opts.hint}</span>` : ''}</div>`; },
+  select(name, label, list, value, opts) { opts = opts || {}; return `<div class="field ${opts.full ? 'full' : ''}"><label for="f_${name}">${label}</label><select id="f_${name}" name="${name}" class="input">${UI.options(list, value, opts.placeholder)}</select>${opts.hint ? `<span class="hint">${opts.hint}</span>` : ''}</div>`; },
+  notes(value) { return `<div class="field full"><label for="f_notes">Notes</label><textarea id="f_notes" name="notes" class="input" maxlength="1000" placeholder="Optional">${U.esc(value || '')}</textarea></div>`; },
+  req(fd, k, label) { const v = String(fd.get(k) || '').trim(); if (!v) throw new Error(label + ' is required.'); return v; },
+  amount(fd, k, label, opts) {
+    opts = opts || {};
+    const v = U.parseMoney(fd.get(k));
+    if (v === '') { if (opts.allowBlank) return ''; throw new Error(label + ' is required.'); }
+    if (isNaN(v)) throw new Error(label + ' must be a number.');
+    if (opts.positive && v <= 0) throw new Error(label + ' must be greater than zero.');
+    if (v < 0) throw new Error(label + ' cannot be negative.');
+    if (v > 1e9) throw new Error(label + ' is too large.');
+    return v;
+  },
+  date10(fd, k, label, allowBlank) { const v = String(fd.get(k) || '').trim(); if (!v && allowBlank) return ''; if (!U.isYmd(v)) throw new Error(label + ' must be a valid date.'); return v; }
+};
+
+/* ------------------------------------------------------------------ Data actions (local-first) */
+const Data = {
+  same: (a, b) => (U.blank(a) && U.blank(b)) || (typeof a === 'number' || typeof b === 'number' ? (!U.blank(a) && !U.blank(b) && U.cents(a) === U.cents(b)) : String(a) === String(b)),
+  editableOp(type, id) {
+    if (Sync.running) return null;
+    return Store.queue.find(q => q.entityType === type && (q.localId === id || q.entityId === id) && (q.action === 'CREATE' || q.action === 'UPDATE') && ['PENDING', 'RETRY', 'FAILED', 'REJECTED'].includes(q.status) && !Store.inFlight.has(q.operationId)) || null;
+  },
+  async create(store, rec, opId) {
+    const now = U.nowIso();
+    const id = rec[ENTITY[store].idField];
+    Object.assign(rec, { id, localId: id, serverId: '', syncStatus: 'pending', createdAt: rec.createdAt || now, updatedAt: now, lastSyncedAt: '' });
+    await Store.save(store, rec);
+    const payload = {}; Object.keys(rec).forEach(k => { if (!['id', 'localId', 'serverId', 'syncStatus', 'syncError', 'createdAt', 'updatedAt', 'lastSyncedAt', 'serverUpdatedAt'].includes(k)) payload[k] = rec[k]; });
+    return Sync.commit({ operationId: opId, entityType: ENTITY[store].type, action: store === 'payments' ? 'PAYMENT' : 'CREATE', localId: id, entityId: id, payload });
+  },
+  /** Field-level update with conflict metadata; coalesces into a not-yet-sent queued op. */
+  async update(store, id, changes, opId, extraPayload) {
+    const cur = Store.get(store, id);
+    if (!cur) throw new Error('Record not found on this device.');
+    const changed = Object.keys(changes).filter(k => !this.same(cur[k], changes[k]));
+    if (!changed.length && !extraPayload) return 'nochange';
+    const before = Object.assign({}, cur);
+    const type = ENTITY[store].type, idField = ENTITY[store].idField;
+    Object.assign(cur, changes, { updatedAt: U.nowIso(), syncStatus: 'pending' });
+    await Store.save(store, cur);
+    const existing = this.editableOp(type, id);
+    if (existing) {
+      Object.assign(existing.payload, changes, extraPayload || {});
+      if (existing.action === 'UPDATE') {
+        existing.changedFields = Array.from(new Set((existing.changedFields || []).concat(changed)));
+        existing.baseValues = Object.assign({}, changed.reduce((o, k) => (o[k] = before[k], o), {}), existing.baseValues || {});
+      }
+      Object.assign(existing, { status: 'PENDING', retryCount: 0, nextAttemptAt: 0, lastError: '', clientUpdatedAt: U.nowIso() });
+      await Sync.updateOp(existing);
+      return Sync.commit(existing);
+    }
+    return Sync.commit({
+      operationId: opId, entityType: type, action: 'UPDATE', localId: id, entityId: id,
+      payload: Object.assign({ [idField]: id }, changes, extraPayload || {}), changedFields: changed,
+      baseValues: changed.reduce((o, k) => (o[k] = before[k], o), {}), baseUpdatedAt: before.serverUpdatedAt || before.updatedAt
+    });
+  },
+  /** Delete (or void a payment). A never-synced record is simply discarded locally. */
+  async remove(store, id) {
+    const cur = Store.get(store, id);
+    if (!cur) return 'nochange';
+    const type = ENTITY[store].type, idField = ENTITY[store].idField;
+    const createOp = !Sync.running && Store.queue.find(q => q.entityType === type && q.localId === id && (q.action === 'CREATE' || q.action === 'PAYMENT') && !Store.inFlight.has(q.operationId));
+    if (createOp && !cur.serverId) {
+      for (const q of Store.queue.filter(q => q.localId === id || q.entityId === id)) await Sync.removeOp(q.operationId);
+      await Store.remove(store, id);
+      UI.refresh();
+      return 'discarded';
+    }
+    if (store === 'payments') cur.isVoid = true; else cur.isDeleted = true;
+    cur.updatedAt = U.nowIso(); cur.syncStatus = 'pending';
+    await Store.save(store, cur);
+    return Sync.commit({ operationId: U.opId(), entityType: type, action: 'DELETE', localId: id, entityId: id, payload: { [idField]: id }, baseUpdatedAt: cur.serverUpdatedAt || '' });
+  }
+};
+
+/* ------------------------------------------------------------------ Forms */
+const Forms = {
+  payment(instId) {
+    const today = U.today();
+    const inst = Calc.instances(today).find(i => i.billInstanceId === instId);
+    if (!inst) return UI.toast('That bill is not on this device yet. Try syncing.', 'err');
+    const remaining = Math.max(0, inst.remainingAmount);
+    const paymentId = U.uid('PAY');
+    Modal.open({
+      title: inst.paymentCount ? 'Record payment' : 'Mark as paid', eyebrow: inst.billName + ' · ' + U.monthLabel(inst.billingPeriod),
+      body: `<div class="summary-box"><div><span>Expected</span><b>${U.peso(inst.expectedAmount)}</b></div><div><span>Paid so far</span><b>${inst.paymentCount ? U.peso(inst.actualAmount) : '—'}</b></div><div><span>Remaining</span><b>${U.peso(remaining)}</b></div></div>
+        <div class="form-grid">
+          ${F.money('amount', 'Payment amount', remaining > 0 ? remaining : inst.expectedAmount, { required: true, hint: 'Enter less than the remaining amount for a partial payment.' })}
+          ${F.date('paymentDate', 'Payment date', today, { required: true })}
+          ${F.select('paymentMethod', 'Payment method', PAYMENT_METHODS, inst.paymentMethod || 'Cash', { full: true })}
+          ${F.notes('')}
+        </div>`,
+      foot: `<button type="button" class="btn" data-close>Cancel</button><button type="submit" class="btn primary" data-busy-label="Saving…">Save payment</button>`,
+      onOpen(form) {
+        const amt = form.querySelector('[name=amount]'), hint = form.querySelector('#h_amount');
+        const upd = () => { const v = U.parseMoney(amt.value); if (isNaN(v) || v === '') { hint.textContent = 'Enter the amount paid.'; return; } const after = U.fromCents(U.cents(inst.actualAmount) + U.cents(v)); const left = U.fromCents(U.cents(inst.expectedAmount) - U.cents(after)); hint.innerHTML = left > 0 ? `After this payment: <b>PARTIAL</b>, ${U.esc(U.peso(left))} remaining.` : left === 0 ? 'After this payment: <b>PAID</b> in full.' : `After this payment: <b style="color:var(--over)">OVER BUDGET</b> by ${U.esc(U.peso(-left))}.`; };
+        amt.addEventListener('input', upd); upd();
+      },
+      async onSubmit(fd) {
+        const rec = { paymentId, billInstanceId: inst.billInstanceId, paymentDate: F.date10(fd, 'paymentDate', 'Payment date'), amount: F.amount(fd, 'amount', 'Payment amount', { positive: true }), paymentMethod: fd.get('paymentMethod'), notes: String(fd.get('notes') || '').trim(), recurringBillId: inst.recurringBillId, billName: inst.billName, billingPeriod: inst.billingPeriod, isVoid: false };
+        const outcome = await Data.create('payments', rec, Modal.current.opId);
+        Modal.close();
+        const after = Calc.instances().find(i => i.billInstanceId === inst.billInstanceId);
+        UI.saveOutcome(outcome, 'Payment');
+        if (after && outcome !== 'rejected') UI.toast(`${inst.billName}: ${after.status}${after.status === ST.PARTIAL ? ' · ' + U.peso(after.remainingAmount) + ' remaining' : ''}`);
+        UI.refresh();
+      }
+    });
+  },
+  billDetails(instId) {
+    const inst = Calc.instances().find(i => i.billInstanceId === instId);
+    if (!inst) return UI.toast('Bill not found on this device.', 'err');
+    const pays = Store.list('payments').filter(p => p.billInstanceId === instId).sort((a, b) => (a.paymentDate < b.paymentDate ? 1 : -1));
+    const done = inst.status === ST.PAID || inst.status === ST.OVER;
+    Modal.open({
+      title: inst.billName, eyebrow: U.monthLabel(inst.billingPeriod) + ' · ' + (inst.category || ''), wide: true,
+      body: `<div style="margin-bottom:14px">${tagFor(inst.status)}</div>
+        <div class="summary-box"><div><span>Expected</span><b>${U.peso(inst.expectedAmount)}</b></div><div><span>Paid</span><b>${inst.paymentCount ? U.peso(inst.actualAmount) : '—'}</b></div><div><span>${inst.remainingAmount < 0 ? 'Over by' : 'Remaining'}</span><b>${U.peso(Math.abs(inst.remainingAmount))}</b></div></div>
+        <div class="card-title" style="margin:6px 0 8px">Payments</div>
+        <div class="card" style="box-shadow:none;margin-bottom:16px">${pays.length ? pays.map(p => `<div class="row" style="grid-template-columns:1fr auto auto;padding:10px 16px;${U.bool(p.isVoid) ? 'opacity:.5;text-decoration:line-through' : ''}"><div><div class="name">${U.fmtDate(p.paymentDate)} · ${U.esc(p.paymentMethod)} ${localTag(p)}</div>${p.notes ? `<div class="sub">${U.esc(p.notes)}</div>` : ''}</div><div class="num"><b>${U.peso(p.amount)}</b></div><div>${U.bool(p.isVoid) ? '<span class="sub">voided</span>' : `<button type="button" class="btn sm danger" data-action="void-payment" data-id="${U.esc(p.id)}">Void</button>`}</div></div>`).join('') : '<div class="empty" style="padding:18px">No payments yet — actual amount is blank, so this bill is unpaid.</div>'}</div>
+        <div class="form-grid">
+          ${F.money('expectedAmount', 'Expected amount (this month only)', inst.expectedAmount, { required: true, hint: inst.manualOverride ? 'Manually adjusted for this month.' : 'Changing this affects only this bill instance.' })}
+          ${F.date('dueDate', 'Due date', inst.dueDate, { required: true })}
+          ${F.select('paymentMethod', 'Default payment method', PAYMENT_METHODS, inst.paymentMethod || 'Cash')}
+          <div class="field"><label>Instance ID</label><div class="mono" style="padding-top:10px;color:var(--muted)">${U.esc(inst.billInstanceId)}</div></div>
+          ${F.notes(inst.notes)}
+        </div>`,
+      foot: `<button type="button" class="btn" data-close>Close</button>${done ? '' : `<button type="button" class="btn" data-action="pay" data-id="${U.esc(instId)}">${inst.paymentCount ? 'Pay balance' : 'Mark as Paid'}</button>`}<button type="submit" class="btn primary">Save changes</button>`,
+      async onSubmit(fd) {
+        const changes = { expectedAmount: F.amount(fd, 'expectedAmount', 'Expected amount'), dueDate: F.date10(fd, 'dueDate', 'Due date'), paymentMethod: fd.get('paymentMethod'), notes: String(fd.get('notes') || '').trim() };
+        const outcome = await Data.update('billInstances', instId, changes, Modal.current.opId);
+        Modal.close();
+        if (outcome === 'nochange') UI.toast('No changes to save.'); else UI.saveOutcome(outcome, 'Bill');
+        UI.refresh();
+      }
+    });
+  },
+  expense(id) {
+    const cur = id ? Store.get('expenses', id) : null;
+    const expenseId = cur ? cur.id : U.uid('EXP');
+    Modal.open({
+      title: cur ? 'Edit expense' : 'Add expense', eyebrow: 'Other expenses',
+      body: `<div class="form-grid">
+        ${F.date('date', 'Date', cur ? cur.date : (Store.month === U.curMonth() ? U.today() : Store.month + '-01'), { required: true })}
+        ${F.money('amount', 'Amount', cur ? cur.amount : '', { required: true })}
+        ${F.text('description', 'Description', cur ? cur.description : '', { required: true, full: true, attrs: 'placeholder="e.g. Weekly groceries"' })}
+        ${F.select('category', 'Category', Store.categories('EXPENSE'), cur ? cur.category : 'Groceries')}
+        ${F.select('paymentMethod', 'Payment method', PAYMENT_METHODS, cur ? cur.paymentMethod : 'Cash')}
+        ${F.notes(cur ? cur.notes : '')}</div>`,
+      foot: `${cur ? '<button type="button" class="btn danger" data-action="delete-expense" data-id="' + U.esc(cur.id) + '" style="margin-right:auto">Delete</button>' : ''}<button type="button" class="btn" data-close>Cancel</button><button type="submit" class="btn primary">${cur ? 'Save changes' : 'Save expense'}</button>`,
+      async onSubmit(fd) {
+        const rec = { date: F.date10(fd, 'date', 'Date'), description: F.req(fd, 'description', 'Description'), category: fd.get('category'), amount: F.amount(fd, 'amount', 'Amount', { positive: true }), paymentMethod: fd.get('paymentMethod'), notes: String(fd.get('notes') || '').trim() };
+        const outcome = cur ? await Data.update('expenses', cur.id, rec, Modal.current.opId) : await Data.create('expenses', Object.assign({ expenseId, isDeleted: false }, rec), Modal.current.opId);
+        Modal.close();
+        if (outcome === 'nochange') UI.toast('No changes to save.'); else UI.saveOutcome(outcome, 'Expense');
+        UI.refresh();
+      }
+    });
+  },
+  income(id) {
+    const cur = id ? Store.get('income', id) : null;
+    const incomeId = cur ? cur.id : U.uid('INC');
+    Modal.open({
+      title: cur ? 'Edit income' : 'Add income', eyebrow: 'Income',
+      body: `<div class="form-grid">
+        ${F.date('date', 'Date', cur ? cur.date : (Store.month === U.curMonth() ? U.today() : Store.month + '-01'), { required: true })}
+        ${F.select('category', 'Category', Store.categories('INCOME'), cur ? cur.category : 'Salary')}
+        ${F.text('source', 'Source', cur ? cur.source : '', { required: true, full: true, attrs: 'placeholder="e.g. Salary — Company name"' })}
+        ${F.money('expectedAmount', 'Expected amount', cur ? cur.expectedAmount : '', { hint: 'What you planned to receive.' })}
+        ${F.money('actualAmount', 'Actual amount', cur ? cur.actualAmount : '', { hint: 'Leave blank until received.' })}
+        ${F.select('paymentMethod', 'Received via', PAYMENT_METHODS, cur ? cur.paymentMethod : 'Bank Transfer')}
+        ${F.select('status', 'Status', [{ value: 'AUTO', label: 'Automatic (from amounts)' }, { value: 'PENDING', label: 'Pending' }, { value: 'PARTIAL', label: 'Partial' }, { value: 'RECEIVED', label: 'Received' }, { value: 'CANCELLED', label: 'Cancelled' }], cur && cur.status === 'CANCELLED' ? 'CANCELLED' : 'AUTO', { hint: 'The server confirms the status from the amounts.' })}
+        ${F.notes(cur ? cur.notes : '')}</div>`,
+      foot: `${cur ? '<button type="button" class="btn danger" data-action="delete-income" data-id="' + U.esc(cur.id) + '" style="margin-right:auto">Delete</button>' : ''}<button type="button" class="btn" data-close>Cancel</button><button type="submit" class="btn primary">${cur ? 'Save changes' : 'Save income'}</button>`,
+      async onSubmit(fd) {
+        const expected = F.amount(fd, 'expectedAmount', 'Expected amount', { allowBlank: true });
+        const actual = F.amount(fd, 'actualAmount', 'Actual amount', { allowBlank: true });
+        if (expected === '' && actual === '') throw new Error('Enter an expected amount, an actual amount, or both.');
+        const req = fd.get('status');
+        const status = req === 'CANCELLED' ? 'CANCELLED' : actual === '' ? 'PENDING' : (expected === '' || U.cents(actual) >= U.cents(expected)) ? 'RECEIVED' : U.cents(actual) > 0 ? 'PARTIAL' : 'PENDING';
+        const rec = { date: F.date10(fd, 'date', 'Date'), source: F.req(fd, 'source', 'Source'), category: fd.get('category'), expectedAmount: expected, actualAmount: actual, paymentMethod: fd.get('paymentMethod'), status, notes: String(fd.get('notes') || '').trim() };
+        const outcome = cur ? await Data.update('income', cur.id, rec, Modal.current.opId) : await Data.create('income', Object.assign({ incomeId, isDeleted: false }, rec), Modal.current.opId);
+        Modal.close();
+        if (outcome === 'nochange') UI.toast('No changes to save.'); else UI.saveOutcome(outcome, 'Income');
+        UI.refresh();
+      }
+    });
+  },
+  recurring(id) {
+    const cur = id ? Store.get('recurringBills', id) : null;
+    const rbId = cur ? cur.id : U.uid('RB');
+    const cm = U.curMonth();
+    const freq = cur ? cur.frequency : 'MONTHLY';
+    Modal.open({
+      title: cur ? 'Edit recurring bill' : 'Add recurring bill', eyebrow: 'Recurring bills', wide: true,
+      body: `<div class="form-grid">
+        ${F.text('name', 'Name', cur ? cur.name : '', { required: true, attrs: 'placeholder="e.g. Internet"', max: 120 })}
+        ${F.select('category', 'Category', Store.categories('BILL'), cur ? cur.category : 'Utilities')}
+        ${F.money('amount', 'Default amount', cur ? cur.amount : '', { required: true })}
+        ${F.select('frequency', 'Frequency', FREQUENCIES.map(f => ({ value: f, label: f.charAt(0) + f.slice(1).toLowerCase() })), freq)}
+        <div class="field" data-show="MONTHLY QUARTERLY YEARLY"><label for="f_dueDay">Due day of month</label><input id="f_dueDay" name="dueDay" class="input" type="number" min="1" max="31" value="${U.esc(cur && cur.dueDay ? cur.dueDay : 15)}"><span class="hint">31 means "last day" in shorter months.</span></div>
+        <div class="field" data-show="WEEKLY">${''}<label for="f_dueWeekday">Due every</label><select id="f_dueWeekday" name="dueWeekday" class="input">${UI.options(WEEKDAYS.map((d, i) => ({ value: i, label: d })), cur && cur.dueWeekday !== '' && cur.dueWeekday !== undefined ? cur.dueWeekday : 6)}</select></div>
+        <div class="field" data-show="CUSTOM"><label for="f_intervalDays">Repeat every (days)</label><input id="f_intervalDays" name="intervalDays" class="input" type="number" min="1" max="3660" value="${U.esc(cur && cur.intervalDays ? cur.intervalDays : 14)}"><span class="hint">Counted from the start date.</span></div>
+        ${F.select('paymentMethod', 'Payment method', PAYMENT_METHODS, cur ? cur.paymentMethod : 'Cash')}
+        ${F.date('startDate', 'Start date', cur ? cur.startDate : cm + '-01', { required: true, hint: 'Quarterly/yearly schedules count from this month.' })}
+        ${F.date('endDate', 'End date (optional)', cur ? cur.endDate : '')}
+        ${cur ? `<div class="field full"><label for="f_applyFrom">Apply changes to unpaid bills from</label><input id="f_applyFrom" name="applyFrom" class="input" type="month" min="${cm}" value="${cm}"><span class="hint">Paid bills and earlier months are never changed — history stays as it was.</span></div>` : ''}
+        ${F.notes(cur ? cur.notes : '')}</div>`,
+      foot: `<button type="button" class="btn" data-close>Cancel</button><button type="submit" class="btn primary">${cur ? 'Save changes' : 'Create recurring bill'}</button>`,
+      onOpen(form) {
+        const sel = form.querySelector('[name=frequency]');
+        const sync = () => form.querySelectorAll('[data-show]').forEach(el => { el.style.display = el.dataset.show.split(' ').includes(sel.value) ? '' : 'none'; });
+        sel.addEventListener('change', sync); sync();
+      },
+      async onSubmit(fd) {
+        const frequency = fd.get('frequency');
+        const rec = { name: F.req(fd, 'name', 'Name'), category: fd.get('category'), amount: F.amount(fd, 'amount', 'Amount'), frequency, dueDay: '', dueWeekday: '', intervalDays: '', paymentMethod: fd.get('paymentMethod'), startDate: F.date10(fd, 'startDate', 'Start date'), endDate: F.date10(fd, 'endDate', 'End date', true), notes: String(fd.get('notes') || '').trim() };
+        if (['MONTHLY', 'QUARTERLY', 'YEARLY'].includes(frequency)) { const d = parseInt(fd.get('dueDay'), 10); if (!(d >= 1 && d <= 31)) throw new Error('Due day must be between 1 and 31.'); rec.dueDay = d; }
+        if (frequency === 'WEEKLY') rec.dueWeekday = parseInt(fd.get('dueWeekday'), 10);
+        if (frequency === 'CUSTOM') { const n = parseInt(fd.get('intervalDays'), 10); if (!(n >= 1 && n <= 3660)) throw new Error('Interval must be between 1 and 3660 days.'); rec.intervalDays = n; }
+        if (rec.endDate && rec.endDate < rec.startDate) throw new Error('End date cannot be before the start date.');
+        if (!cur && Store.list('recurringBills').some(b => U.bool(b.isActive) && String(b.name).toLowerCase() === rec.name.toLowerCase())) throw new Error('An active recurring bill with this name already exists.');
+        let outcome;
+        if (cur) {
+          let applyFrom = String(fd.get('applyFrom') || cm); if (!U.isYm(applyFrom) || applyFrom < cm) applyFrom = cm;
+          outcome = await Data.update('recurringBills', cur.id, rec, Modal.current.opId, { applyFrom });
+        } else {
+          outcome = await Data.create('recurringBills', Object.assign({ recurringBillId: rbId, isActive: true }, rec), Modal.current.opId);
+        }
+        Modal.close();
+        if (outcome === 'nochange') UI.toast('No changes to save.');
+        else if (outcome === 'synced') UI.toast(cur ? 'Recurring bill updated. Unpaid future bills were adjusted; history unchanged.' : 'Recurring bill created and its bills generated.');
+        else UI.saveOutcome(outcome, 'Recurring bill');
+        UI.refresh();
+      }
+    });
+  },
+  budget() {
+    const b = Calc.budgetFor(Store.month);
+    Modal.open({
+      title: 'Monthly budget', eyebrow: U.monthLabel(Store.month),
+      body: `<div class="form-grid">${F.money('plannedAmount', 'Planned amount', b.amount, { required: true, full: true, hint: 'Default monthly budget: ' + U.esc(U.peso(Store.settings.defaultMonthlyBudget || 0)) })}${F.notes(b.row ? b.row.notes : '')}</div>`,
+      async onSubmit(fd) {
+        const plannedAmount = F.amount(fd, 'plannedAmount', 'Planned amount');
+        const notes = String(fd.get('notes') || '').trim();
+        const existing = Store.list('budgets').find(x => x.month === Store.month);
+        const id = existing ? existing.id : 'MB-' + Store.month;
+        const rec = Object.assign({}, existing || { budgetId: id, id, month: Store.month, createdAt: U.nowIso() }, { plannedAmount, notes, updatedAt: U.nowIso(), syncStatus: 'pending' });
+        await Store.save('budgets', rec);
+        const outcome = await Sync.commit({ operationId: Modal.current.opId, entityType: 'BUDGET', action: 'UPDATE', localId: id, entityId: id, payload: { month: Store.month, plannedAmount, notes } });
+        Modal.close(); UI.saveOutcome(outcome, 'Budget'); UI.refresh();
+      }
+    });
+  },
+  defaultBudget() {
+    Modal.open({
+      title: 'Default monthly budget', eyebrow: 'Used for months without their own budget',
+      body: `<div class="form-grid">${F.money('defaultMonthlyBudget', 'Default amount', Store.settings.defaultMonthlyBudget || 0, { required: true, full: true })}<div class="field full"><label for="f_watch">Watch threshold (% of budget)</label><input id="f_watch" name="watch" class="input" type="number" min="10" max="100" value="${Math.round(Number(Store.settings.watchThreshold || 0.9) * 100)}"></div></div>`,
+      async onSubmit(fd) {
+        const v = F.amount(fd, 'defaultMonthlyBudget', 'Default amount');
+        const w = Math.min(100, Math.max(10, parseInt(fd.get('watch'), 10) || 90)) / 100;
+        Store.settings = Object.assign({}, Store.settings, { defaultMonthlyBudget: String(v), watchThreshold: String(w) });
+        await Store.setMeta('settings', Store.settings);
+        const outcome = await Sync.commit({ operationId: Modal.current.opId, entityType: 'SETTINGS', action: 'UPDATE', localId: 'SETTINGS', payload: { defaultMonthlyBudget: v, watchThreshold: w } });
+        Modal.close(); UI.saveOutcome(outcome, 'Settings'); UI.refresh();
+      }
+    });
+  },
+  more() {
+    Modal.open({ title: 'More', foot: null, body: `<div class="more-sheet">${['recurring', 'payments', 'reports', 'sync', 'settings'].map(id => `<a href="#/${id}" data-nav="${id}">${svgIcon(id, 20)}${VIEWS.find(v => v.id === id).label}${id === 'sync' && Store.queue.length ? ` <span class="tag PARTIAL" style="margin-left:auto">${Store.queue.length}</span>` : ''}</a>`).join('')}</div>` });
+  }
+};
+
+/* ------------------------------------------------------------------ Click actions */
+const Actions = {
+  'go': el => UI.go(el.dataset.view),
+  'more': () => Forms.more(),
+  'month-prev': () => UI.setMonth(U.addMonths(Store.month, -1)),
+  'month-next': () => UI.setMonth(U.addMonths(Store.month, 1)),
+  'pay': el => Forms.payment(el.dataset.id),
+  'bill-details': el => Forms.billDetails(el.dataset.id),
+  'bill-chip': el => { UI.filters.bills.status = el.dataset.status; UI.render(); },
+  'add-expense': () => Forms.expense(),
+  'edit-expense': el => Forms.expense(el.dataset.id),
+  'add-income': () => Forms.income(),
+  'edit-income': el => Forms.income(el.dataset.id),
+  'add-recurring': () => Forms.recurring(),
+  'edit-recurring': el => Forms.recurring(el.dataset.id),
+  'edit-budget': () => Forms.budget(),
+  'edit-default-budget': () => Forms.defaultBudget(),
+  'delete-expense': el => Actions._delete('expenses', el.dataset.id, 'expense', 'Expense'),
+  'delete-income': el => Actions._delete('income', el.dataset.id, 'income entry', 'Income'),
+  async _delete(store, id, noun, label) {
+    const rec = Store.get(store, id);
+    if (!rec) return;
+    const ok = await Modal.confirm('Delete ' + noun + '?', `${U.esc(rec.description || rec.source)} · ${U.esc(U.peso(rec.amount !== undefined ? rec.amount : (rec.actualAmount || rec.expectedAmount)))}<br><br>The record is kept in Google Sheets marked as deleted (never erased), so it can be restored there.`, 'Delete', true);
+    if (!ok) return;
+    const outcome = await Data.remove(store, id);
+    if (outcome === 'discarded') UI.toast(label + ' removed (it had not been synced yet).');
+    else if (outcome === 'synced') UI.toast(label + ' deleted.');
+    else UI.saveOutcome(outcome, label + ' deletion');
+    UI.refresh();
+  },
+  async 'void-payment'(el) {
+    const p = Store.get('payments', el.dataset.id);
+    if (!p) return;
+    const ok = await Modal.confirm('Void this payment?', `${U.esc(p.billName)} · ${U.esc(U.peso(p.amount))} on ${U.esc(U.fmtDate(p.paymentDate))}<br><br>The payment stays in the Payments sheet (marked void) and the bill is recalculated.`, 'Void payment', true);
+    if (!ok) return;
+    const outcome = await Data.remove('payments', p.id);
+    if (outcome === 'discarded') UI.toast('Payment removed (it had not been synced yet).');
+    else UI.saveOutcome(outcome, 'Void');
+    UI.refresh();
+  },
+  async 'toggle-recurring'(el) {
+    const b = Store.get('recurringBills', el.dataset.id);
+    if (!b) return;
+    const on = el.dataset.on === '1';
+    const ok = await Modal.confirm((on ? 'Enable ' : 'Disable ') + b.name + '?', on ? 'Bills will be generated again from today onward.' : 'Future unpaid bills for this schedule will be cancelled (kept in the sheet as VOID). Paid and past bills stay exactly as they are.', on ? 'Enable' : 'Disable', !on);
+    if (!ok) return;
+    b.isActive = on; b.syncStatus = 'pending'; b.updatedAt = U.nowIso();
+    await Store.save('recurringBills', b);
+    const outcome = await Sync.commit({ operationId: U.opId(), entityType: 'RECURRING_BILL', action: on ? 'ENABLE' : 'DISABLE', localId: b.id, entityId: b.id, payload: { recurringBillId: b.id } });
+    if (outcome === 'synced') UI.toast(b.name + (on ? ' enabled.' : ' disabled. History kept.')); else UI.saveOutcome(outcome, 'Change');
+    UI.refresh();
+  },
+  async 'sync-now'(el) {
+    if (!Api.configured()) { UI.go('settings'); return; }
+    if (!navigator.onLine) return UI.toast('You are offline. Changes will sync automatically when the connection returns.', 'warn');
+    await UI.busy(el, 'Syncing…', async () => {
+      const before = Store.queue.length;
+      const r = await Sync.run({ manual: true });
+      if (r.error) UI.toast('Unable to synchronize: ' + r.error + ' It will be retried.', 'err');
+      else if (r.failed) UI.toast(r.failed + ' change(s) could not be synchronized. They will be retried.', 'err');
+      else if (r.conflicts) UI.toast(r.conflicts + ' change(s) need your review.', 'warn');
+      else UI.toast(before ? '✓ All changes synced.' : 'Up to date with Google Sheets.');
+    });
+  },
+  async 'full-refresh'(el) {
+    if (!Api.configured() || !navigator.onLine) return UI.toast('Connect to the internet to refresh from Google Sheets.', 'warn');
+    await UI.busy(el, 'Refreshing…', async () => {
+      const r = await Sync.run({ manual: true, full: true });
+      UI.toast(r.error ? 'Refresh failed: ' + r.error : 'Reloaded everything from Google Sheets.', r.error ? 'err' : '');
+    });
+  },
+  async 'retry-op'(el) {
+    const op = Store.queue.find(q => q.operationId === el.dataset.id);
+    if (!op) return;
+    Object.assign(op, { status: 'PENDING', nextAttemptAt: 0 });
+    await Sync.updateOp(op);
+    await Actions['sync-now'](el);
+  },
+  async 'discard-op'(el) {
+    const op = Store.queue.find(q => q.operationId === el.dataset.id);
+    if (!op) return;
+    const isCreate = op.action === 'CREATE' || op.action === 'PAYMENT';
+    const ok = await Modal.confirm('Discard this change?', isCreate ? 'This entry was never saved to Google Sheets. Discarding removes it from this device permanently.' : 'This device\'s change will be dropped and the server version restored on the next sync.', 'Discard', true);
+    if (!ok) return;
+    await Sync.removeOp(op.operationId);
+    Store.conflicts = Store.conflicts.filter(c => c.operationId !== op.operationId);
+    await LocalDB.del('conflicts', op.operationId);
+    const store = Object.keys(ENTITY).find(s => ENTITY[s].type === op.entityType);
+    if (store && isCreate) { const rec = Store.get(store, op.localId); if (rec && !rec.serverId) await Store.remove(store, op.localId); }
+    else if (store) { const rec = Store.get(store, op.localId || op.entityId); if (rec) { rec.syncStatus = 'synced'; await Store.save(store, rec); } }
+    await LocalDB.addLog({ type: 'DISCARDED', message: 'Discarded queued ' + op.entityType + ' ' + op.action, operationId: op.operationId });
+    UI.refresh();
+    if (!isCreate && Api.configured() && navigator.onLine) Sync.run({ full: true });
+  },
+  async 'conflict-mine'(el) {
+    const c = Store.conflicts.find(x => x.operationId === el.dataset.id);
+    if (!c) return;
+    await Sync.removeOp(c.operationId);
+    await LocalDB.del('conflicts', c.operationId);
+    Store.conflicts = Store.conflicts.filter(x => x.operationId !== c.operationId);
+    const op = Object.assign({}, c.op, { operationId: U.opId(), force: true, status: 'PENDING', retryCount: 0, nextAttemptAt: 0, lastError: '', createdAt: U.nowIso(), clientUpdatedAt: U.nowIso() });
+    await LocalDB.addLog({ type: 'CONFLICT', message: 'Kept this device\'s version (' + c.op.entityType + ')', operationId: op.operationId });
+    const outcome = await Sync.commit(op);
+    UI.saveOutcome(outcome, 'Your version');
+    UI.refresh();
+  },
+  async 'conflict-server'(el) {
+    const c = Store.conflicts.find(x => x.operationId === el.dataset.id);
+    if (!c) return;
+    await Sync.removeOp(c.operationId);
+    await LocalDB.del('conflicts', c.operationId);
+    Store.conflicts = Store.conflicts.filter(x => x.operationId !== c.operationId);
+    const store = Object.keys(ENTITY).find(s => ENTITY[s].type === c.op.entityType);
+    if (store) { const rec = Store.get(store, c.entityId); if (rec) { rec.syncStatus = 'synced'; await Store.save(store, rec); } }
+    await LocalDB.addLog({ type: 'CONFLICT', message: 'Kept the server version (' + c.op.entityType + ')', operationId: c.operationId });
+    await Sync.run({ full: true });
+    UI.toast('Server version restored.');
+  },
+  async 'save-connection'(el, e) {
+    const form = document.getElementById('connForm');
+    const err = document.getElementById('connErr');
+    const fd = new FormData(form);
+    err.classList.remove('show');
+    await UI.busy(el, 'Testing…', async () => {
+      const url = IS_GAS ? '' : String(fd.get('apiUrl') || '').trim();
+      const key = String(fd.get('apiKey') || '').trim() || Store.meta.apiKey || '';
+      if (!IS_GAS && !/^https:\/\/script\.google(usercontent)?\.com\/.+\/exec(\?.*)?$/.test(url) && !/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?\//.test(url)) { err.textContent = 'The URL must be your Apps Script Web App URL ending in /exec.'; err.classList.add('show'); return; }
+      if (!IS_GAS && !key) { err.textContent = 'Paste the API key.'; err.classList.add('show'); return; }
+      const prev = { apiUrl: Store.meta.apiUrl, apiKey: Store.meta.apiKey };
+      Store.meta.apiUrl = url; Store.meta.apiKey = key;
+      try {
+        const r = await Api.call('ping', {}, { timeout: 20000 });
+        if (!r.authorized) throw new Error('The server is reachable but the API key was not accepted.');
+        await Store.setMeta('apiUrl', url); await Store.setMeta('apiKey', key); await Store.setMeta('serverVersion', r.version);
+        UI.toast('Connected to Google Sheets. Synchronizing…');
+        const res = await Sync.run({ manual: true, full: true });
+        if (res.error) UI.toast('Connected, but the first sync failed: ' + res.error, 'err'); else UI.toast('✓ Data loaded from Google Sheets.');
+      } catch (ex) {
+        Store.meta.apiUrl = prev.apiUrl; Store.meta.apiKey = prev.apiKey;
+        err.textContent = ex.message; err.classList.add('show');
+      }
+    });
+  },
+  async disconnect() {
+    const n = Store.queue.length;
+    const ok = await Modal.confirm('Disconnect this device?', (n ? `<b>${n} change(s) are not synced yet</b> and will stay queued on this device until you reconnect.<br><br>` : '') + 'The Web App URL and API key will be removed from this device. Cached data stays until you clear it.', 'Disconnect', true);
+    if (!ok) return;
+    await Store.setMeta('apiUrl', ''); await Store.setMeta('apiKey', '');
+    UI.render(); UI.toast('Disconnected.');
+  },
+  'print': () => window.print(),
+  'export-csv': () => { Reports.csv(); UI.toast('CSV exported.'); },
+  async 'export-backup'() {
+    const out = { exportedAt: U.nowIso(), app: 'household-finances', version: APP_VERSION, queue: Store.queue, conflicts: Store.conflicts };
+    Object.keys(ENTITY).forEach(s => { out[s] = Store.list(s); });
+    download(JSON.stringify(out, null, 2), 'household-finances-backup-' + U.today() + '.json', 'application/json');
+  },
+  async 'clear-local'() {
+    const n = Store.queue.length;
+    const ok = await Modal.confirm('Clear the local cache?', n ? `<b class="neg">${n} change(s) have not been synced and would be lost.</b> Sync first, or download a backup.` : 'Cached data on this device will be removed and downloaded again from Google Sheets. Nothing in the spreadsheet is affected.', n ? 'Clear anyway' : 'Clear cache', true);
+    if (!ok) return;
+    for (const s of Object.keys(ENTITY).concat(['queue', 'conflicts', 'dashboard'])) await LocalDB.clear(s);
+    Object.keys(ENTITY).forEach(s => { Store.data[s] = new Map(); });
+    Store.queue = []; Store.conflicts = [];
+    await Store.setMeta('lastServerTime', ''); await Store.setMeta('lastSyncAt', '');
+    UI.render(); UI.toast('Local cache cleared.');
+    if (Api.configured() && navigator.onLine) Sync.run({ full: true });
+  },
+  async install() {
+    if (!UI.deferredInstall) return UI.toast('Use your browser menu → "Install app" or "Add to Home Screen".');
+    UI.deferredInstall.prompt();
+    try { await UI.deferredInstall.userChoice; } catch (e) { /* ignore */ }
+    UI.deferredInstall = null;
+    document.querySelectorAll('.install-card').forEach(b => b.classList.remove('show'));
+  }
+};
+
+/* ------------------------------------------------------------------ Server reconciliation (frontend never has the last word) */
+Store.verified = {};
+const Verify = {
+  last: 0,
+  async run() {
+    if (!Api.configured() || !navigator.onLine || Store.queue.length || UI.view !== 'dashboard' || Date.now() - this.last < 60000) return;
+    this.last = Date.now();
+    const month = Store.month;
+    try {
+      const d = await Api.call('getDashboardData', { month }, { timeout: 30000 });
+      const local = Calc.summary(month, null, d.today || U.today());
+      const keys = ['monthlyBudget', 'expectedBills', 'actualBills', 'otherExpenses', 'unpaidAmount', 'overBudgetAmount', 'expectedIncome', 'actualIncome', 'netCashFlow'];
+      const diff = keys.filter(k => U.cents(local[k]) !== U.cents(d.summary[k]));
+      Store.verified[month] = { ok: !diff.length, at: U.nowIso(), diff };
+      if (diff.length) {
+        console.warn('Local and server totals differ:', diff, local, d.summary);
+        await LocalDB.addLog({ type: 'RECONCILE', message: 'Local totals differed from the server (' + diff.join(', ') + '); reloading from Google Sheets.' });
+        await Sync.pull({ full: true });
+        const again = Calc.summary(month, null, d.today || U.today());
+        Store.verified[month] = { ok: keys.every(k => U.cents(again[k]) === U.cents(d.summary[k])), at: U.nowIso() };
+      }
+      if (UI.view === 'dashboard') UI.refresh();
+    } catch (e) { /* verification is best-effort */ }
+  }
+};
+const _origRun = Sync._run.bind(Sync);
+Sync._run = async function (opts) {
+  const r = await _origRun(opts);
+  if (!r.error && !r.skipped) setTimeout(() => Verify.run(), 50);
+  return r;
+};
+
+/* ------------------------------------------------------------------ Boot */
+async function boot() {
+  const view = document.getElementById('view');
+  view.innerHTML = '<div class="empty"><span class="spinner"></span> Loading your finances…</div>';
+  await LocalDB.open();
+  try { await Store.load(); } catch (e) { console.error(e); LocalDB.useMemory('Local data could not be read: ' + e.message); await Store.load(); }
+
+  if (navigator.storage && navigator.storage.persist) {
+    try { LocalDB.persistent = await navigator.storage.persisted() || await navigator.storage.persist(); } catch (e) { /* optional */ }
+  }
+
+  // Service worker: only where the browser allows it (HTTPS / localhost, not inside the Apps Script iframe)
+  if ('serviceWorker' in navigator && !IS_GAS && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+    navigator.serviceWorker.register('service-worker.js').then(reg => {
+      reg.addEventListener('updatefound', () => {
+        const nw = reg.installing;
+        if (nw) nw.addEventListener('statechange', () => { if (nw.state === 'installed' && navigator.serviceWorker.controller) UI.toast('An app update is ready — it will be used the next time you open the app.'); });
+      });
+    }).catch(err => console.warn('Service worker registration failed:', err));
+    navigator.serviceWorker.addEventListener('controllerchange', () => { const el = document.getElementById('swState'); if (el) el.textContent = 'Active'; });
+  }
+
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    UI.deferredInstall = e;
+    document.querySelectorAll('.install-card').forEach(b => b.classList.add('show'));
+  });
+  window.addEventListener('appinstalled', () => { UI.deferredInstall = null; document.querySelectorAll('.install-card').forEach(b => b.classList.remove('show')); UI.toast('Household Finances installed.'); });
+  document.addEventListener('submit', e => { if (e.target.id === 'connForm') { e.preventDefault(); Actions['save-connection'](e.target.querySelector('[data-action=save-connection]'), e); } });
+  window.addEventListener('unhandledrejection', e => { console.error(e.reason); });
+
+  if (LocalDB.memory) setTimeout(() => UI.toast('This browser blocked offline storage (' + LocalDB.memoryReason + '). Entries will be lost if you close the app before syncing.', 'err', 10000), 500);
+  UI.view = UI.hashView() || 'dashboard';
+  if (!Api.configured() && !IS_GAS && !Store.list('billInstances').length) UI.view = 'settings';
+  UI.init();
+  Sync.start();
+}
+boot();
+</script>
+</body>
+</html>
