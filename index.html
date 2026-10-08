@@ -610,8 +610,10 @@ const LocalDB = {
   async open() {
     if (!('indexedDB' in self)) return this.useMemory('IndexedDB is not available in this browser');
     try {
-      this.db = await new Promise((resolve, reject) => {
-        const req = indexedDB.open('household-finances', 3);
+      // Opens whatever version is on the phone, then adds any missing sections with a one-step upgrade.
+      const need = Object.keys(ENTITY).concat(['meta', 'queue', 'conflicts', 'dashboard', 'syncLog']);
+      const openAt = version => new Promise((resolve, reject) => {
+        const req = version ? indexedDB.open('household-finances', version) : indexedDB.open('household-finances');
         req.onupgradeneeded = () => {
           const db = req.result;
           Object.keys(ENTITY).forEach(s => { if (!db.objectStoreNames.contains(s)) db.createObjectStore(s, { keyPath: 'id' }); });
@@ -625,6 +627,9 @@ const LocalDB = {
         req.onerror = () => reject(req.error);
         req.onblocked = () => reject(new Error('Database upgrade blocked by another open tab.'));
       });
+      let db = await openAt(0);
+      if (need.some(s => !db.objectStoreNames.contains(s))) { const v = db.version + 1; db.close(); db = await openAt(v); }
+      this.db = db;
       this.db.onversionchange = () => { this.db.close(); location.reload(); };
       return true;
     } catch (e) {
