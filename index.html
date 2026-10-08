@@ -144,6 +144,104 @@ textarea.input{min-height:76px;resize:vertical}
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px}
 .grid-3-1{display:grid;grid-template-columns:1.25fr 1fr;gap:18px;margin-bottom:18px}
 
+/* ---------- Household Financial Status (smart insight) ---------- */
+.insight{--st:var(--paid);--st-bg:var(--paid-bg);margin-bottom:18px;overflow:hidden;position:relative;background:linear-gradient(180deg,#FFFFFF 0%,#FCFAF6 100%)}
+.insight::before{content:'';position:absolute;left:0;right:0;top:0;height:4px;background:var(--st)}
+.insight.st-STABLE{--st:#2470A8;--st-bg:#E3EDF6}
+.insight.st-CAUTION{--st:var(--partial);--st-bg:var(--partial-bg)}
+.insight.st-WARNING{--st:#B4552D;--st-bg:#F6E4DA}
+.insight.st-CRITICAL{--st:var(--overdue);--st-bg:var(--overdue-bg)}
+.ins-top{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:22px 28px 0;flex-wrap:wrap}
+.ins-pill{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:999px;background:var(--st-bg);color:var(--st);font-size:12px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase}
+.ins-pill i{width:8px;height:8px;border-radius:50%;background:var(--st)}
+.ins-body{display:grid;grid-template-columns:1.35fr 1fr;gap:0}
+.ins-main{padding:14px 28px 26px}
+.ins-headline{font-family:var(--serif);font-size:31px;line-height:1.18;font-weight:600;margin:6px 0 10px;letter-spacing:.1px}
+.ins-comment{font-size:15.5px;line-height:1.6;color:var(--ink-2);margin:0 0 20px;max-width:62ch}
+.ins-grid{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--line)}
+.ins-tile{padding:13px 0;border-bottom:1px solid var(--line)}
+.ins-tile:nth-child(odd){padding-right:18px;border-right:1px solid var(--line)}
+.ins-tile:nth-child(even){padding-left:18px}
+.t-label{font-size:10.5px;letter-spacing:1.6px;text-transform:uppercase;font-weight:700;color:var(--muted)}
+.t-value{font-size:19px;font-weight:600;margin-top:3px;font-variant-numeric:tabular-nums}
+.t-note{font-size:12px;color:var(--muted);margin-top:1px}
+.ins-side{background:var(--surface-2);border-left:1px solid var(--line);padding:18px 22px 22px;display:flex;flex-direction:column;gap:16px}
+.ins-safe{background:var(--ink);color:#F7F4EF;border-radius:14px;padding:18px 20px}
+.s-label{font-size:11px;letter-spacing:1.8px;text-transform:uppercase;font-weight:700;color:#CFC8BD}
+.s-big{font-family:var(--serif);font-size:40px;font-weight:600;line-height:1.1;margin-top:6px;font-variant-numeric:lining-nums tabular-nums}
+.s-big.is-short{color:#F2A9A4}
+.s-short{font-size:13px;color:#F2C1BC;margin-top:4px;font-weight:600}
+.s-formula{font-size:11.5px;color:#BDB5A9;margin-top:10px;line-height:1.5}
+.ins-rem{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.ins-rem li{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;line-height:1.45;color:var(--ink-2);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.rm-ic{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:800;background:var(--st-bg);color:var(--st)}
+.ins-rem li.rm-overdue .rm-ic,.ins-rem li.rm-crunch .rm-ic{background:var(--overdue-bg);color:var(--overdue)}
+.ins-rem li.rm-healthy .rm-ic{background:var(--paid-bg);color:var(--paid)}
+.ins-list .t-label{margin-bottom:4px}
+.ins-li{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line);font-size:13.5px}
+.ins-li:first-of-type{border-top:0}
+.ins-li .num{font-weight:600;font-variant-numeric:tabular-nums}
+.ins-li .sub{font-size:12px;color:var(--muted)}
+.ins-foot{border-top:1px solid var(--line);padding:11px 28px;font-size:11.5px;color:var(--muted);background:var(--surface)}
+.ins-foot a{color:var(--ink-2)}
+
+/* ---------- Lent money (colorful, interactive) ---------- */
+.loan-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
+.loan-stat{--c:#2D8C8C;--bg:#E2F1F0;border-radius:var(--radius);padding:18px 20px;background:linear-gradient(135deg,var(--bg) 0%,#FFFFFF 85%);border:1px solid var(--line);box-shadow:var(--shadow);position:relative;overflow:hidden}
+.loan-stat::after{content:'';position:absolute;right:-26px;top:-26px;width:90px;height:90px;border-radius:50%;background:var(--c);opacity:.10}
+.loan-stat .label{font-size:11px;letter-spacing:1.6px;text-transform:uppercase;font-weight:700;color:var(--c)}
+.loan-stat .value{font-family:var(--serif);font-size:30px;font-weight:600;margin-top:6px;color:var(--ink);font-variant-numeric:lining-nums tabular-nums}
+.loan-stat .meta{font-size:12.5px;color:var(--ink-2);margin-top:2px}
+.ls-lent{--c:#7B4B94;--bg:#EFE6F3}.ls-back{--c:#3E7A55;--bg:#E6F0E9}.ls-late{--c:#B0363A;--bg:#F6E1DF}
+.avatar{width:44px;height:44px;border-radius:50%;flex:none;display:grid;place-items:center;font-weight:700;font-size:15px;letter-spacing:.5px;color:#fff;background:var(--av,#2470A8);box-shadow:0 0 0 3px #fff,0 0 0 4px color-mix(in srgb,var(--av,#2470A8) 35%,transparent)}
+.avatar.sm{width:30px;height:30px;font-size:11.5px;box-shadow:none}
+.owe-card{margin-bottom:6px}
+.owe-list{display:flex;flex-direction:column;padding:10px 14px 8px}
+.owe-row{display:grid;grid-template-columns:30px minmax(80px,150px) 1fr auto;gap:12px;align-items:center;padding:9px 10px;border:0;background:transparent;border-radius:10px;cursor:pointer;text-align:left;transition:background .15s}
+.owe-row:hover,.owe-row.on{background:var(--surface-3)}
+.owe-name{font-weight:600;font-size:14px;display:flex;align-items:center;gap:6px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.late-dot{width:8px;height:8px;border-radius:50%;background:var(--overdue);display:inline-block}
+.owe-bar{height:14px;width:var(--w);min-width:10px;display:flex;gap:2px;border-radius:7px;overflow:hidden;animation:grow .7s cubic-bezier(.2,.8,.2,1) both;transform-origin:left}
+.owe-bar i{display:block;height:100%;width:var(--p)}
+.owe-bar i.paid{background:var(--paid)}
+.owe-bar i.left{background:var(--av)}
+.owe-amt{font-weight:700;font-variant-numeric:tabular-nums;font-size:14px}
+@keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.loan-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px}
+.loan-card{--av:#2470A8;background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);overflow:hidden;position:relative;transition:box-shadow .2s,transform .2s}
+.loan-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--av)}
+.loan-card:hover{box-shadow:0 2px 4px rgba(43,41,38,.05),0 12px 30px rgba(43,41,38,.09)}
+.loan-head{display:grid;grid-template-columns:44px 1fr auto 18px;gap:14px;align-items:center;width:100%;padding:16px 18px 10px 20px;background:none;border:0;cursor:pointer;text-align:left}
+.loan-head .who{display:flex;flex-direction:column;min-width:0}
+.loan-head .who b{font-size:15.5px}
+.loan-head .sub{font-size:12.5px;color:var(--muted)}
+.loan-head .amt{display:flex;flex-direction:column;align-items:flex-end}
+.loan-head .amt b{font-family:var(--serif);font-size:22px;font-weight:600;font-variant-numeric:tabular-nums}
+.chev{font-size:22px;color:var(--muted);transition:transform .25s}
+.loan-card.open .chev{transform:rotate(90deg)}
+.loan-prog{padding:0 18px 14px 20px}
+.loan-prog .bar{height:9px;border-radius:9px;background:color-mix(in srgb,var(--av) 14%,#F1EDE6);overflow:hidden}
+.loan-prog .bar i{display:block;height:100%;width:100%;border-radius:9px;background:linear-gradient(90deg,var(--paid),#5DA374);transform-origin:left;transform:scaleX(var(--p));animation:fill .9s cubic-bezier(.2,.8,.2,1)}
+@keyframes fill{from{transform:scaleX(0)}}
+.prog-meta{display:flex;justify-content:space-between;gap:10px;margin-top:7px;font-size:12px;color:var(--ink-2);flex-wrap:wrap}
+.due{font-weight:600;padding:1px 9px;border-radius:999px;background:var(--surface-3)}
+.due.late{color:var(--overdue);background:var(--overdue-bg)}
+.due.soon{color:var(--partial);background:var(--partial-bg)}
+.due.done{color:var(--paid);background:var(--paid-bg)}
+.due.off{color:var(--void);background:var(--void-bg)}
+.loan-card.s-REPAID{opacity:.92}
+.loan-card.s-WRITTEN_OFF{opacity:.7}
+.loan-more{max-height:0;overflow:hidden;padding:0 18px 0 20px;background:var(--surface-2);border-top:1px solid transparent;transition:max-height .35s ease,padding .3s ease}
+.loan-card.open .loan-more{max-height:900px;padding:14px 18px 16px 20px;border-top-color:var(--line)}
+.loan-note{margin:0 0 12px;font-size:13.5px;color:var(--ink-2);font-style:italic}
+.timeline{list-style:none;margin:0 0 12px;padding:0 0 0 4px;border-left:2px solid color-mix(in srgb,var(--paid) 35%,transparent)}
+.timeline li{display:flex;align-items:center;gap:10px;padding:6px 0 6px 14px;position:relative;font-size:13.5px}
+.timeline .dot{position:absolute;left:-7px;width:12px;height:12px;border-radius:50%;background:var(--paid);box-shadow:0 0 0 3px var(--surface-2)}
+.timeline .tl-main{flex:1;display:block}
+.timeline .tl-main .sub{display:block}
+.timeline .sub{font-size:12px;color:var(--muted)}
+.loan-actions{display:flex;gap:8px;flex-wrap:wrap}
+
 /* ---------- Available money ---------- */
 .avail{display:grid;grid-template-columns:1.15fr 1fr;overflow:hidden;margin-bottom:18px}
 .avail-main{background:var(--ink);color:#F7F4EF;padding:24px 26px}
@@ -270,6 +368,7 @@ textarea.input{min-height:76px;resize:vertical}
 @media (max-width:1020px){
   .grid-2,.grid-3-1{grid-template-columns:1fr}
   .stat-grid{grid-template-columns:repeat(2,1fr)}
+  .loan-stats{grid-template-columns:repeat(2,1fr)}
 }
 @media (max-width:900px){
   .app{grid-template-columns:1fr}
@@ -280,6 +379,20 @@ textarea.input{min-height:76px;resize:vertical}
   .hero h2{font-size:30px}
   .kpis{grid-template-columns:repeat(2,1fr);gap:10px}
   .avail{grid-template-columns:1fr}
+  .ins-body{grid-template-columns:1fr}
+  .loan-grid{grid-template-columns:1fr}
+  .loan-stats{gap:10px}
+  .loan-stat{padding:14px 16px}
+  .loan-stat .value{font-size:24px}
+  .owe-row{grid-template-columns:30px minmax(60px,100px) 1fr auto;gap:8px}
+  .ins-top{padding:18px 18px 0}
+  .ins-main{padding:10px 18px 18px}
+  .ins-headline{font-size:25px}
+  .ins-comment{font-size:14.5px}
+  .ins-side{border-left:0;border-top:1px solid var(--line);padding:16px 16px 18px}
+  .s-big{font-size:36px}
+  .ins-foot{padding:10px 18px}
+  .t-value{font-size:17px}
   .avail-main{padding:20px 18px}
   .avail-main .big{font-size:38px}
   .avail-side{padding:14px 16px}
@@ -387,7 +500,7 @@ textarea.input{min-height:76px;resize:vertical}
  * Layers:  Util → LocalDB (IndexedDB) → Store (in-memory) → Calc (same rules as
  *          Code.gs) → Api (fetch or google.script.run) → Sync (queue engine) → UI
  * ========================================================================== */
-const APP_VERSION = '1.1.0';
+const APP_VERSION = '1.3.0';
 const TZ = 'Asia/Manila';
 const PAYMENT_METHODS = ['Cash', 'Bank Transfer', 'Online Bank', 'Credit Card', 'Debit Card', 'GCash', 'Other'];
 const FREQUENCIES = ['WEEKLY', 'BIWEEKLY', 'MONTHLY', 'QUARTERLY', 'YEARLY', 'CUSTOM'];
@@ -479,7 +592,9 @@ const ENTITY = {
   income: { idField: 'incomeId', type: 'INCOME' },
   budgets: { idField: 'budgetId', type: 'BUDGET' },
   categories: { idField: 'categoryId', type: 'CATEGORY' },
-  recurringIncome: { idField: 'recurringIncomeId', type: 'RECURRING_INCOME' }
+  recurringIncome: { idField: 'recurringIncomeId', type: 'RECURRING_INCOME' },
+  loans: { idField: 'loanId', type: 'LOAN' },
+  loanRepayments: { idField: 'repaymentId', type: 'LOAN_REPAYMENT' }
 };
 const STORES = Object.keys(ENTITY).concat(['meta', 'queue', 'conflicts', 'dashboard', 'syncLog']);
 
@@ -489,7 +604,7 @@ const LocalDB = {
     if (!('indexedDB' in self)) return this.useMemory('IndexedDB is not available in this browser');
     try {
       this.db = await new Promise((resolve, reject) => {
-        const req = indexedDB.open('household-finances', 2);
+        const req = indexedDB.open('household-finances', 3);
         req.onupgradeneeded = () => {
           const db = req.result;
           Object.keys(ENTITY).forEach(s => { if (!db.objectStoreNames.contains(s)) db.createObjectStore(s, { keyPath: 'id' }); });
@@ -741,28 +856,60 @@ const Calc = {
     const openingDate = U.isYmd(String(st.openingBalanceDate || '')) ? st.openingBalanceDate : '';
     const cm = today.slice(0, 7);
     const by = {};
-    const add = (date, k, cents) => { if (!U.isYmd(String(date)) || (openingDate && date < openingDate) || date > today) return; const m = date.slice(0, 7); by[m] = by[m] || { inc: 0, bills: 0, other: 0 }; by[m][k] += cents; };
+    const add = (date, k, cents) => { if (!U.isYmd(String(date)) || (openingDate && date < openingDate) || date > today) return; const m = date.slice(0, 7); by[m] = by[m] || { inc: 0, bills: 0, other: 0, lent: 0, back: 0 }; by[m][k] += cents; };
     Store.list('income').forEach(r => { if (!U.bool(r.isDeleted) && r.status !== 'CANCELLED' && !U.blank(r.actualAmount)) add(r.date, 'inc', U.cents(r.actualAmount)); });
     Store.list('payments').forEach(p => { if (!U.bool(p.isVoid)) add(p.paymentDate, 'bills', U.cents(p.amount)); });
     Store.list('expenses').forEach(e => { if (!U.bool(e.isDeleted)) add(e.date, 'other', U.cents(e.amount)); });
+    Store.list('loans').forEach(l => { if (!U.bool(l.isDeleted)) add(l.dateLent, 'lent', U.cents(l.amount)); });
+    Store.list('loanRepayments').forEach(r => { if (!U.bool(r.isVoid)) add(r.date, 'back', U.cents(r.amount)); });
     const known = Object.keys(by).sort();
     let start = openingDate ? openingDate.slice(0, 7) : (known[0] || cm);
     if (U.mIdx(cm) - U.mIdx(start) > 35) start = U.addMonths(cm, -35);
     let running = 0;
     const rows = U.monthRange(start, cm).map(m => {
-      const v = by[m] || { inc: 0, bills: 0, other: 0 };
+      const v = by[m] || { inc: 0, bills: 0, other: 0, lent: 0, back: 0 };
       const saved = v.inc - v.bills - v.other;
       running += saved;
       return { month: m, income: U.fromCents(v.inc), bills: U.fromCents(v.bills), other: U.fromCents(v.other), out: U.fromCents(v.bills + v.other), saved: U.fromCents(saved), rate: v.inc > 0 ? saved / v.inc : null, running: U.fromCents(running), partial: m === cm };
     });
+    rows.forEach(r => { const v = by[r.month] || {}; r.lent = U.fromCents(v.lent || 0); r.repaid = U.fromCents(v.back || 0); });
+    const netLent = rows.reduce((a, r) => a + U.cents(r.lent) - U.cents(r.repaid), 0);
     const totalInc = rows.reduce((a, r) => a + U.cents(r.income), 0);
     const full = rows.filter(r => !r.partial);
     return {
-      rows, start, openingDate, openingBalance: Number(st.openingBalance || 0),
+      rows, start, openingDate, openingBalance: Number(st.openingBalance || 0), netLent: U.fromCents(netLent), owedToYou: Calc.loanTotals().owed,
       totalSaved: U.fromCents(running), totalIncome: U.fromCents(totalInc), overallRate: totalInc > 0 ? running / totalInc : null,
       average: full.length ? U.fromCents(full.reduce((a, r) => a + U.cents(r.saved), 0) / full.length) : null,
       best: full.length ? full.reduce((a, r) => (r.saved > a.saved ? r : a)) : null
     };
+  },
+  /** Loan with derived repaid / remaining / status (same rules as recalcLoan_ in Code.gs). */
+  loan(l, today) {
+    today = today || U.today();
+    const reps = Store.list('loanRepayments').filter(r => r.loanId === l.loanId && !U.bool(r.isVoid)).sort((a, b) => (a.date < b.date ? -1 : 1));
+    const repaid = reps.reduce((a, r) => a + U.cents(r.amount), 0), amt = U.cents(l.amount);
+    const d = Object.assign({}, l, { repaidAmount: U.fromCents(repaid), remainingAmount: U.fromCents(Math.max(0, amt - repaid)), repayments: reps, progress: amt > 0 ? Math.min(1, repaid / amt) : 0 });
+    d.status = U.bool(l.writtenOff) ? 'WRITTEN OFF' : repaid >= amt ? 'REPAID' : (l.dueDate && l.dueDate < today) ? 'OVERDUE' : repaid > 0 ? 'PARTIAL' : 'OUTSTANDING';
+    d.daysToDue = l.dueDate ? U.ymdToDays(l.dueDate) - U.ymdToDays(today) : null;
+    return d;
+  },
+  loans(today) { return Store.list('loans').filter(l => !U.bool(l.isDeleted)).map(l => Calc.loan(l, today)); },
+  loanTotals(today) {
+    today = today || U.today();
+    const cm = today.slice(0, 7), list = Calc.loans(today);
+    const open = list.filter(l => l.status !== 'REPAID' && l.status !== 'WRITTEN OFF');
+    const sum = (a, k) => U.fromCents(a.reduce((s, x) => s + U.cents(x[k]), 0));
+    return {
+      owed: sum(open, 'remainingAmount'), openCount: open.length, overdue: open.filter(l => l.status === 'OVERDUE'),
+      lentThisMonth: sum(list.filter(l => String(l.dateLent).slice(0, 7) === cm), 'amount'),
+      repaidThisMonth: U.fromCents(Store.list('loanRepayments').filter(r => !U.bool(r.isVoid) && String(r.date).slice(0, 7) === cm).reduce((s, r) => s + U.cents(r.amount), 0)),
+      lifetimeLent: sum(list, 'amount'), lifetimeRepaid: sum(list, 'repaidAmount'), list
+    };
+  },
+  /** Smart Financial Insight for a month — same rules as generateFinancialInsight() in Code.gs. */
+  insight(month, today) {
+    today = today || U.today();
+    return FinancialInsight.generate({ today, month: month || Store.month, instances: Calc.instances(today), income: Store.list('income'), payments: Store.list('payments'), expenses: Store.list('expenses'), budgets: Store.list('budgets'), settings: Store.settings || {}, loans: Store.list('loans'), loanRepayments: Store.list('loanRepayments') });
   },
   /** Cash on hand & safe to spend — mirrors computeAvailable_() in Code.gs. */
   available(today, instances) {
@@ -775,7 +922,10 @@ const Calc = {
     Store.list('income').forEach(r => { if (U.bool(r.isDeleted) || r.status === 'CANCELLED' || U.blank(r.actualAmount) || String(r.date) < openingDate) return; incomeIn += U.cents(r.actualAmount); });
     Store.list('payments').forEach(p => { if (U.bool(p.isVoid) || String(p.paymentDate) < openingDate) return; billsOut += U.cents(p.amount); });
     Store.list('expenses').forEach(e => { if (U.bool(e.isDeleted) || String(e.date) < openingDate) return; otherOut += U.cents(e.amount); });
-    const cash = opening + incomeIn - billsOut - otherOut;
+    let lentOut = 0, repaidIn = 0;
+    Store.list('loans').forEach(l => { if (!U.bool(l.isDeleted) && String(l.dateLent) >= openingDate) lentOut += U.cents(l.amount); });
+    Store.list('loanRepayments').forEach(r => { if (!U.bool(r.isVoid) && String(r.date) >= openingDate) repaidIn += U.cents(r.amount); });
+    const cash = opening + incomeIn - billsOut - otherOut - lentOut + repaidIn;
     const upcoming = Store.list('income').filter(r => !U.bool(r.isDeleted) && r.status !== 'CANCELLED' && U.blank(r.actualAmount) && String(r.date) >= today).sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
     const late = Store.list('income').filter(r => !U.bool(r.isDeleted) && r.status !== 'CANCELLED' && U.blank(r.actualAmount) && r.recurringIncomeId && String(r.date) < today && String(r.date) >= openingDate).sort((a, b) => (a.date < b.date ? -1 : 1));
     const next = upcoming[0] || null;
@@ -1027,11 +1177,11 @@ const Sync = {
       setTimeout(() => UI.toast('Fresh start: this device loaded the new data from Google Sheets.'), 50);
     }
     if (resetAt) await Store.setMeta('dataResetAt', resetAt);
-    await this.mergeRecords({ recurringIncome: data.recurringIncome, recurringBills: data.recurringBills, billInstances: data.billInstances, payments: data.payments, expenses: data.expenses, income: data.income, budgets: data.budgets, categories: data.categories, settings: data.settings }, false);
+    await this.mergeRecords({ loans: data.loans, loanRepayments: data.loanRepayments, recurringIncome: data.recurringIncome, recurringBills: data.recurringBills, billInstances: data.billInstances, payments: data.payments, expenses: data.expenses, income: data.income, budgets: data.budgets, categories: data.categories, settings: data.settings }, false);
     if (data.full) {
       // Full refresh: remove synced local records that no longer exist on the server
       const pendingIds = new Set(Store.queue.map(q => q.localId || q.entityId));
-      const map = { recurringIncome: data.recurringIncome, recurringBills: data.recurringBills, billInstances: data.billInstances, payments: data.payments, expenses: data.expenses, income: data.income, budgets: data.budgets, categories: data.categories };
+      const map = { loans: data.loans, loanRepayments: data.loanRepayments, recurringIncome: data.recurringIncome, recurringBills: data.recurringBills, billInstances: data.billInstances, payments: data.payments, expenses: data.expenses, income: data.income, budgets: data.budgets, categories: data.categories };
       for (const store of Object.keys(map)) {
         const ids = new Set((map[store] || []).map(r => r[ENTITY[store].idField]));
         for (const rec of Store.list(store)) if (!ids.has(rec.id) && rec.syncStatus === 'synced' && !pendingIds.has(rec.id)) await Store.remove(store, rec.id);
@@ -1075,6 +1225,300 @@ const Sync = {
   }
 };
 
+/* =============================================================================
+ *  SMART FINANCIAL INSIGHT ENGINE  (shared — the identical code runs in Code.gs
+ *  and in index.html, so the phone gives the same answer offline as the server)
+ *
+ *  Rule-based, deterministic: every sentence is built from the household's own
+ *  records. No AI model is involved. The result object is the contract a future
+ *  AI commentary provider would receive (as `facts`) and return text for.
+ *
+ *  Safe to spend =  money available now
+ *                 + expected income still to arrive this month
+ *                 − every unpaid bill this month (and older overdue bills)
+ *                 − expected everyday spending for the rest of the month
+ *                 − a safety buffer
+ * ========================================================================== */
+var FinancialInsight = (function () {
+  var RULES_VERSION = '1.0';
+  var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  var MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+  function c(v) { if (v === '' || v === null || v === undefined) return 0; var n = Number(v); return isFinite(n) ? Math.round(n * 100) : 0; }
+  function f(cents) { return Math.round(cents) / 100; }
+  function blank(v) { return v === '' || v === null || v === undefined; }
+  function bool(v) { return v === true || String(v).toLowerCase() === 'true'; }
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function dim(ym) { return new Date(Date.UTC(+ym.slice(0, 4), +ym.slice(5, 7), 0)).getUTCDate(); }
+  function addMonths(ym, n) { var i = (+ym.slice(0, 4)) * 12 + (+ym.slice(5, 7) - 1) + n; return Math.floor(i / 12) + '-' + pad(i % 12 + 1); }
+  function peso(cents) { var neg = cents < 0; var v = Math.round(Math.abs(cents) / 100); return (neg ? '-' : '') + '₱' + String(v).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+  function dshort(s) { return s ? MON[+s.slice(5, 7) - 1] + ' ' + (+s.slice(8, 10)) : ''; }
+  function monthName(ym) { return MONTH_NAMES[+ym.slice(5, 7) - 1]; }
+  function joinList(a) { return a.length <= 1 ? a.join('') : a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1]; }
+  function plural(n, one, many) { return n + ' ' + (n === 1 ? one : (many || one + 's')); }
+  function open(i) { return i.status !== 'PAID' && i.status !== 'OVER BUDGET' && !bool(i.isVoid); }
+
+  /**
+   * @param {Object} d { today:'YYYY-MM-DD', month:'YYYY-MM', instances:[derived bill instances],
+   *                     income:[], payments:[], expenses:[], budgets:[], settings:{} }
+   */
+  function generate(d) {
+    var today = d.today, M = d.month, cm = today.slice(0, 7);
+    var mode = M === cm ? 'current' : (M < cm ? 'past' : 'future');
+    var monthEnd = M + '-' + pad(dim(M));
+    var st = d.settings || {};
+    var instances = d.instances || [];
+
+    /* ---------- income ---------- */
+    var expInc = 0, actInc = 0, pending = 0, upcomingInc = 0, late = 0, lateItems = [], incomingItems = [];
+    (d.income || []).forEach(function (r) {
+      if (bool(r.isDeleted) || r.status === 'CANCELLED' || String(r.date).slice(0, 7) !== M) return;
+      var e = c(r.expectedAmount), a = c(r.actualAmount);
+      expInc += e; actInc += a;
+      if (blank(r.actualAmount)) {
+        pending += e;
+        if (mode === 'future' || String(r.date) >= today) { upcomingInc += e; incomingItems.push(r); }
+        else { late += e; lateItems.push(r); }
+      }
+    });
+    incomingItems.sort(function (a, b) { return a.date < b.date ? -1 : 1; });
+    lateItems.sort(function (a, b) { return a.date < b.date ? -1 : 1; });
+
+    /* ---------- bills ---------- */
+    var recurring = 0, paid = 0, remaining = 0, unpaid = [], overBills = [];
+    instances.forEach(function (i) {
+      if (bool(i.isVoid) || i.billingPeriod !== M) return;
+      var e = c(i.expectedAmount), a = c(i.actualAmount);
+      recurring += e; paid += a;
+      if (open(i) && e - a > 0) { remaining += e - a; unpaid.push({ name: i.billName, amount: e - a, dueDate: i.dueDate, status: i.status, id: i.billInstanceId }); }
+      if (a > e) overBills.push({ name: i.billName, over: a - e });
+    });
+    var carried = 0, carriedList = [];
+    if (mode !== 'past') {
+      instances.forEach(function (i) {
+        if (bool(i.isVoid) || i.billingPeriod >= M || !open(i)) return;
+        var rem = c(i.expectedAmount) - c(i.actualAmount);
+        if (rem > 0) { carried += rem; carriedList.push({ name: i.billName, amount: rem, dueDate: i.dueDate, status: i.status, id: i.billInstanceId }); }
+      });
+    }
+    var obligations = unpaid.concat(carriedList).sort(function (a, b) { return a.dueDate < b.dueDate ? -1 : a.dueDate > b.dueDate ? 1 : b.amount - a.amount; });
+    var totalRemaining = remaining + carried;
+    var overdue = obligations.filter(function (o) { return o.dueDate < today; });
+    var overdueAmt = overdue.reduce(function (s, o) { return s + o.amount; }, 0);
+
+    /* ---------- other expenses & history ---------- */
+    var other = 0, byCat = {}, histOther = {}, histCat = {};
+    var h1 = addMonths(M, -3), h3 = addMonths(M, -1);
+    (d.expenses || []).forEach(function (e) {
+      if (bool(e.isDeleted)) return;
+      var m = String(e.date).slice(0, 7), a = c(e.amount), cat = e.category || 'Other';
+      if (m === M) { other += a; byCat[cat] = (byCat[cat] || 0) + a; }
+      else if (m >= h1 && m <= h3) { histOther[m] = (histOther[m] || 0) + a; histCat[cat] = (histCat[cat] || 0) + a; }
+    });
+    var histMonths = Object.keys(histOther).length;
+    var histAvg = histMonths ? Object.keys(histOther).reduce(function (s, k) { return s + histOther[k]; }, 0) / histMonths : 0;
+
+    /* ---------- budget ---------- */
+    var budget = 0, row = null;
+    (d.budgets || []).forEach(function (b) { if (b.month === M) row = b; });
+    if (row && !blank(row.plannedAmount)) budget = c(row.plannedAmount); else budget = c(st.defaultMonthlyBudget || 0);
+    var spent = paid + other;
+    var budgetRemaining = budget - spent;
+    var budgetUsed = budget > 0 ? spent / budget : 0;
+
+    /* ---------- days, planned everyday spending, buffer ---------- */
+    var day = +today.slice(8, 10), days = dim(M);
+    var daysLeft = mode === 'current' ? days - day : mode === 'future' ? days : 0;
+    var planned = 0;
+    if (mode === 'current') {
+      var daily = Math.max(day > 0 ? other / day : 0, histAvg / 30);
+      planned = Math.round(daily * daysLeft);
+    } else if (mode === 'future') planned = Math.round(histAvg);
+    var buffer = mode === 'past' ? 0 : Math.max(200000, Math.round(expInc * 0.05));
+
+    /* ---------- available money ---------- */
+    var openingDate = /^\d{4}-\d{2}-\d{2}$/.test(String(st.openingBalanceDate || '')) ? st.openingBalanceDate : '0000-01-01';
+    var cash = c(st.openingBalance || 0);
+    (d.income || []).forEach(function (r) { if (!bool(r.isDeleted) && r.status !== 'CANCELLED' && !blank(r.actualAmount) && String(r.date) >= openingDate && String(r.date) <= today) cash += c(r.actualAmount); });
+    (d.payments || []).forEach(function (p) { if (!bool(p.isVoid) && String(p.paymentDate) >= openingDate && String(p.paymentDate) <= today) cash -= c(p.amount); });
+    (d.expenses || []).forEach(function (e) { if (!bool(e.isDeleted) && String(e.date) >= openingDate && String(e.date) <= today) cash -= c(e.amount); });
+    (d.loans || []).forEach(function (l) { if (!bool(l.isDeleted) && String(l.dateLent) >= openingDate && String(l.dateLent) <= today) cash -= c(l.amount); });
+    (d.loanRepayments || []).forEach(function (r) { if (!bool(r.isVoid) && String(r.date) >= openingDate && String(r.date) <= today) cash += c(r.amount); });
+    /* money lent out that is still owed (expected back, but never counted as spendable) */
+    var owed = 0, overdueLoans = [], dueSoonLoans = [];
+    (d.loans || []).forEach(function (l) {
+      if (bool(l.isDeleted) || bool(l.writtenOff)) return;
+      var paidBack = 0;
+      (d.loanRepayments || []).forEach(function (r) { if (r.loanId === l.loanId && !bool(r.isVoid)) paidBack += c(r.amount); });
+      var rem = c(l.amount) - paidBack;
+      if (rem <= 0) return;
+      owed += rem;
+      if (l.dueDate && l.dueDate < today) overdueLoans.push({ borrower: l.borrower, amount: rem, dueDate: l.dueDate });
+      else if (l.dueDate && l.dueDate <= addDaysStr(today, 7)) dueSoonLoans.push({ borrower: l.borrower, amount: rem, dueDate: l.dueDate });
+    });
+    var available, stillComing;
+    if (mode === 'current') { available = cash; stillComing = upcomingInc; }
+    else if (mode === 'future') { available = 0; stillComing = pending; }
+    else { available = actInc - paid - other; stillComing = 0; }
+    var safe = available + stillComing - totalRemaining - planned - buffer;
+
+    /* ---------- next income & cash crunch (current month) ---------- */
+    var nextIncome = incomingItems[0] || null;
+    var crunch = null;
+    if (mode === 'current') {
+      var horizon = nextIncome ? nextIncome.date : monthEnd;
+      var before = obligations.filter(function (o) { return o.dueDate <= horizon && (!nextIncome || o.dueDate < nextIncome.date); });
+      var beforeAmt = before.reduce(function (s, o) { return s + o.amount; }, 0);
+      if (beforeAmt > 0 && beforeAmt > cash) crunch = { amount: beforeAmt, cash: cash, count: before.length, until: nextIncome ? nextIncome.date : '' };
+    }
+
+    /* ---------- important upcoming bills ---------- */
+    var upcoming = obligations.filter(function (o) { return mode === 'past' || o.dueDate >= today; });
+    var majors = upcoming.slice().sort(function (a, b) { return b.amount - a.amount; }).slice(0, 3)
+      .sort(function (a, b) { return a.dueDate < b.dueDate ? -1 : 1; });
+    var E = Math.max(expInc, 1);
+    var money = available + stillComing;
+    var need = totalRemaining + planned;
+    var coverage = need > 0 ? money / need : 99;
+    var lateRatio = late / E;
+
+    /* ---------- status ---------- */
+    var status, reasons = [];
+    if (mode === 'past') {
+      var result = actInc - paid - other;
+      if ((result < 0 && remaining > 0) || budgetUsed >= 1.25) status = 'CRITICAL';
+      else if (result < 0 || overdue.length >= 2 || budgetUsed > 1) status = 'WARNING';
+      else if (remaining > 0 || late > 0 || budgetUsed >= 0.9) status = 'CAUTION';
+      else if (result < E * 0.15) status = 'STABLE';
+      else status = 'COMFORTABLE';
+    } else {
+      if (safe < 0 && coverage < 0.85) reasons.push('short');
+      if (safe < 0 && overdueAmt >= E * 0.15 && overdue.length) reasons.push('majorOverdue');
+      if (budgetUsed >= 1.25) reasons.push('farOverBudget');
+      if (reasons.length) status = 'CRITICAL';
+      else {
+        if (crunch) reasons.push('crunch');
+        if (safe < 0) reasons.push('negative');
+        if (overdue.length >= 2) reasons.push('overdue');
+        if (budgetUsed > 1) reasons.push('overBudget');
+        if (lateRatio >= 0.3) reasons.push('lateIncome');
+        if (reasons.length) status = 'WARNING';
+        else {
+          if (safe < Math.max(500000, expInc * 0.05)) reasons.push('lowRoom');
+          if (overdue.length === 1) reasons.push('oneOverdue');
+          if (budgetUsed >= 0.9) reasons.push('nearBudget');
+          if (late > 0) reasons.push('lateIncome');
+          if (unpaid.length >= 3 && totalRemaining >= money * 0.5) reasons.push('manyBills');
+          if (reasons.length) status = 'CAUTION';
+          else status = safe < Math.max(1500000, expInc * 0.15) ? 'STABLE' : 'COMFORTABLE';
+        }
+      }
+    }
+
+    /* ---------- wording ---------- */
+    var mn = monthName(M);
+    var majorText = joinList(majors.map(function (o) { return o.name + ' (' + peso(o.amount) + (o.dueDate ? ', ' + dshort(o.dueDate) : '') + ')'; }));
+    var nextText = nextIncome ? (nextIncome.source + ' on ' + dshort(nextIncome.date)) : '';
+    var headline, comment;
+    if (mode === 'past') {
+      var res = actInc - paid - other;
+      headline = { COMFORTABLE: mn + ' finished comfortably.', STABLE: mn + ' finished on budget, with a thin margin.', CAUTION: mn + ' closed with loose ends.', WARNING: mn + ' cost more than it brought in.', CRITICAL: mn + ' ended in a serious shortfall.' }[status];
+      comment = 'The household received ' + peso(actInc) + ' and paid out ' + peso(paid + other) + ', ' + (res >= 0 ? 'leaving ' + peso(res) + '.' : 'a shortfall of ' + peso(-res) + '.') +
+        (remaining > 0 ? ' ' + plural(unpaid.length, 'bill') + ' from that month (' + peso(remaining) + ') are still unpaid.' : ' Every bill for the month was paid.');
+    } else if (mode === 'future') {
+      headline = { COMFORTABLE: mn + ' looks comfortable on paper.', STABLE: mn + ' looks manageable.', CAUTION: mn + ' will be tight.', WARNING: mn + ' needs planning now.', CRITICAL: mn + ' does not add up yet.' }[status];
+      comment = 'If all ' + peso(expInc) + ' of expected income arrives, ' + mn + "'s bills (" + peso(totalRemaining) + ')' + (planned ? ' and usual everyday spending (about ' + peso(planned) + ')' : '') +
+        (safe >= 0 ? ' leave about ' + peso(safe) + ' of spending room after a safety buffer.' : ' would leave you short by about ' + peso(-safe) + '.');
+    } else {
+      switch (status) {
+        case 'COMFORTABLE':
+          headline = "You're in a comfortable position this month.";
+          comment = 'Your income covers all recurring bills, with about ' + peso(safe) + ' left after planned obligations. You can spend, but keep some room for unexpected expenses.';
+          break;
+        case 'STABLE':
+          headline = 'Your finances look stable.';
+          comment = 'Your bills are covered, but your spending room is limited to about ' + peso(safe) + '. Keep discretionary spending moderate' + (nextText ? ' until ' + nextText + '.' : ' for the rest of the month.');
+          break;
+        case 'CAUTION':
+          headline = 'A little caution is recommended.';
+          if (reasons[0] === 'nearBudget') comment = 'Spending has reached ' + Math.round(budgetUsed * 100) + '% of this month’s budget with ' + plural(daysLeft, 'day') + ' to go. Consider limiting non-essential purchases.';
+          else if (reasons[0] === 'oneOverdue') comment = overdue[0].name + ' (' + peso(overdue[0].amount) + ') is overdue — settle it first. Keep ' + peso(totalRemaining) + ' reserved for the rest of your bills.';
+          else if (reasons[0] === 'lateIncome' && reasons.length === 1) comment = peso(late) + ' of expected income hasn’t been marked received yet. Keep spending conservative until it arrives.';
+          else comment = 'Keep ' + peso(totalRemaining) + ' reserved for ' + plural(obligations.length, 'unpaid bill') + (majorText ? ' — the biggest are ' + majorText : '') + '. Limit non-essential spending' + (nextText ? ' until ' + nextText + '.' : ' until your next income arrives.');
+          break;
+        case 'WARNING':
+          headline = 'Your household budget needs attention.';
+          if (reasons[0] === 'crunch') comment = peso(crunch.amount) + ' in bills ' + (crunch.until ? 'is due before ' + nextText : 'is still due this month') + ', but only ' + peso(Math.max(0, crunch.cash)) + ' is on hand. Pay the most urgent bills first and avoid non-essential spending.';
+          else if (reasons[0] === 'negative') comment = 'Your remaining bills (' + peso(totalRemaining) + ') are more than the money available and still coming in after everyday costs. Prioritize ' + (majorText || 'upcoming bills') + ' and avoid non-essential expenses until cash flow improves.';
+          else if (reasons[0] === 'overdue') comment = plural(overdue.length, 'bill') + ' are overdue (' + peso(overdueAmt) + '). Pay those first and hold off on non-essential spending.';
+          else if (reasons[0] === 'overBudget') comment = 'Household spending is ' + peso(spent - budget) + ' above your ' + peso(budget) + ' monthly budget. Pause non-essential purchases and review what can wait until next month.';
+          else comment = peso(late) + ' of expected income hasn’t arrived yet, so there is less money for the remaining ' + peso(totalRemaining) + ' in bills. Keep spending to essentials until it comes in.';
+          break;
+        default:
+          headline = 'Immediate attention is needed.';
+          if (reasons[0] === 'farOverBudget') comment = 'Spending is ' + peso(spent - budget) + ' over the monthly budget (' + Math.round(budgetUsed * 100) + '% used). Pause non-essential spending and review upcoming expenses.';
+          else comment = 'Your money available and still coming in isn’t enough to cover what’s still owed — you’re short about ' + peso(-safe) + '. Prioritize essential bills' + (majorText ? ' (' + majorText + ')' : '') + ', pause non-essential spending and review upcoming expenses.';
+      }
+    }
+
+    /* ---------- reminders (most important first) ---------- */
+    var reminders = [];
+    function add(type, text) { reminders.push({ type: type, text: text }); }
+    if (overdue.length === 1) add('overdue', overdue[0].name + ' (' + peso(overdue[0].amount) + ') was due ' + dshort(overdue[0].dueDate) + ' and is still unpaid.');
+    else if (overdue.length > 1) add('overdue', plural(overdue.length, 'bill') + ' are overdue, totaling ' + peso(overdueAmt) + '.');
+    if (crunch && reasons[0] !== 'crunch') add('crunch', peso(crunch.amount) + ' in bills is due before ' + (crunch.until ? dshort(crunch.until) : 'month end') + ', but only ' + peso(Math.max(0, crunch.cash)) + ' is on hand.');
+    if (mode === 'current') {
+      var big = upcoming.filter(function (o) { return o.dueDate >= today && o.dueDate <= addDaysStr(today, 7) && o.amount >= Math.max(500000, expInc * 0.05); })
+        .sort(function (a, b) { return b.amount - a.amount; })[0];
+      if (big) add('largeBill', 'Your ' + peso(big.amount) + ' ' + big.name + ' payment is due ' + dshort(big.dueDate) + '. Keep this amount reserved before considering additional spending.');
+    }
+    if (late > 0) add('lateIncome', peso(late) + ' of expected income' + (lateItems[0] ? ' (' + lateItems[0].source + (lateItems.length > 1 ? ' and ' + (lateItems.length - 1) + ' more' : '') + ')' : '') + ' hasn’t been recorded yet. Your spending room should stay conservative until it arrives.');
+    if (mode !== 'past' && overdueLoans.length) { var ol = overdueLoans.sort(function (a, b) { return b.amount - a.amount; }); add('loanOverdue', (ol.length === 1 ? ol[0].borrower + ' still owes ' + peso(ol[0].amount) + ' (was due ' + dshort(ol[0].dueDate) + ')' : plural(ol.length, 'person', 'people') + ' are past their repayment date, owing ' + peso(ol.reduce(function (s, x) { return s + x.amount; }, 0))) + '. It isn\u2019t counted as spendable until it\u2019s repaid.'); }
+    else if (mode === 'current' && dueSoonLoans.length) add('loanDue', dueSoonLoans[0].borrower + ' is expected to repay ' + peso(dueSoonLoans[0].amount) + ' by ' + dshort(dueSoonLoans[0].dueDate) + '.');
+    if (spent > budget && budget > 0) add('overBudget', 'Household spending is currently ' + peso(spent - budget) + ' above your monthly budget.');
+    else if (mode !== 'past' && budget > 0 && paid + totalRemaining + other + planned > budget) add('projectedOver', 'At this pace the month will end about ' + peso(paid + totalRemaining + other + planned - budget) + ' over your ' + peso(budget) + ' budget.');
+    if (mode !== 'past' && safe >= 0 && safe < 500000) add('lowRoom', 'Your safe-to-spend amount is below ' + peso(500000) + '. Consider limiting discretionary spending.');
+    if (unpaid.length >= 2) add('unpaid', 'You still have ' + plural(unpaid.length, 'unpaid recurring bill') + ' this month totaling ' + peso(remaining) + '.');
+    if (overBills.length) { var ob = overBills.sort(function (a, b) { return b.over - a.over; })[0]; add('billAbove', ob.name + ' came in ' + peso(ob.over) + ' above its expected amount.'); }
+    if (histMonths) {
+      Object.keys(byCat).forEach(function (cat) {
+        var avg = (histCat[cat] || 0) / histMonths;
+        if (byCat[cat] > avg * 1.3 && byCat[cat] - avg >= 100000) add('category', cat + ' spending is ' + peso(byCat[cat] - avg) + ' higher than your usual month.');
+      });
+    }
+    if (mode === 'future' && pending > 0) add('plan', 'This is a plan: it assumes all ' + peso(pending) + ' of expected income arrives on time.');
+    if (!reminders.length || ((status === 'COMFORTABLE' || status === 'STABLE') && reminders.every(function (r) { return r.type === 'unpaid' || r.type === 'category' || r.type === 'billAbove' || r.type === 'loanDue'; }))) {
+      if (mode === 'current' && (status === 'COMFORTABLE' || status === 'STABLE')) reminders.unshift({ type: 'healthy', text: 'You’re on track. Your bills are covered, spending is within budget, and you still have ' + peso(Math.max(0, safe)) + ' available for discretionary spending.' });
+    }
+
+    return {
+      source: 'rules', rulesVersion: RULES_VERSION, generatedFor: M, mode: mode, today: today,
+      status: status, reasons: reasons, headline: headline, comment: comment,
+      reminder: reminders.length ? reminders[0].text : '', reminders: reminders.slice(0, 4),
+      expectedIncome: f(expInc), actualIncome: f(actInc), pendingIncome: f(pending), incomeStillComing: f(stillComing), lateIncome: f(late),
+      recurringBills: f(recurring), paidBills: f(paid), remainingBills: f(totalRemaining), remainingThisMonth: f(remaining), carriedOverdue: f(carried),
+      overdueBills: f(overdueAmt), overdueCount: overdue.length, unpaidCount: unpaid.length,
+      otherExpenses: f(other), plannedExpenses: f(planned), safetyBuffer: f(buffer),
+      available: f(available), cashOnHand: f(cash), safeToSpend: f(safe), owedToYou: f(owed), overdueLoans: overdueLoans.length,
+      budget: f(budget), budgetRemaining: f(budgetRemaining), budgetUsedPercent: Math.round(budgetUsed * 100),
+      daysLeft: daysLeft,
+      nextIncome: nextIncome ? { incomeId: nextIncome.incomeId, source: nextIncome.source, date: nextIncome.date, expectedAmount: f(c(nextIncome.expectedAmount)) } : null,
+      incomeToCome: incomingItems.slice(0, 4).map(function (r) { return { incomeId: r.incomeId, source: r.source, date: r.date, expectedAmount: f(c(r.expectedAmount)) }; }),
+      lateIncomeItems: lateItems.slice(0, 3).map(function (r) { return { incomeId: r.incomeId, source: r.source, date: r.date, expectedAmount: f(c(r.expectedAmount)) }; }),
+      upcomingBills: upcoming.slice(0, 6).map(function (o) { return { billInstanceId: o.id, name: o.name, amount: f(o.amount), dueDate: o.dueDate, status: o.status }; }),
+      majorBills: majors.map(function (o) { return { billInstanceId: o.id, name: o.name, amount: f(o.amount), dueDate: o.dueDate }; })
+    };
+  }
+
+  function addDaysStr(s, n) {
+    var t = Math.floor(Date.UTC(+s.slice(0, 4), +s.slice(5, 7) - 1, +s.slice(8, 10)) / 86400000) + n;
+    var d = new Date(t * 86400000);
+    return d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate());
+  }
+
+  return { generate: generate, version: RULES_VERSION };
+})();
+
 /* ------------------------------------------------------------------ Icons */
 const ICON = {
   dashboard: '<path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>',
@@ -1087,6 +1531,7 @@ const ICON = {
   sync: '<path d="M21 12a9 9 0 01-15.5 6.2L3 16M3 12a9 9 0 0115.5-6.2L21 8"/><path d="M21 3v5h-5M3 21v-5h5"/>',
   settings: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/>',
   savings: '<path d="M19 7c0-1.7-2.2-3-5-3H9C6.2 4 4 6.2 4 9v3c0 2 1 3.5 2.5 4.3V20h3v-2h5v2h3v-3.2c1.2-.7 2-1.8 2.3-3H21v-4h-1.3c-.2-.8-.6-1.5-1.2-2.1L19 7z"/><circle cx="15.5" cy="10" r=".8"/>',
+  loans: '<path d="M11 17l-1.5 1.5a2.1 2.1 0 01-3-3L9 13"/><path d="M13 7l1.5-1.5a2.1 2.1 0 013 3L15 11"/><path d="M8 12l4-4 4 4-4 4z"/><path d="M3 21l3-3M21 3l-3 3"/>',
   more: '<circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>',
   plus: '<path d="M12 5v14M5 12h14"/>'
 };
@@ -1094,7 +1539,7 @@ const svgIcon = (name, w) => `<svg viewBox="0 0 24 24" width="${w || 18}" height
 
 const VIEWS = [
   { id: 'dashboard', label: 'Dashboard' }, { id: 'bills', label: 'Bills' }, { id: 'expenses', label: 'Expenses' },
-  { id: 'income', label: 'Income' }, { id: 'savings', label: 'Savings' }, { id: 'recurring', label: 'Recurring Bills' }, { id: 'payments', label: 'Payments' },
+  { id: 'income', label: 'Income' }, { id: 'savings', label: 'Savings' }, { id: 'loans', label: 'Lent Money' }, { id: 'recurring', label: 'Recurring Bills' }, { id: 'payments', label: 'Payments' },
   { id: 'reports', label: 'Reports' }, { id: 'sync', label: 'Sync / Offline' }, { id: 'settings', label: 'Settings' }
 ];
 const MONTH_VIEWS = ['dashboard', 'bills', 'expenses', 'income', 'payments'];
@@ -1102,7 +1547,7 @@ const MONTH_VIEWS = ['dashboard', 'bills', 'expenses', 'income', 'payments'];
 /* ------------------------------------------------------------------ UI core */
 const UI = {
   view: 'dashboard',
-  filters: { bills: { search: '', status: '', category: '' }, expenses: { search: '', category: '', from: '', to: '', allMonths: false }, income: { search: '', category: '', from: '', to: '', allMonths: false }, payments: { search: '', bill: '', method: '', from: '', to: '', allMonths: false }, reports: { type: 'summary', from: '', to: '' } },
+  filters: { bills: { search: '', status: '', category: '' }, expenses: { search: '', category: '', from: '', to: '', allMonths: false }, income: { search: '', category: '', from: '', to: '', allMonths: false }, payments: { search: '', bill: '', method: '', from: '', to: '', allMonths: false }, reports: { type: 'summary', from: '', to: '' }, loans: { status: 'open', search: '', borrower: '', open: {} } },
   deferredInstall: null,
 
   init() {
@@ -1440,7 +1885,7 @@ const Views = {
       </div>
       ${UI.cachedBanner()}
       ${verify ? `<div style="margin:-6px 0 14px">${verify}</div>` : ''}
-      ${this.availablePanel()}
+      ${this.insightCard()}
       <div class="kpis">
         ${kpi('Monthly Budget', s.monthlyBudget, `${s.budgetSource === 'month' ? 'Planned for ' + U.monthLabel(Store.month) : 'Default budget'} · <a href="#" data-action="edit-budget" style="color:inherit">Adjust</a>`, 'lead')}
         ${kpi('Expected', s.expectedBills, `${scheduled} bill${scheduled === 1 ? '' : 's'} scheduled this month`)}
@@ -1494,6 +1939,50 @@ const Views = {
       </div>`;
   },
 
+  /* Household Financial Status — Smart Financial Insight (rule-based; see FinancialInsight). */
+  insightCard() {
+    const r = Calc.insight(Store.month);
+    const label = { COMFORTABLE: 'Comfortable', STABLE: 'Stable', CAUTION: 'Caution', WARNING: 'Warning', CRITICAL: 'Critical' }[r.status];
+    const P = v => U.peso(v, true);
+    const tile = (lab, val, note, cls) => `<div class="ins-tile"><div class="t-label">${lab}</div><div class="t-value ${cls || ''}">${val}</div>${note ? `<div class="t-note">${note}</div>` : ''}</div>`;
+    const short = r.safeToSpend < 0;
+    const icon = { loanOverdue: '↺', loanDue: '↺', overdue: '!', crunch: '!', largeBill: '₱', lateIncome: '↓', overBudget: '%', projectedOver: '%', lowRoom: '·', unpaid: '#', billAbove: '+', category: '+', plan: 'i', healthy: '✓' };
+    const monthWord = r.mode === 'current' ? 'this month' : U.monthLabel(Store.month);
+    const incomeRows = (r.lateIncomeItems || []).map(x => Object.assign({ late: true }, x)).concat(r.incomeToCome || []).slice(0, 3);
+    const formula = r.mode === 'past' ? `Income ${P(r.actualIncome)} − bills paid ${P(r.paidBills)} − other expenses ${P(r.otherExpenses)}` :
+      `${r.mode === 'current' ? 'On hand ' + P(r.available) + ' + still coming ' : 'Expected income '}${P(r.incomeStillComing)} − unpaid bills ${P(r.remainingBills)}${r.plannedExpenses ? ' − everyday spending ' + P(r.plannedExpenses) : ''} − buffer ${P(r.safetyBuffer)}`;
+    return `<section class="card insight st-${r.status}" aria-label="Household financial status">
+      <div class="ins-top"><div class="eyebrow">Household Financial Status · ${U.esc(U.monthLabel(Store.month))}</div><span class="ins-pill"><i></i>${label}</span></div>
+      <div class="ins-body">
+        <div class="ins-main">
+          <h2 class="ins-headline">${U.esc(r.headline)}</h2>
+          <p class="ins-comment">${U.esc(r.comment)}</p>
+          <div class="ins-grid">
+            ${tile('Expected income', P(r.expectedIncome), r.pendingIncome ? P(r.pendingIncome) + ' not received yet' : 'all received')}
+            ${tile('Actual income received', P(r.actualIncome), r.lateIncome ? '<span class="neg">' + P(r.lateIncome) + ' late</span>' : '')}
+            ${tile('Recurring bills', P(r.recurringBills), monthWord)}
+            ${tile('Remaining bills', P(r.remainingBills), r.overdueCount ? '<span class="neg">' + r.overdueCount + ' overdue</span>' : (r.carriedOverdue ? 'incl. older bills' : 'still to pay'), r.remainingBills > 0 ? '' : 'pos')}
+            ${tile('Paid bills', P(r.paidBills), r.recurringBills ? Math.round(r.paidBills / r.recurringBills * 100) + '% of bills' : '')}
+            ${tile('Other expenses', P(r.otherExpenses), r.mode === 'current' && r.plannedExpenses ? '~' + P(r.plannedExpenses) + ' more expected' : '')}
+            ${tile('Budget remaining', P(r.budgetRemaining), r.budget ? r.budgetUsedPercent + '% of ' + P(r.budget) + ' used' : 'no budget set', r.budgetRemaining < 0 ? 'neg' : '')}
+            ${tile(r.mode === 'current' ? 'Days left' : 'Cash on hand', r.mode === 'current' ? String(r.daysLeft) : P(r.cashOnHand), r.mode === 'current' ? (r.nextIncome ? 'next income ' + U.esc(U.fmtDate(r.nextIncome.date).replace(/, \d{4}$/, '')) : 'in ' + U.esc(U.monthLabel(Store.month).split(' ')[0])) : 'today')}
+          </div>
+        </div>
+        <aside class="ins-side">
+          <div class="ins-safe">
+            <div class="s-label">Safe to spend${r.mode === 'future' ? ' (planned)' : r.mode === 'past' ? ' — month result' : ''}</div>
+            <div class="s-big ${short ? 'is-short' : ''}" title="${U.esc(U.peso(r.safeToSpend))}">${short ? '₱0' : P(r.safeToSpend)}</div>
+            ${short ? `<div class="s-short">${r.mode === 'past' ? 'Overspent' : 'Short'} by ${P(-r.safeToSpend)} — hold off on extra spending</div>` : ''}
+            <div class="s-formula">${U.esc(formula)}</div>
+          </div>
+          ${r.reminders.length ? `<ul class="ins-rem">${r.reminders.slice(0, 3).map(x => `<li class="rm-${U.esc(x.type)}"><span class="rm-ic" aria-hidden="true">${icon[x.type] || '·'}</span><span><b>${x.type === 'healthy' ? '' : 'Reminder: '}</b>${U.esc(x.text)}</span></li>`).join('')}</ul>` : ''}
+          ${r.upcomingBills.length ? `<div class="ins-list"><div class="t-label">${r.mode === 'past' ? 'Still unpaid' : 'Biggest bills coming up'}</div>${(r.majorBills.length ? r.majorBills.map(m => Object.assign({ status: (r.upcomingBills.find(u => u.billInstanceId === m.billInstanceId) || {}).status }, m)) : r.upcomingBills.slice(0, 3)).map(b => `<div class="ins-li"><span><b>${U.esc(b.name)}</b> <span class="sub">${b.status === 'OVERDUE' ? '<span class="neg">overdue · </span>' : ''}${U.esc(U.fmtDay(b.dueDate))}</span></span><span class="num">${P(b.amount)}</span>${b.billInstanceId ? `<button class="btn sm" data-action="pay" data-id="${U.esc(b.billInstanceId)}">Pay</button>` : ''}</div>`).join('')}</div>` : ''}
+          ${incomeRows.length && r.mode !== 'past' ? `<div class="ins-list"><div class="t-label">Income to record</div>${incomeRows.map(x => `<div class="ins-li"><span><b>${U.esc(x.source)}</b> <span class="sub">${x.late ? '<span class="neg">expected </span>' : ''}${U.esc(U.fmtDay(x.date))}</span></span><span class="num">${P(x.expectedAmount)}</span><button class="btn sm ${x.late ? 'pay' : ''}" data-action="receive-income" data-id="${U.esc(x.incomeId)}">Received</button></div>`).join('')}</div>` : ''}
+        </aside>
+      </div>
+      <div class="ins-foot">Smart Financial Insight · calculated from your own records with fixed household-finance rules (no AI) · updates with every change${Number(Store.settings.openingBalance || 0) ? '' : ' · <a href="#" data-action="edit-opening-balance">Set your starting balance</a> for an accurate cash figure'}</div>
+    </section>`;
+  },
   availablePanel() {
     const today = U.today();
     const a = Calc.available(today);
@@ -1533,6 +2022,80 @@ const Views = {
       </div>`).join('')}</div></div>`;
   },
 
+  /* ============================== LENT MONEY ============================== */
+  loans() {
+    const f = UI.filters.loans;
+    const t = Calc.loanTotals();
+    const counts = { open: 0, OVERDUE: 0, REPAID: 0, 'WRITTEN OFF': 0, all: t.list.length };
+    t.list.forEach(l => { if (l.status !== 'REPAID' && l.status !== 'WRITTEN OFF') counts.open++; if (counts[l.status] !== undefined) counts[l.status]++; });
+    const people = {};
+    t.list.filter(l => l.status !== 'REPAID' && l.status !== 'WRITTEN OFF').forEach(l => {
+      const k = l.borrower.trim(); people[k] = people[k] || { name: k, lent: 0, repaid: 0, left: 0, overdue: false };
+      people[k].lent += U.cents(l.amount); people[k].repaid += U.cents(l.repaidAmount); people[k].left += U.cents(l.remainingAmount); if (l.status === 'OVERDUE') people[k].overdue = true;
+    });
+    const owe = Object.values(people).sort((a, b) => b.left - a.left);
+    const maxLent = Math.max(1, ...owe.map(p => p.lent));
+    const stat = (cls, label, value, meta) => `<div class="loan-stat ${cls}"><div class="label">${label}</div><div class="value">${value}</div><div class="meta">${meta}</div></div>`;
+    return `${UI.cachedBanner()}
+      <div class="toolbar"><div class="left"><h2 class="section-title">Lent Money</h2><span class="sub" style="color:var(--muted)">Money you lent to other people</span></div><button class="btn primary" data-action="add-loan">${svgIcon('plus', 16)} Lend money</button></div>
+      <div class="loan-stats">
+        ${stat('ls-owed', 'Owed to you', U.peso(t.owed, true), t.openCount ? `${t.openCount} open loan${t.openCount === 1 ? '' : 's'}` : 'Nobody owes you right now')}
+        ${stat('ls-lent', 'Lent this month', U.peso(t.lentThisMonth, true), 'Leaves your cash on hand')}
+        ${stat('ls-back', 'Repaid this month', U.peso(t.repaidThisMonth, true), 'Back in your cash on hand')}
+        ${stat('ls-late', 'Past due', String(t.overdue.length), t.overdue.length ? U.peso(t.overdue.reduce((a, l) => a + l.remainingAmount, 0), true) + ' to follow up' : 'Everyone is on time')}
+      </div>
+      ${owe.length ? `<div class="card owe-card"><div class="card-head"><h3 class="card-title">Who owes you</h3><span class="sub" style="font-size:12.5px;color:var(--muted)">Tap a name to see their loans</span></div>
+        <div class="owe-list">${owe.map(p => `<button class="owe-row ${f.borrower === p.name ? 'on' : ''}" data-action="loan-borrower" data-name="${U.esc(p.name)}" data-tip="${U.esc(p.name + '\nLent ' + U.peso(U.fromCents(p.lent)) + '\nRepaid ' + U.peso(U.fromCents(p.repaid)) + '\nStill owes ' + U.peso(U.fromCents(p.left)))}">
+            <span class="avatar sm" style="--av:${avatarColor(p.name)}">${U.esc(initials(p.name))}</span>
+            <span class="owe-name">${U.esc(p.name)}${p.overdue ? ' <span class="late-dot" title="Past due"></span>' : ''}</span>
+            <span class="owe-bar" style="--w:${(p.lent / maxLent * 100).toFixed(1)}%"><i class="paid" style="--p:${(p.repaid / p.lent * 100).toFixed(1)}%"></i><i class="left" style="--av:${avatarColor(p.name)};--p:${(p.left / p.lent * 100).toFixed(1)}%"></i></span>
+            <span class="owe-amt">${U.peso(U.fromCents(p.left), true)}</span></button>`).join('')}</div>
+        <div class="legend" style="padding:4px 24px 18px"><span><i style="background:var(--paid)"></i>Repaid</span><span><i style="background:linear-gradient(90deg,#2470A8,#C0643A,#7B4B94)"></i>Still owed (each person's color)</span></div></div>` : ''}
+      <div class="chips" style="margin-top:18px">${[['open', 'Still owed'], ['OVERDUE', 'Past due'], ['REPAID', 'Repaid'], ['WRITTEN OFF', 'Written off'], ['all', 'All']].map(c => `<button class="chip ${f.status === c[0] ? 'on' : ''}" data-action="loan-chip" data-status="${c[0]}">${c[1]} <b>${counts[c[0]]}</b></button>`).join('')}
+        ${f.borrower ? `<button class="chip on" data-action="loan-borrower" data-name="${U.esc(f.borrower)}">${U.esc(f.borrower)} ×</button>` : ''}</div>
+      <div class="filters" style="margin-bottom:14px"><div class="field grow"><label for="flS">Search</label><input id="flS" class="input" type="search" placeholder="Name or note" value="${U.esc(f.search)}" data-filter="loans.search"></div></div>
+      <div id="listBody">${this.loansList()}</div>`;
+  },
+  loansList() {
+    const f = UI.filters.loans, q = f.search.trim().toLowerCase();
+    const list = Calc.loans().filter(l => (f.status === 'all' || (f.status === 'open' ? (l.status !== 'REPAID' && l.status !== 'WRITTEN OFF') : l.status === f.status)) &&
+      (!f.borrower || l.borrower.trim() === f.borrower) && (!q || [l.borrower, l.notes].join(' ').toLowerCase().includes(q)))
+      .sort((a, b) => ({ OVERDUE: 0, PARTIAL: 1, OUTSTANDING: 1, REPAID: 3, 'WRITTEN OFF': 4 }[a.status] - { OVERDUE: 0, PARTIAL: 1, OUTSTANDING: 1, REPAID: 3, 'WRITTEN OFF': 4 }[b.status]) || ((a.dueDate || '9999') < (b.dueDate || '9999') ? -1 : 1));
+    if (!list.length) return `<div class="card empty"><div class="section-title">${Store.list('loans').length ? 'Nothing here' : 'No loans yet'}</div>${Store.list('loans').length ? 'Try another filter.' : 'When you lend money to someone, record it here to keep track of who owes you.'}<div style="margin-top:14px"><button class="btn primary" data-action="add-loan">Lend money</button></div></div>`;
+    return `<div class="loan-grid">${list.map(l => {
+      const color = avatarColor(l.borrower);
+      const open = f.open[l.id];
+      const done = l.status === 'REPAID' || l.status === 'WRITTEN OFF';
+      let due = 'No repayment date', dueCls = '';
+      if (!done && l.dueDate) {
+        if (l.daysToDue < 0) { due = `${-l.daysToDue} day${l.daysToDue === -1 ? '' : 's'} late · was due ${U.fmtDate(l.dueDate).replace(/, \d{4}$/, '')}`; dueCls = 'late'; }
+        else if (l.daysToDue === 0) { due = 'Due today'; dueCls = 'soon'; }
+        else if (l.daysToDue <= 7) { due = `Due in ${l.daysToDue} day${l.daysToDue === 1 ? '' : 's'} · ${U.fmtDay(l.dueDate)}`; dueCls = 'soon'; }
+        else due = 'Due ' + U.fmtDate(l.dueDate);
+      } else if (l.status === 'REPAID') { const last = l.repayments[l.repayments.length - 1]; due = 'Fully repaid' + (last ? ' · ' + U.fmtDate(last.date) : ''); dueCls = 'done'; }
+      else if (l.status === 'WRITTEN OFF') { due = 'Written off · ' + U.peso(l.remainingAmount, true) + ' not expected back'; dueCls = 'off'; }
+      return `<article class="loan-card s-${l.status.replace(' ', '_')} ${open ? 'open' : ''}" data-loan="${U.esc(l.id)}" style="--av:${color}">
+        <button class="loan-head" data-action="loan-toggle" data-id="${U.esc(l.id)}" aria-expanded="${open ? 'true' : 'false'}">
+          <span class="avatar">${U.esc(initials(l.borrower))}</span>
+          <span class="who"><b>${U.esc(l.borrower)}</b> ${localTag(l)}<span class="sub">Lent ${U.esc(U.fmtDate(l.dateLent))} · ${U.esc(l.paymentMethod || '')}</span></span>
+          <span class="amt"><b>${U.peso(done ? l.amount : l.remainingAmount, true)}</b><span class="sub">${done ? 'lent' : 'of ' + U.peso(l.amount, true) + ' left'}</span></span>
+          <span class="chev" aria-hidden="true">›</span>
+        </button>
+        <div class="loan-prog"><div class="bar"><i style="--p:${l.progress}"></i></div><div class="prog-meta"><span>${Math.round(l.progress * 100)}% repaid</span><span class="due ${dueCls}">${U.esc(due)}</span></div></div>
+        <div class="loan-more">
+          ${l.notes ? `<p class="loan-note">${U.esc(l.notes)}</p>` : ''}
+          <div class="t-label" style="margin-bottom:6px">Repayments</div>
+          ${l.repayments.length ? `<ol class="timeline">${l.repayments.map(r => `<li><span class="dot"></span><span class="tl-main"><b>${U.peso(r.amount)}</b> · ${U.esc(U.fmtDate(r.date))} · ${U.esc(r.paymentMethod || '')} ${localTag(r)}${r.notes ? `<span class="sub">${U.esc(r.notes)}</span>` : ''}</span><button class="btn sm ghost" data-action="void-loan-repayment" data-id="${U.esc(r.id)}" title="Remove this repayment">Undo</button></li>`).join('')}</ol>` : '<p class="sub" style="margin:0 0 10px;color:var(--muted)">Nothing paid back yet.</p>'}
+          <div class="loan-actions">
+            ${!done ? `<button class="btn sm pay" data-action="loan-repay" data-id="${U.esc(l.id)}">Record repayment</button>` : ''}
+            <button class="btn sm" data-action="edit-loan" data-id="${U.esc(l.id)}">Edit</button>
+            ${l.status === 'WRITTEN OFF' ? `<button class="btn sm" data-action="loan-writeoff" data-id="${U.esc(l.id)}" data-undo="1">Reopen</button>` : (!done ? `<button class="btn sm ghost" data-action="loan-writeoff" data-id="${U.esc(l.id)}">Write off</button>` : '')}
+          </div>
+        </div>
+      </article>`;
+    }).join('')}</div>`;
+  },
+
   /* ============================== SAVINGS ============================== */
   savings() {
     const sv = Calc.savings();
@@ -1547,7 +2110,7 @@ const Views = {
         <div class="card kpi lead"><div class="label">Saved in ${U.esc(U.monthLabel(cur.month).split(' ')[0])} so far</div><div class="value ${cur.saved < 0 ? 'neg-light' : ''}">${U.peso(cur.saved, true)}</div><div class="meta">${cur.rate === null ? 'No income received yet this month' : 'Saved ' + pct(cur.rate) + ' of income received'}</div></div>
         <div class="card kpi"><div class="label">Total saved</div><div class="value ${tone(sv.totalSaved)}">${U.peso(sv.totalSaved, true)}</div><div class="meta">${pct(sv.overallRate)} of ${U.peso(sv.totalIncome, true)} income</div></div>
         <div class="card kpi"><div class="label">Average per month</div><div class="value ${tone(sv.average || 0)}">${sv.average === null ? '—' : U.peso(sv.average, true)}</div><div class="meta">${sv.average === null ? 'Shows after your first full month' : 'Completed months only'}</div></div>
-        <div class="card kpi"><div class="label">Cash on hand</div><div class="value ${tone(sv.openingBalance + sv.totalSaved)}">${U.peso(sv.openingBalance + sv.totalSaved, true)}</div><div class="meta">Starting balance ${U.peso(sv.openingBalance, true)} + total saved</div></div>
+        <div class="card kpi"><div class="label">Cash on hand</div><div class="value ${tone(sv.openingBalance + sv.totalSaved - sv.netLent)}">${U.peso(sv.openingBalance + sv.totalSaved - sv.netLent, true)}</div><div class="meta">Starting ${U.peso(sv.openingBalance, true)} + saved${sv.netLent ? ' − lent out ' + U.peso(sv.netLent, true) : ''}${sv.owedToYou ? ' · <a href="#/loans">' + U.peso(sv.owedToYou, true) + ' owed to you</a>' : ''}</div></div>
       </div>
       <div class="card" style="margin-bottom:18px">
         <div class="card-head"><h3 class="card-title">Saved per month</h3><span class="sub" style="font-size:12.5px;color:var(--muted)">${sv.best ? 'Best: ' + U.esc(U.monthLabel(sv.best.month)) + ' · ' + U.peso(sv.best.saved, true) : ''}</span></div>
@@ -1765,7 +2328,7 @@ const Views = {
     const online = navigator.onLine && Sync.reachable !== false;
     const q = Store.queue;
     const pending = Store.pendingCount(), failed = Store.failedCount();
-    const label = o => ({ EXPENSE: 'Expense', INCOME: 'Income', PAYMENT: 'Payment', RECURRING_BILL: 'Recurring bill', BILL_INSTANCE: 'Bill', BUDGET: 'Budget', SETTINGS: 'Settings' }[o.entityType] || o.entityType) + ' · ' + ({ CREATE: 'create', UPDATE: 'update', DELETE: o.entityType === 'PAYMENT' ? 'void' : 'delete', PAYMENT: 'payment', DISABLE: 'disable', ENABLE: 'enable' }[o.action] || o.action.toLowerCase());
+    const label = o => ({ EXPENSE: 'Expense', INCOME: 'Income', PAYMENT: 'Payment', RECURRING_BILL: 'Recurring bill', BILL_INSTANCE: 'Bill', BUDGET: 'Budget', SETTINGS: 'Settings', LOAN: 'Lent money', LOAN_REPAYMENT: 'Loan repayment', RECURRING_INCOME: 'Income schedule' }[o.entityType] || o.entityType) + ' · ' + ({ CREATE: 'create', UPDATE: 'update', DELETE: o.entityType === 'PAYMENT' ? 'void' : 'delete', PAYMENT: 'payment', DISABLE: 'disable', ENABLE: 'enable' }[o.action] || o.action.toLowerCase());
     const describe = o => { const p = o.payload || {}; return [p.description || p.source || p.name || p.billName || '', p.amount !== undefined ? U.peso(p.amount) : p.actualAmount ? U.peso(p.actualAmount) : p.plannedAmount !== undefined ? U.peso(p.plannedAmount) : '', p.date || p.paymentDate || p.month || ''].filter(Boolean).join(' · '); };
     return `
       <div class="stat-grid">
@@ -1850,6 +2413,9 @@ const Views = {
       </div>`;
   }
 };
+const AVATAR_COLORS = ['#2470A8', '#C0643A', '#3E7A55', '#7B4B94', '#B0832A', '#2D8C8C', '#B0466E', '#5A6B2E'];
+function avatarColor(name) { let h = 0; String(name || '').toLowerCase().trim().split('').forEach(ch => { h = (h * 31 + ch.charCodeAt(0)) >>> 0; }); return AVATAR_COLORS[h % AVATAR_COLORS.length]; }
+function initials(name) { const p = String(name || '?').trim().split(/\s+/); return ((p[0] || '?')[0] + (p.length > 1 ? p[p.length - 1][0] : (p[0] || '')[1] || '')).toUpperCase(); }
 function fmtVal(v) { return U.blank(v) ? '(blank)' : typeof v === 'number' ? U.peso(v) : String(v); }
 
 /* ------------------------------------------------------------------ Reports */
@@ -2045,7 +2611,7 @@ const Data = {
       UI.refresh();
       return 'discarded';
     }
-    if (store === 'payments') cur.isVoid = true; else cur.isDeleted = true;
+    if (store === 'payments' || store === 'loanRepayments') cur.isVoid = true; else cur.isDeleted = true;
     cur.updatedAt = U.nowIso(); cur.syncStatus = 'pending';
     await Store.save(store, cur);
     return Sync.commit({ operationId: U.opId(), entityType: type, action: 'DELETE', localId: id, entityId: id, payload: { [idField]: id }, baseUpdatedAt: cur.serverUpdatedAt || '' });
@@ -2355,8 +2921,65 @@ const Forms = {
       }
     });
   },
+  loan(id) {
+    const cur = id ? Store.get('loans', id) : null;
+    const loanId = cur ? cur.id : U.uid('LOAN');
+    const names = Array.from(new Set(Store.list('loans').map(l => String(l.borrower || '').trim()).filter(Boolean))).sort();
+    Modal.open({
+      title: cur ? 'Edit loan' : 'Lend money', eyebrow: 'Lent money',
+      body: `<div class="form-grid">
+        <div class="field full"><label for="f_borrower">Who borrowed it?</label><input id="f_borrower" name="borrower" class="input" list="borrowerList" maxlength="120" value="${U.esc(cur ? cur.borrower : '')}" placeholder="e.g. Juan" required><datalist id="borrowerList">${names.map(n => `<option value="${U.esc(n)}">`).join('')}</datalist></div>
+        ${F.money('amount', 'Amount lent', cur ? cur.amount : '', { required: true })}
+        ${F.date('dateLent', 'Date lent', cur ? cur.dateLent : U.today(), { required: true })}
+        ${F.date('dueDate', 'Promised to pay back by (optional)', cur ? cur.dueDate : '')}
+        ${F.select('paymentMethod', 'Given via', PAYMENT_METHODS, cur ? cur.paymentMethod : 'Cash')}
+        ${F.notes(cur ? cur.notes : '')}
+        <p class="full sub" style="margin:0;color:var(--muted)">Lending takes this amount out of your cash on hand. It is not counted as an expense, and it comes back when you record repayments.</p></div>`,
+      foot: `${cur ? `<button type="button" class="btn danger" data-action="delete-loan" data-id="${U.esc(cur.id)}" style="margin-right:auto">Delete</button>` : ''}<button type="button" class="btn" data-close>Cancel</button><button type="submit" class="btn primary">${cur ? 'Save changes' : 'Save loan'}</button>`,
+      async onSubmit(fd) {
+        const rec = { borrower: F.req(fd, 'borrower', 'Borrower'), amount: F.amount(fd, 'amount', 'Amount lent', { positive: true }), dateLent: F.date10(fd, 'dateLent', 'Date lent'), dueDate: F.date10(fd, 'dueDate', 'Repayment date', true), paymentMethod: fd.get('paymentMethod'), notes: String(fd.get('notes') || '').trim() };
+        if (rec.dueDate && rec.dueDate < rec.dateLent) throw new Error('The repayment date cannot be before the date you lent it.');
+        const outcome = cur ? await Data.update('loans', cur.id, rec, Modal.current.opId) : await Data.create('loans', Object.assign({ loanId, writtenOff: false, isDeleted: false }, rec), Modal.current.opId);
+        Modal.close();
+        if (outcome === 'nochange') UI.toast('No changes to save.'); else UI.saveOutcome(outcome, cur ? 'Loan' : 'Loan to ' + rec.borrower);
+        UI.refresh();
+      }
+    });
+  },
+  loanRepayment(loanId) {
+    const raw = Store.get('loans', loanId);
+    if (!raw) return UI.toast('Loan not found on this device.', 'err');
+    const l = Calc.loan(raw);
+    const repaymentId = U.uid('LRP');
+    Modal.open({
+      title: 'Record repayment', eyebrow: l.borrower,
+      body: `<div class="summary-box"><div><span>Lent</span><b>${U.peso(l.amount)}</b></div><div><span>Repaid so far</span><b>${U.peso(l.repaidAmount)}</b></div><div><span>Still owed</span><b>${U.peso(l.remainingAmount)}</b></div></div>
+        <div class="form-grid">
+          ${F.money('amount', 'Amount received', l.remainingAmount, { required: true, hint: '&nbsp;' })}
+          ${F.date('date', 'Date received', U.today(), { required: true })}
+          ${F.select('paymentMethod', 'Received via', PAYMENT_METHODS, l.paymentMethod || 'Cash', { full: true })}
+          ${F.notes('')}
+        </div>`,
+      foot: `<button type="button" class="btn" data-close>Cancel</button><button type="submit" class="btn primary">Save repayment</button>`,
+      onOpen(form) {
+        const amt = form.querySelector('[name=amount]'), hint = form.querySelector('#h_amount');
+        const upd = () => { const v = U.parseMoney(amt.value); if (isNaN(v) || v === '') { hint.textContent = ''; return; } const left = U.fromCents(U.cents(l.remainingAmount) - U.cents(v)); hint.innerHTML = left > 0 ? `${U.esc(l.borrower)} will still owe <b>${U.esc(U.peso(left))}</b>.` : left === 0 ? '<b>Fully repaid</b> after this.' : `That is <b>${U.esc(U.peso(-left))}</b> more than what is owed.`; };
+        amt.addEventListener('input', upd); upd();
+      },
+      async onSubmit(fd) {
+        const amount = F.amount(fd, 'amount', 'Amount received', { positive: true });
+        const outcome = await Data.create('loanRepayments', { repaymentId, loanId: l.loanId, borrower: l.borrower, date: F.date10(fd, 'date', 'Date received'), amount, paymentMethod: fd.get('paymentMethod'), notes: String(fd.get('notes') || '').trim(), isVoid: false }, Modal.current.opId);
+        Modal.close();
+        const after = Calc.loan(Store.get('loans', l.id));
+        if (outcome === 'synced' || outcome === 'local') UI.toast(after.status === 'REPAID' ? `✓ ${l.borrower} has fully repaid ${U.peso(l.amount, true)}.` : `${l.borrower} repaid ${U.peso(amount, true)} · ${U.peso(after.remainingAmount, true)} still owed.`);
+        if (outcome !== 'synced') UI.saveOutcome(outcome, 'Repayment');
+        UI.filters.loans.open[l.id] = true;
+        UI.refresh();
+      }
+    });
+  },
   more() {
-    Modal.open({ title: 'More', foot: null, body: `<div class="more-sheet">${['savings', 'recurring', 'payments', 'reports', 'sync', 'settings'].map(id => `<a href="#/${id}" data-nav="${id}">${svgIcon(id, 20)}${VIEWS.find(v => v.id === id).label}${id === 'sync' && Store.queue.length ? ` <span class="tag PARTIAL" style="margin-left:auto">${Store.queue.length}</span>` : ''}</a>`).join('')}</div>` });
+    Modal.open({ title: 'More', foot: null, body: `<div class="more-sheet">${['savings', 'loans', 'recurring', 'payments', 'reports', 'sync', 'settings'].map(id => `<a href="#/${id}" data-nav="${id}">${svgIcon(id, 20)}${VIEWS.find(v => v.id === id).label}${id === 'sync' && Store.queue.length ? ` <span class="tag PARTIAL" style="margin-left:auto">${Store.queue.length}</span>` : ''}</a>`).join('')}</div>` });
   }
 };
 
@@ -2374,6 +2997,44 @@ const Actions = {
   'add-income': () => Forms.income(),
   'edit-income': el => Forms.income(el.dataset.id),
   'add-recurring': () => Forms.recurring(),
+  'add-loan': () => Forms.loan(),
+  'edit-loan': el => Forms.loan(el.dataset.id),
+  'loan-repay': el => Forms.loanRepayment(el.dataset.id),
+  'loan-chip': el => { UI.filters.loans.status = el.dataset.status; UI.render(); },
+  'loan-borrower': el => { const n = el.dataset.name; UI.filters.loans.borrower = UI.filters.loans.borrower === n ? '' : n; if (UI.filters.loans.borrower) UI.filters.loans.status = 'all'; UI.render(); const lb = document.getElementById('listBody'); if (lb && UI.filters.loans.borrower) lb.scrollIntoView({ behavior: 'smooth', block: 'start' }); },
+  'loan-toggle': el => {
+    const id = el.dataset.id, card = el.closest('.loan-card');
+    const now = !UI.filters.loans.open[id];
+    UI.filters.loans.open[id] = now;
+    if (card) { card.classList.toggle('open', now); el.setAttribute('aria-expanded', now ? 'true' : 'false'); }
+  },
+  async 'loan-writeoff'(el) {
+    const raw = Store.get('loans', el.dataset.id); if (!raw) return;
+    const l = Calc.loan(raw), undo = el.dataset.undo === '1';
+    const ok = await Modal.confirm(undo ? 'Reopen this loan?' : 'Write off ' + U.peso(l.remainingAmount, true) + '?', undo ? `${U.esc(l.borrower)}'s loan will count as owed again.` : `Use this when you no longer expect ${U.esc(l.borrower)} to pay back the rest. The loan stays in your records as <b>written off</b>.`, undo ? 'Reopen' : 'Write off', !undo);
+    if (!ok) return;
+    raw.writtenOff = !undo; raw.syncStatus = 'pending'; raw.updatedAt = U.nowIso();
+    await Store.save('loans', raw);
+    const outcome = await Sync.commit({ operationId: U.opId(), entityType: 'LOAN', action: 'WRITE_OFF', localId: raw.id, entityId: raw.id, payload: { loanId: raw.id, undo } });
+    if (outcome === 'synced') UI.toast(undo ? 'Loan reopened.' : 'Written off.'); else UI.saveOutcome(outcome, 'Change');
+    UI.refresh();
+  },
+  async 'delete-loan'(el) {
+    const raw = Store.get('loans', el.dataset.id); if (!raw) return;
+    const ok = await Modal.confirm('Delete this loan?', `${U.esc(raw.borrower)} · ${U.esc(U.peso(raw.amount))}<br><br>Use this only for a loan entered by mistake. It is kept in the sheet marked as deleted. If the person simply won't pay, use <b>Write off</b> instead.`, 'Delete', true);
+    if (!ok) return;
+    const outcome = await Data.remove('loans', raw.id);
+    UI.toast(outcome === 'discarded' ? 'Loan removed (it had not been synced yet).' : 'Loan deleted.');
+    UI.refresh();
+  },
+  async 'void-loan-repayment'(el) {
+    const r = Store.get('loanRepayments', el.dataset.id); if (!r) return;
+    const ok = await Modal.confirm('Undo this repayment?', `${U.esc(r.borrower || '')} · ${U.esc(U.peso(r.amount))} on ${U.esc(U.fmtDate(r.date))}<br><br>It stays in the sheet marked as void, and the amount counts as owed again.`, 'Undo repayment', true);
+    if (!ok) return;
+    const outcome = await Data.remove('loanRepayments', r.id);
+    UI.toast(outcome === 'discarded' ? 'Repayment removed.' : 'Repayment undone.');
+    UI.refresh();
+  },
   'add-recurring-income': () => Forms.recurringIncome(),
   'edit-recurring-income': el => Forms.recurringIncome(el.dataset.id),
   'receive-income': el => Forms.receiveIncome(el.dataset.id),
@@ -2581,6 +3242,7 @@ const Verify = {
       const keys = ['monthlyBudget', 'expectedBills', 'actualBills', 'otherExpenses', 'unpaidAmount', 'overBudgetAmount', 'expectedIncome', 'actualIncome', 'netCashFlow'];
       let diff = keys.filter(k => U.cents(local[k]) !== U.cents(d.summary[k]));
       if (d.available && U.cents(Calc.available(d.today || U.today()).cashOnHand) !== U.cents(d.available.cashOnHand)) diff = diff.concat(['cashOnHand']);
+      if (d.insight) { const li = Calc.insight(month, d.today || U.today()); if (li.status !== d.insight.status || U.cents(li.safeToSpend) !== U.cents(d.insight.safeToSpend)) diff = diff.concat(['insight']); }
       Store.verified[month] = { ok: !diff.length, at: U.nowIso(), diff };
       if (diff.length) {
         console.warn('Local and server totals differ:', diff, local, d.summary);
