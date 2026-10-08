@@ -355,6 +355,11 @@ textarea.input{min-height:76px;resize:vertical}
 .report-table td.n,.report-table th.n{text-align:right;font-variant-numeric:tabular-nums}
 .report-table tfoot td{font-weight:700;border-top:1px solid var(--ink);border-bottom:0}
 .table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+[hidden]{display:none !important}
+.install-top{background:var(--ink);color:#F7F4EF;border-color:var(--ink)}
+.install-top:hover{background:#45413B}
+.install-steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:10px;font-size:15px}
+.install-steps b{white-space:nowrap}
 .install-card{display:none}
 .install-card.show{display:flex}
 .print-only{display:none}
@@ -436,6 +441,7 @@ textarea.input{min-height:76px;resize:vertical}
   .stat-grid .kpi.lead:first-child ~ .kpi:nth-child(4):last-child{grid-column:1/-1}
   .month-sel label{min-width:112px;font-size:13px}
   .conn .txt,.sync-btn .txt{display:none}
+  .install-top{padding:6px 10px}
   .sync-btn{padding:6px 9px}
   .topbar{flex-wrap:nowrap;gap:8px}
   .topbar h1{min-width:0;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -482,6 +488,7 @@ textarea.input{min-height:76px;resize:vertical}
         <label><span id="monthLabel">—</span><input type="month" id="monthInput" aria-label="Select month"></label>
         <button type="button" data-action="month-next" aria-label="Next month"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></button>
       </div>
+      <button class="btn sm install-top" id="installTop" type="button" data-action="install" title="Install this app on your device" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/></svg><span class="txt">Install</span></button>
       <button class="btn sm sync-btn" type="button" data-action="sync-now" title="Sync now"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 01-15.5 6.2L3 16M3 12a9 9 0 0115.5-6.2L21 8"/><path d="M21 3v5h-5M3 21v-5h5"/></svg><span class="txt">Sync</span></button>
       <button class="conn" id="connTop" type="button" data-action="go" data-view="sync"><span class="dot"></span><span class="txt">Starting…</span></button>
     </header>
@@ -2402,7 +2409,7 @@ const Views = {
           <dl class="kv" style="margin:14px 0"><dt>Version</dt><dd>${APP_VERSION}</dd><dt>Mode</dt><dd>${IS_GAS ? 'Apps Script hosted (online-first)' : 'Progressive Web App (offline-first)'}</dd>
           <dt>Offline app shell</dt><dd id="swState">${'serviceWorker' in navigator && !IS_GAS ? (navigator.serviceWorker.controller ? 'Active' : 'Installing…') : 'Not available in this mode'}</dd>
           <dt>Server version</dt><dd>${U.esc(Store.meta.serverVersion || '—')}</dd></dl>
-          <button class="btn install-card ${UI.deferredInstall ? 'show' : ''}" data-action="install" id="installBtnSettings">Install app on this device</button>
+          ${runningAsApp() ? '<p class="sub" style="color:var(--paid);margin:0">✓ You are using the installed app.</p>' : '<button class="btn primary" data-action="install" id="installBtnSettings">Install app on this device</button>'}
           ${IS_GAS ? '<p class="sub" style="color:var(--muted)">To install as an app and open it with no internet, host the PWA files on HTTPS (see README → PWA setup).</p>' : ''}
         </div>
         <div class="card card-pad">
@@ -2978,6 +2985,22 @@ const Forms = {
       }
     });
   },
+  installHelp() {
+    const ua = navigator.userAgent || '';
+    const ios = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const iosSafari = ios && /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS|FBAN|FBAV|Instagram|Line\//.test(ua);
+    const android = /Android/.test(ua);
+    const inApp = /FBAN|FBAV|Instagram|Messenger|Line\/|; wv\)/.test(ua);
+    const link = location.origin + location.pathname;
+    let body;
+    if (IS_GAS) body = `<p>This copy is opened from Google Apps Script, which can't be installed. Open <b>${U.esc('https://masystemsolutions.github.io/housefinance/')}</b> in your phone's browser and install it from there.</p>`;
+    else if (inApp) body = `<p>You're inside another app's browser (for example Facebook or Messenger), which can't install apps.</p><ol class="install-steps"><li>Tap the <b>⋮</b> or <b>…</b> menu and choose <b>Open in browser</b> (Chrome on Android, Safari on iPhone).</li><li>Then tap <b>Install</b> again.</li></ol>`;
+    else if (ios && !iosSafari) body = `<p>On iPhone, apps can only be added from <b>Safari</b>.</p><ol class="install-steps"><li>Copy this link: <span class="mono">${U.esc(link)}</span></li><li>Open it in <b>Safari</b>.</li><li>Tap <b>Share</b> (square with an arrow) → <b>Add to Home Screen</b> → <b>Add</b>.</li></ol>`;
+    else if (ios) body = `<ol class="install-steps"><li>Tap the <b>Share</b> button <span aria-hidden="true">(square with an arrow ↑)</span> at the bottom of Safari.</li><li>Scroll down and tap <b>Add to Home Screen</b>.</li><li>Tap <b>Add</b>. The <b>HF</b> icon appears on your home screen.</li><li>Open the app from that icon and sign in once.</li></ol>`;
+    else if (android) body = `<ol class="install-steps"><li>Tap the <b>⋮</b> menu at the top right of Chrome.</li><li>Tap <b>Install app</b> (or <b>Add to Home screen</b>) → <b>Install</b>.</li></ol><p class="sub" style="color:var(--ink-2);margin-top:14px">Don't see it? If the menu says <b>Open in app</b>, it's already installed. Look for <b>Finances</b> (HF icon) in your app list. To reinstall, long-press that icon → <b>Uninstall</b>, come back here and tap <b>Install</b> again.</p>`;
+    else body = `<ol class="install-steps"><li>Click the <b>install icon</b> at the right end of the address bar (a screen with a down arrow), then <b>Install</b>.</li><li>Or open the browser menu <b>⋮</b> → <b>Cast, save and share → Install page as app</b> (Chrome) / <b>Apps → Install this site as an app</b> (Edge).</li></ol><p class="sub" style="color:var(--ink-2);margin-top:14px">If it's already installed, the browser hides this option. Look for <b>Household Finances</b> in your Start menu or Applications.</p>`;
+    Modal.open({ title: 'Install Household Finances', eyebrow: ios ? 'iPhone / iPad' : android ? 'Android' : 'This device', body, foot: '<button type="button" class="btn primary" data-close>Got it</button>' });
+  },
   more() {
     Modal.open({ title: 'More', foot: null, body: `<div class="more-sheet">${['savings', 'loans', 'recurring', 'payments', 'reports', 'sync', 'settings'].map(id => `<a href="#/${id}" data-nav="${id}">${svgIcon(id, 20)}${VIEWS.find(v => v.id === id).label}${id === 'sync' && Store.queue.length ? ` <span class="tag PARTIAL" style="margin-left:auto">${Store.queue.length}</span>` : ''}</a>`).join('')}</div>` });
   }
@@ -3220,11 +3243,17 @@ const Actions = {
     if (Api.configured() && navigator.onLine) Sync.run({ full: true });
   },
   async install() {
-    if (!UI.deferredInstall) return UI.toast('Use your browser menu → "Install app" or "Add to Home Screen".');
-    UI.deferredInstall.prompt();
-    try { await UI.deferredInstall.userChoice; } catch (e) { /* ignore */ }
-    UI.deferredInstall = null;
-    document.querySelectorAll('.install-card').forEach(b => b.classList.remove('show'));
+    if (UI.deferredInstall) {
+      const ev = UI.deferredInstall;
+      ev.prompt();
+      let choice = null;
+      try { choice = await ev.userChoice; } catch (e) { /* ignore */ }
+      UI.deferredInstall = null;
+      updateInstallUI();
+      if (choice && choice.outcome === 'accepted') UI.toast('Installing Household Finances…');
+      return;
+    }
+    Forms.installHelp();
   }
 };
 
@@ -3262,6 +3291,18 @@ Sync._run = async function (opts) {
   return r;
 };
 
+/* ------------------------------------------------------------------ Install button */
+function runningAsApp() {
+  try { return matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: minimal-ui)').matches || navigator.standalone === true; } catch (e) { return false; }
+}
+/** The top-bar Install button shows whenever the page is open in a browser (not already as the installed app). */
+function updateInstallUI() {
+  const inApp = runningAsApp();
+  const btn = document.getElementById('installTop');
+  if (btn) btn.hidden = inApp;
+  document.querySelectorAll('.install-card').forEach(b => b.classList.toggle('show', !inApp && !!UI.deferredInstall));
+}
+
 /* ------------------------------------------------------------------ Boot */
 async function boot() {
   const view = document.getElementById('view');
@@ -3287,9 +3328,10 @@ async function boot() {
   window.addEventListener('beforeinstallprompt', e => {
     e.preventDefault();
     UI.deferredInstall = e;
-    document.querySelectorAll('.install-card').forEach(b => b.classList.add('show'));
+    updateInstallUI();
   });
-  window.addEventListener('appinstalled', () => { UI.deferredInstall = null; document.querySelectorAll('.install-card').forEach(b => b.classList.remove('show')); UI.toast('Household Finances installed.'); });
+  window.addEventListener('appinstalled', () => { UI.deferredInstall = null; updateInstallUI(); UI.toast('Household Finances installed. Find the HF icon on your home screen.'); });
+  try { matchMedia('(display-mode: standalone)').addEventListener('change', updateInstallUI); } catch (e) { /* older browsers */ }
   document.addEventListener('submit', e => { if (e.target.id === 'connForm') { e.preventDefault(); Actions['save-connection'](e.target.querySelector('[data-action=save-connection]'), e); } });
   window.addEventListener('unhandledrejection', e => { console.error(e.reason); });
 
@@ -3308,6 +3350,7 @@ async function boot() {
   UI.view = UI.hashView() || 'dashboard';
   if (!Api.configured() && !IS_GAS && !Store.list('billInstances').length) UI.view = 'settings';
   UI.init();
+  updateInstallUI();
   if (justConnected) {
     UI.toast('Connecting this device to Google Sheets…');
     Sync.run({ manual: true, full: true }).then(r => UI.toast(r && r.error ? 'Setup link saved, but sync failed: ' + r.error : '✓ This device is connected and synced.', r && r.error ? 'err' : ''));
