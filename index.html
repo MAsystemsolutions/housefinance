@@ -137,6 +137,7 @@ textarea.input{min-height:76px;resize:vertical}
 .kpi .meta{font-size:12.5px;color:var(--ink-2);margin-top:4px}
 .kpi.lead{background:var(--ink);color:#F7F4EF;border-color:var(--ink)}
 .kpi.lead .label,.kpi.lead .meta{color:#CFC8BD}
+.kpi.lead .value.neg-light{color:#F2A9A4}
 .kpi .tone{position:absolute;left:0;top:18px;bottom:18px;width:3px;border-radius:0 3px 3px 0}
 .neg{color:var(--overdue)}
 .pos{color:var(--paid)}
@@ -318,6 +319,8 @@ textarea.input{min-height:76px;resize:vertical}
   .form-grid{grid-template-columns:1fr}
   .summary-box{grid-template-columns:1fr 1fr}
   .stat-grid{grid-template-columns:1fr 1fr;gap:10px}
+  .stat-grid .kpi.lead{grid-column:1/-1}
+  .stat-grid .kpi.lead:first-child ~ .kpi:nth-child(4):last-child{grid-column:1/-1}
   .month-sel label{min-width:112px;font-size:13px}
   .conn .txt,.sync-btn .txt{display:none}
   .sync-btn{padding:6px 9px}
@@ -727,6 +730,40 @@ const Calc = {
       (month === cm ? (i.dueDate >= today && (i.arrivalDate || i.dueDate) <= horizon) : i.billingPeriod === month))
       .sort((a, b) => (a.dueDate < b.dueDate ? -1 : a.dueDate > b.dueDate ? 1 : 0)).slice(0, 12);
   },
+  /**
+   * Savings per month, counted by the date money actually moved:
+   *   saved = income received − bill payments − other expenses (from the starting-balance date on).
+   * Running total = sum of monthly savings; cash on hand = starting balance + running total.
+   */
+  savings(today) {
+    today = today || U.today();
+    const st = Store.settings || {};
+    const openingDate = U.isYmd(String(st.openingBalanceDate || '')) ? st.openingBalanceDate : '';
+    const cm = today.slice(0, 7);
+    const by = {};
+    const add = (date, k, cents) => { if (!U.isYmd(String(date)) || (openingDate && date < openingDate) || date > today) return; const m = date.slice(0, 7); by[m] = by[m] || { inc: 0, bills: 0, other: 0 }; by[m][k] += cents; };
+    Store.list('income').forEach(r => { if (!U.bool(r.isDeleted) && r.status !== 'CANCELLED' && !U.blank(r.actualAmount)) add(r.date, 'inc', U.cents(r.actualAmount)); });
+    Store.list('payments').forEach(p => { if (!U.bool(p.isVoid)) add(p.paymentDate, 'bills', U.cents(p.amount)); });
+    Store.list('expenses').forEach(e => { if (!U.bool(e.isDeleted)) add(e.date, 'other', U.cents(e.amount)); });
+    const known = Object.keys(by).sort();
+    let start = openingDate ? openingDate.slice(0, 7) : (known[0] || cm);
+    if (U.mIdx(cm) - U.mIdx(start) > 35) start = U.addMonths(cm, -35);
+    let running = 0;
+    const rows = U.monthRange(start, cm).map(m => {
+      const v = by[m] || { inc: 0, bills: 0, other: 0 };
+      const saved = v.inc - v.bills - v.other;
+      running += saved;
+      return { month: m, income: U.fromCents(v.inc), bills: U.fromCents(v.bills), other: U.fromCents(v.other), out: U.fromCents(v.bills + v.other), saved: U.fromCents(saved), rate: v.inc > 0 ? saved / v.inc : null, running: U.fromCents(running), partial: m === cm };
+    });
+    const totalInc = rows.reduce((a, r) => a + U.cents(r.income), 0);
+    const full = rows.filter(r => !r.partial);
+    return {
+      rows, start, openingDate, openingBalance: Number(st.openingBalance || 0),
+      totalSaved: U.fromCents(running), totalIncome: U.fromCents(totalInc), overallRate: totalInc > 0 ? running / totalInc : null,
+      average: full.length ? U.fromCents(full.reduce((a, r) => a + U.cents(r.saved), 0) / full.length) : null,
+      best: full.length ? full.reduce((a, r) => (r.saved > a.saved ? r : a)) : null
+    };
+  },
   /** Cash on hand & safe to spend — mirrors computeAvailable_() in Code.gs. */
   available(today, instances) {
     today = today || U.today();
@@ -1049,6 +1086,7 @@ const ICON = {
   reports: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
   sync: '<path d="M21 12a9 9 0 01-15.5 6.2L3 16M3 12a9 9 0 0115.5-6.2L21 8"/><path d="M21 3v5h-5M3 21v-5h5"/>',
   settings: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/>',
+  savings: '<path d="M19 7c0-1.7-2.2-3-5-3H9C6.2 4 4 6.2 4 9v3c0 2 1 3.5 2.5 4.3V20h3v-2h5v2h3v-3.2c1.2-.7 2-1.8 2.3-3H21v-4h-1.3c-.2-.8-.6-1.5-1.2-2.1L19 7z"/><circle cx="15.5" cy="10" r=".8"/>',
   more: '<circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>',
   plus: '<path d="M12 5v14M5 12h14"/>'
 };
@@ -1056,7 +1094,7 @@ const svgIcon = (name, w) => `<svg viewBox="0 0 24 24" width="${w || 18}" height
 
 const VIEWS = [
   { id: 'dashboard', label: 'Dashboard' }, { id: 'bills', label: 'Bills' }, { id: 'expenses', label: 'Expenses' },
-  { id: 'income', label: 'Income' }, { id: 'recurring', label: 'Recurring Bills' }, { id: 'payments', label: 'Payments' },
+  { id: 'income', label: 'Income' }, { id: 'savings', label: 'Savings' }, { id: 'recurring', label: 'Recurring Bills' }, { id: 'payments', label: 'Payments' },
   { id: 'reports', label: 'Reports' }, { id: 'sync', label: 'Sync / Offline' }, { id: 'settings', label: 'Settings' }
 ];
 const MONTH_VIEWS = ['dashboard', 'bills', 'expenses', 'income', 'payments'];
@@ -1317,6 +1355,34 @@ const Charts = {
       return s + '</svg>';
     };
   },
+  savings(rows) {
+    return w => {
+      if (!rows.length) return this.empty('No months to show yet.');
+      const h = 230, padL = 56, padB = 26, padT = 18, plotW = w - padL - 4, plotH = h - padB - padT;
+      const vals = rows.map(r => r.saved);
+      const hi = Math.max(0, ...vals), lo = Math.min(0, ...vals);
+      const step = this.niceMax(Math.max(1, (hi - lo) / 4));
+      const top = Math.max(step, Math.ceil(hi / step) * step), bottom = Math.floor(lo / step) * step;
+      const range = top - bottom || 1;
+      const y = v => padT + (top - v) / range * plotH;
+      const fmt = v => (v < 0 ? '−' : '') + this.compact(Math.abs(v));
+      const cPos = this.css('--c-income'), cNeg = this.css('--c-out');
+      let s = `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img" aria-label="Money saved per month">`;
+      for (let v = bottom; v <= top + 0.5; v += step) { s += `<line class="grid" x1="${padL}" x2="${w}" y1="${y(v)}" y2="${y(v)}"/><text x="${padL - 8}" y="${y(v) + 4}" text-anchor="end">${fmt(v)}</text>`; }
+      const group = plotW / rows.length, bw = Math.max(6, Math.min(34, group - 10));
+      rows.forEach((r, i) => {
+        const cx = padL + group * i + group / 2;
+        const y0 = y(0), y1 = y(r.saved);
+        const tip = `${U.monthLabel(r.month)}${r.partial ? ' (so far)' : ''}\nSaved ${U.peso(r.saved)}\nIncome ${U.peso(r.income)} · Out ${U.peso(r.out)}${r.rate === null ? '' : '\nSavings rate ' + Math.round(r.rate * 100) + '%'}`;
+        s += `<g data-tip="${U.esc(tip)}"><rect x="${cx - group / 2}" y="${padT}" width="${group}" height="${plotH}" fill="transparent"/>`;
+        s += `<rect x="${cx - bw / 2}" y="${Math.min(y0, y1)}" width="${bw}" height="${Math.max(1, Math.abs(y1 - y0))}" rx="3" fill="${r.saved >= 0 ? cPos : cNeg}" ${r.partial ? 'opacity=".55"' : ''}/>`;
+        if (rows.length <= 12 && group > 44) s += `<text x="${cx}" y="${r.saved >= 0 ? y1 - 5 : y1 + 13}" text-anchor="middle" style="font-variant-numeric:tabular-nums;fill:${this.css('--ink')};font-weight:600">${fmt(r.saved)}</text>`;
+        s += `<text x="${cx}" y="${h - 8}" text-anchor="middle">${U.monthShort(r.month)}</text></g>`;
+      });
+      s += `<line class="axis" x1="${padL}" x2="${w}" y1="${y(0)}" y2="${y(0)}"/>`;
+      return s + '</svg>';
+    };
+  },
   status(counts) {
     const order = [['PAID', '--paid', 'Paid'], ['PARTIAL', '--partial', 'Partial'], ['UNPAID', '--unpaid', 'Unpaid'], ['OVERDUE', '--overdue', 'Overdue'], ['OVER BUDGET', '--over', 'Over budget']];
     return w => {
@@ -1465,6 +1531,36 @@ const Views = {
         <div class="status-cell">${U.bool(r.isActive) ? '<span class="tag PAID">ACTIVE</span>' : '<span class="tag VOID">PAUSED</span>'}</div>
         <div class="actions"><button class="btn sm" data-action="edit-recurring-income" data-id="${U.esc(r.id)}">Edit</button>${U.bool(r.isActive) ? `<button class="btn sm danger" data-action="toggle-recurring-income" data-id="${U.esc(r.id)}" data-on="0">Pause</button>` : `<button class="btn sm" data-action="toggle-recurring-income" data-id="${U.esc(r.id)}" data-on="1">Resume</button>`}</div>
       </div>`).join('')}</div></div>`;
+  },
+
+  /* ============================== SAVINGS ============================== */
+  savings() {
+    const sv = Calc.savings();
+    const cur = sv.rows[sv.rows.length - 1];
+    const pct = r => r === null || r === undefined ? '—' : Math.round(r * 100) + '%';
+    const tone = v => v < 0 ? 'neg' : '';
+    Charts.pending = {};
+    const rows = sv.rows.slice().reverse();
+    return `${UI.cachedBanner()}
+      <div class="hero" style="margin-bottom:18px"><div><div class="eyebrow">Since ${U.esc(sv.openingDate ? U.fmtDate(sv.openingDate) : U.monthLabel(sv.start))}</div><h2 style="font-size:32px">Savings</h2><div class="sub">Income received − everything paid out</div></div></div>
+      <div class="stat-grid">
+        <div class="card kpi lead"><div class="label">Saved in ${U.esc(U.monthLabel(cur.month).split(' ')[0])} so far</div><div class="value ${cur.saved < 0 ? 'neg-light' : ''}">${U.peso(cur.saved, true)}</div><div class="meta">${cur.rate === null ? 'No income received yet this month' : 'Saved ' + pct(cur.rate) + ' of income received'}</div></div>
+        <div class="card kpi"><div class="label">Total saved</div><div class="value ${tone(sv.totalSaved)}">${U.peso(sv.totalSaved, true)}</div><div class="meta">${pct(sv.overallRate)} of ${U.peso(sv.totalIncome, true)} income</div></div>
+        <div class="card kpi"><div class="label">Average per month</div><div class="value ${tone(sv.average || 0)}">${sv.average === null ? '—' : U.peso(sv.average, true)}</div><div class="meta">${sv.average === null ? 'Shows after your first full month' : 'Completed months only'}</div></div>
+        <div class="card kpi"><div class="label">Cash on hand</div><div class="value ${tone(sv.openingBalance + sv.totalSaved)}">${U.peso(sv.openingBalance + sv.totalSaved, true)}</div><div class="meta">Starting balance ${U.peso(sv.openingBalance, true)} + total saved</div></div>
+      </div>
+      <div class="card" style="margin-bottom:18px">
+        <div class="card-head"><h3 class="card-title">Saved per month</h3><span class="sub" style="font-size:12.5px;color:var(--muted)">${sv.best ? 'Best: ' + U.esc(U.monthLabel(sv.best.month)) + ' · ' + U.peso(sv.best.saved, true) : ''}</span></div>
+        <div class="legend"><span><i style="background:var(--c-income)"></i>Saved</span><span><i style="background:var(--c-out)"></i>Spent more than received</span><span><i style="background:var(--c-income);opacity:.55"></i>This month (so far)</span></div>
+        ${Charts.register('savings', Charts.savings(sv.rows.slice(-12)))}
+      </div>
+      <div class="card">
+        <div class="table-scroll" style="padding:6px 12px 14px"><table class="report-table">
+          <thead><tr><th>Month</th><th class="n">Income received</th><th class="n">Bills paid</th><th class="n">Other expenses</th><th class="n">Saved</th><th class="n">Savings rate</th><th class="n">Running total</th></tr></thead>
+          <tbody>${rows.map(r => `<tr><td>${U.esc(U.monthLabel(r.month))}${r.partial ? ' <span class="sub" style="color:var(--muted)">(so far)</span>' : ''}</td><td class="n">${U.peso(r.income)}</td><td class="n">${U.peso(r.bills)}</td><td class="n">${U.peso(r.other)}</td><td class="n ${tone(r.saved)}"><b>${U.peso(r.saved)}</b></td><td class="n">${pct(r.rate)}</td><td class="n">${U.peso(r.running)}</td></tr>`).join('')}</tbody>
+        </table></div>
+        <div class="list-foot"><span class="sub" style="font-weight:500">Counted by the date money actually came in or went out.${sv.openingDate ? '' : ' Set a starting balance in Settings to fix the start date.'}</span></div>
+      </div>`;
   },
 
   /* ============================== BILLS ============================== */
@@ -2260,7 +2356,7 @@ const Forms = {
     });
   },
   more() {
-    Modal.open({ title: 'More', foot: null, body: `<div class="more-sheet">${['recurring', 'payments', 'reports', 'sync', 'settings'].map(id => `<a href="#/${id}" data-nav="${id}">${svgIcon(id, 20)}${VIEWS.find(v => v.id === id).label}${id === 'sync' && Store.queue.length ? ` <span class="tag PARTIAL" style="margin-left:auto">${Store.queue.length}</span>` : ''}</a>`).join('')}</div>` });
+    Modal.open({ title: 'More', foot: null, body: `<div class="more-sheet">${['savings', 'recurring', 'payments', 'reports', 'sync', 'settings'].map(id => `<a href="#/${id}" data-nav="${id}">${svgIcon(id, 20)}${VIEWS.find(v => v.id === id).label}${id === 'sync' && Store.queue.length ? ` <span class="tag PARTIAL" style="margin-left:auto">${Store.queue.length}</span>` : ''}</a>`).join('')}</div>` });
   }
 };
 
