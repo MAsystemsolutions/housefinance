@@ -221,6 +221,25 @@ textarea.input{min-height:76px;resize:vertical}
 .cc-use .bar i.hi{background:var(--partial)}.cc-use .bar i.max{background:var(--overdue)}
 .cc-use .meta{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:5px}
 .cc-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:10px;overflow:hidden;background:var(--surface)}
+.seg label{display:block;cursor:pointer}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg span{display:block;padding:8px 16px;font-size:14px;font-weight:600;color:var(--ink-2)}
+.seg input:checked + span{background:var(--ink);color:#F7F4EF}
+.seg input:focus-visible + span{outline:2px solid var(--focus);outline-offset:-2px}
+.sched-prev{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:13.5px}
+.sched-prev ol{list-style:none;margin:0;padding:0}
+.sched-prev li{display:flex;justify-content:space-between;gap:10px;padding:4px 0;border-bottom:1px dashed var(--line)}
+.sched-prev li:last-child{border-bottom:0}
+.inst-table{width:100%;border-collapse:collapse;font-size:13px;margin:0 0 12px}
+.inst-table th{text-align:left;font-size:10.5px;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);font-weight:700;padding:4px 6px;border-bottom:1px solid var(--line)}
+.inst-table td{padding:7px 6px;border-bottom:1px dashed var(--line);vertical-align:middle}
+.inst-table tr:last-child td{border-bottom:0}
+.inst-table .n{text-align:right;font-variant-numeric:tabular-nums}
+.inst-table tr.is-next td{background:color-mix(in srgb,var(--partial-bg) 60%,transparent)}
+.tag.DUE_SOON{color:var(--partial);background:var(--partial-bg)}.tag.UPCOMING{color:var(--unpaid);background:var(--unpaid-bg)}
+.cc-new{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px;padding:8px 12px;border-radius:10px;background:var(--partial-bg);color:var(--partial);font-size:13px}
+.cc-new b{color:var(--ink)}.cc-new .sub{font-size:11.5px;color:var(--ink-2)}
 .cc-hist{margin-top:14px;border-top:1px solid var(--line);padding-top:10px}
 .cc-hist summary{cursor:pointer;font-size:12.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);list-style:none}
 .cc-hist summary::-webkit-details-marker{display:none}
@@ -553,7 +572,7 @@ textarea.input{min-height:76px;resize:vertical}
  * Layers:  Util → LocalDB (IndexedDB) → Store (in-memory) → Calc (same rules as
  *          Code.gs) → Api (fetch or google.script.run) → Sync (queue engine) → UI
  * ========================================================================== */
-const APP_VERSION = '1.5.0';
+const APP_VERSION = '1.6.0';
 const TZ = 'Asia/Manila';
 const PAYMENT_METHODS = ['Cash', 'Bank Transfer', 'Online Bank', 'Credit Card', 'Debit Card', 'GCash', 'Other'];
 const FREQUENCIES = ['WEEKLY', 'BIWEEKLY', 'MONTHLY', 'QUARTERLY', 'YEARLY', 'CUSTOM'];
@@ -857,11 +876,12 @@ const Calc = {
       c.expectedIncome += U.cents(r.expectedAmount); c.actualIncome += U.cents(r.actualAmount);
     });
     const cardPaid = CardMath.paidInMonth(Store.list('cardPayments'), month);
-    let cardDue = 0;
+    let cardDue = 0, cardCharges = 0;
     Calc.cardSnap(today).open.forEach(o => { if (String(o.dueDate).slice(0, 7) === month) cardDue += o.remainingCents; });
+    Store.list('expenses').forEach(e => { if (!U.bool(e.isDeleted) && e.cardId && String(e.date).slice(0, 7) === month) cardCharges += U.cents(e.amount); });
     const planned = Calc.budgetFor(month);
     const budgetCents = Math.round(planned.amount * 100);
-    const totalSpent = c.actualBills + c.otherExpenses + cardPaid;
+    const totalSpent = c.actualBills + c.otherExpenses;
     const f = U.fromCents;
     const s = {
       month, monthlyBudget: f(budgetCents), budgetSource: planned.source,
@@ -869,8 +889,8 @@ const Calc = {
       partialBills: f(c.partialBills), overdueBills: f(c.overdueBills), overBudgetBills: f(c.overBudgetAmount),
       unpaidAmount: f(c.unpaidAmount), overBudgetAmount: f(c.overBudgetAmount), otherExpenses: f(c.otherExpenses),
       expectedIncome: f(c.expectedIncome), actualIncome: f(c.actualIncome), totalMoneyIn: f(c.actualIncome), totalMoneyOut: f(totalSpent),
-      totalSpent: f(totalSpent), projectedSpend: f(c.projected + c.otherExpenses + cardPaid + cardDue), remaining: f(budgetCents - totalSpent),
-      netCashFlow: f(c.actualIncome - c.actualBills - c.otherExpenses - cardPaid), cardPayments: f(cardPaid), cardDue: f(cardDue), settledUnderBudget: f(c.settledUnder), settledCount, counts,
+      totalSpent: f(totalSpent), projectedSpend: f(c.projected + c.otherExpenses), remaining: f(budgetCents - totalSpent),
+      netCashFlow: f(c.actualIncome - c.actualBills - c.otherExpenses), cardPayments: f(cardPaid), cardDue: f(cardDue), cardCharges: f(cardCharges), settledUnderBudget: f(c.settledUnder), settledCount, counts,
       byCategory: Object.keys(byCategory).map(k => ({ category: k, amount: f(byCategory[k]) })).filter(x => x.amount > 0).sort((a, b) => b.amount - a.amount),
       byBill: Object.keys(byBill).map(k => ({ name: byBill[k].name, expected: f(byBill[k].expected), actual: f(byBill[k].actual) })).sort((a, b) => b.expected - a.expected)
     };
@@ -934,7 +954,7 @@ const Calc = {
     Store.list('income').forEach(r => { if (!U.bool(r.isDeleted) && r.status !== 'CANCELLED' && !U.blank(r.actualAmount)) add(r.date, 'inc', U.cents(r.actualAmount)); });
     Store.list('payments').forEach(p => { if (!U.bool(p.isVoid)) add(p.paymentDate, 'bills', U.cents(p.amount)); });
     Store.list('cardPayments').forEach(p => { if (!U.bool(p.isVoid)) add(p.date, 'bills', U.cents(p.amount)); });
-    Store.list('expenses').forEach(e => { if (!U.bool(e.isDeleted)) add(e.date, 'other', U.cents(e.amount)); });
+    Store.list('expenses').forEach(e => { if (!U.bool(e.isDeleted) && !e.cardId) add(e.date, 'other', U.cents(e.amount)); });
     Store.list('loans').forEach(l => { if (!U.bool(l.isDeleted)) add(l.dateLent, 'lent', U.cents(l.amount)); });
     Store.list('loanRepayments').forEach(r => { if (!U.bool(r.isVoid)) add(r.date, 'back', U.cents(r.amount)); });
     Store.list('debts').forEach(x => { if (!U.bool(x.isDeleted) && U.bool(x.addToCash)) add(x.dateBorrowed, 'borrowed', U.cents(x.amount)); });
@@ -988,11 +1008,14 @@ const Calc = {
   /** Utang with derived paid / remaining / status (same rules as recalcDebt_ in Code.gs). */
   debt(x, today) {
     today = today || U.today();
-    const pays = Store.list('debtPayments').filter(r => r.debtId === x.debtId && !U.bool(r.isVoid)).sort((a, b) => (a.date < b.date ? -1 : 1));
-    const paid = pays.reduce((a, r) => a + U.cents(r.amount), 0), amt = U.cents(x.amount);
-    const d = Object.assign({}, x, { paidAmount: U.fromCents(paid), remainingAmount: U.fromCents(Math.max(0, amt - paid)), payments: pays, progress: amt > 0 ? Math.min(1, paid / amt) : 0 });
-    d.status = paid >= amt ? 'PAID' : (x.dueDate && x.dueDate < today) ? 'OVERDUE' : paid > 0 ? 'PARTIAL' : 'OPEN';
-    d.daysToDue = x.dueDate ? U.ymdToDays(x.dueDate) - U.ymdToDays(today) : null;
+    const all = Store.list('debtPayments');
+    const pays = all.filter(r => r.debtId === x.debtId && !U.bool(r.isVoid)).sort((a, b) => (a.date < b.date ? -1 : 1));
+    const plan = DebtMath.apply(x, all, today), amt = U.cents(x.amount);
+    const d = Object.assign({}, x, { paidAmount: U.fromCents(plan.paidCents), remainingAmount: U.fromCents(plan.remainingCents), payments: pays, progress: amt > 0 ? Math.min(1, plan.paidCents / amt) : 0, plan, status: plan.status });
+    /* the date that matters is the next unpaid installment (or the one due date) */
+    d.nextDue = plan.next && plan.next.dueDate ? plan.next.dueDate : '';
+    d.nextAmount = plan.next ? U.fromCents(plan.next.remainingCents) : 0;
+    d.daysToDue = d.nextDue ? U.ymdToDays(d.nextDue) - U.ymdToDays(today) : null;
     d.dueSoon = d.status !== 'PAID' && d.status !== 'OVERDUE' && d.daysToDue !== null && d.daysToDue <= 7;
     return d;
   },
@@ -1003,14 +1026,16 @@ const Calc = {
     const open = list.filter(x => x.status !== 'PAID');
     const sum = (a, k) => U.fromCents(a.reduce((s, x) => s + U.cents(x[k]), 0));
     const soon = open.filter(x => x.dueSoon);
+    soon.forEach(x => { x.soonCents = U.cents(x.nextAmount); });
     return {
-      owed: sum(open, 'remainingAmount'), openCount: open.length, overdue: open.filter(x => x.status === 'OVERDUE'), dueSoon: soon, dueSoonAmount: sum(soon, 'remainingAmount'),
+      owed: sum(open, 'remainingAmount'), openCount: open.length, overdue: open.filter(x => x.status === 'OVERDUE'), dueSoon: soon, dueSoonAmount: U.fromCents(soon.reduce((a, x) => a + x.soonCents, 0)),
+      overdueAmount: U.fromCents(open.reduce((a, x) => a + x.plan.dueItems.filter(it => it.dueDate < today).reduce((s2, it) => s2 + it.amountCents, 0), 0)),
       paidThisMonth: U.fromCents(Store.list('debtPayments').filter(r => !U.bool(r.isVoid) && String(r.date).slice(0, 7) === cm).reduce((s, r) => s + U.cents(r.amount), 0)),
-      next: open.filter(x => x.dueDate).sort((a, b) => (a.dueDate < b.dueDate ? -1 : 1))[0] || null, list
+      next: open.filter(x => x.nextDue).sort((a, b) => (a.nextDue < b.nextDue ? -1 : 1))[0] || null, list
     };
   },
   /** Credit card balances & statement statuses (CardMath — same rules as Code.gs). */
-  cardSnap(today) { return CardMath.derive(Store.list('cards'), Store.list('cardStatements'), Store.list('cardPayments'), today || U.today()); },
+  cardSnap(today) { return CardMath.derive(Store.list('cards'), Store.list('cardStatements'), Store.list('cardPayments'), today || U.today(), Store.list('expenses')); },
   cards(today) {
     today = today || U.today();
     const snap = Calc.cardSnap(today), f = U.fromCents;
@@ -1020,8 +1045,11 @@ const Calc = {
         .map(x => Object.assign({}, x, { id: x.statementId, raw: Store.get('cardStatements', x.statementId), payments: pays.filter(p => p.statementId === x.statementId).sort((a, b) => (a.date < b.date ? -1 : 1)) }));
       const latest = sts.find(x => x.isLatest) || null;
       const balance = latest ? f(latest.remainingCents) : 0, limit = U.cents(k.creditLimit);
+      const dk = snap.cards.find(z => z.cardId === k.cardId) || {};
+      const newCharges = f(dk.newChargesCents || 0), newChargesCount = dk.newChargesCount || 0;
       const daysToDue = latest && latest.dueDate ? U.ymdToDays(latest.dueDate) - U.ymdToDays(today) : null;
-      return Object.assign({}, k, { statements: sts, latest, balance, limit: f(limit), usage: limit > 0 ? Math.min(1, (latest ? latest.remainingCents : 0) / limit) : null, daysToDue, open: !!latest && latest.remainingCents > 0 });
+      const charges = Store.list('expenses').filter(e => !U.bool(e.isDeleted) && e.cardId === k.cardId && String(e.date) > String(latest ? latest.statementDate : '')).sort((a, b) => (a.date < b.date ? 1 : -1));
+      return Object.assign({}, k, { statements: sts, latest, balance, newCharges, newChargesCount, charges, limit: f(limit), usage: limit > 0 ? Math.min(1, ((latest ? latest.remainingCents : 0) + (dk.newChargesCents || 0)) / limit) : null, daysToDue, open: !!latest && latest.remainingCents > 0 });
     }).sort((a, b) => String(a.bank || '').localeCompare(String(b.bank || '')) || String(a.name).localeCompare(String(b.name)));
   },
   cardTotals(today) {
@@ -1029,8 +1057,8 @@ const Calc = {
     const list = Calc.cards(today), cm = today.slice(0, 7);
     const open = list.filter(k => k.open);
     const next = open.filter(k => k.latest.dueDate).sort((a, b) => (a.latest.dueDate < b.latest.dueDate ? -1 : 1))[0] || null;
-    const limit = list.reduce((a, k) => a + U.cents(k.limit), 0), owedWithLimit = list.filter(k => k.limit > 0).reduce((a, k) => a + U.cents(k.balance), 0);
-    return { list, owed: U.fromCents(list.reduce((a, k) => a + U.cents(k.balance), 0)), openCount: open.length, next, late: open.filter(k => k.latest.status === 'OVERDUE' || k.latest.status === 'MIN PAID'),
+    const limit = list.reduce((a, k) => a + U.cents(k.limit), 0), owedWithLimit = list.filter(k => k.limit > 0).reduce((a, k) => a + U.cents(k.balance) + U.cents(k.newCharges), 0);
+    return { list, newCharges: U.fromCents(list.reduce((a, k) => a + U.cents(k.newCharges), 0)), owed: U.fromCents(list.reduce((a, k) => a + U.cents(k.balance), 0)), openCount: open.length, next, late: open.filter(k => k.latest.status === 'OVERDUE' || k.latest.status === 'MIN PAID'),
       paidThisMonth: U.fromCents(CardMath.paidInMonth(Store.list('cardPayments'), cm)), available: limit > 0 ? U.fromCents(limit - owedWithLimit) : null, limit: U.fromCents(limit) };
   },
   /** Smart Financial Insight for a month — same rules as generateFinancialInsight() in Code.gs. */
@@ -1048,7 +1076,7 @@ const Calc = {
     let incomeIn = 0, billsOut = 0, otherOut = 0;
     Store.list('income').forEach(r => { if (U.bool(r.isDeleted) || r.status === 'CANCELLED' || U.blank(r.actualAmount) || String(r.date) < openingDate) return; incomeIn += U.cents(r.actualAmount); });
     Store.list('payments').forEach(p => { if (U.bool(p.isVoid) || String(p.paymentDate) < openingDate) return; billsOut += U.cents(p.amount); });
-    Store.list('expenses').forEach(e => { if (U.bool(e.isDeleted) || String(e.date) < openingDate) return; otherOut += U.cents(e.amount); });
+    Store.list('expenses').forEach(e => { if (U.bool(e.isDeleted) || e.cardId || String(e.date) < openingDate) return; otherOut += U.cents(e.amount); });
     let lentOut = 0, repaidIn = 0;
     Store.list('loans').forEach(l => { if (!U.bool(l.isDeleted) && String(l.dateLent) >= openingDate) lentOut += U.cents(l.amount); });
     Store.list('loanRepayments').forEach(r => { if (!U.bool(r.isVoid) && String(r.date) >= openingDate) repaidIn += U.cents(r.amount); });
@@ -1064,8 +1092,8 @@ const Calc = {
     const horizon = next ? next.date : U.addDays(today, 31);
     const before = instances.filter(i => !i.isVoid && i.status !== ST.PAID && i.status !== ST.OVER && i.dueDate < horizon).sort((a, b) => (a.dueDate < b.dueDate ? -1 : 1));
     const billsCommitted = before.reduce((a, i) => a + Math.max(0, U.cents(i.expectedAmount) - U.cents(i.actualAmount)), 0);
-    const debtsBefore = Calc.debts(today).filter(x => x.dueDate && x.dueDate < horizon && U.cents(x.remainingAmount) > 0);
-    const debtCommitted = debtsBefore.reduce((a, x) => a + U.cents(x.remainingAmount), 0);
+    const debtsBefore = Calc.debts(today).map(x => Object.assign(x, { dueBeforeCents: x.plan.dueItems.filter(it => it.dueDate < horizon).reduce((a, it) => a + it.amountCents, 0) })).filter(x => x.dueBeforeCents > 0);
+    const debtCommitted = debtsBefore.reduce((a, x) => a + x.dueBeforeCents, 0);
     const cardsBefore = Calc.cardSnap(today).open.filter(o => o.dueDate && o.dueDate < horizon);
     const cardCommitted = cardsBefore.reduce((a, o) => a + o.remainingCents, 0);
     const committed = billsCommitted + debtCommitted + cardCommitted;
@@ -1363,6 +1391,77 @@ const Sync = {
 };
 
 /* =============================================================================
+ *  UTANG MATH  (shared — the identical code runs in Code.gs and index.html)
+ *  An utang is either one-time (one optional due date) or paid in INSTALLMENTS:
+ *  N payments of a set amount, the first on firstDueDate, then monthly / every
+ *  2 weeks / weekly. The last installment absorbs any rounding difference.
+ *  Payments fill the installments oldest-first; the date of the payment that
+ *  completes an installment is its "date paid".
+ *    Installment status: PAID · OVERDUE · PARTIAL · DUE SOON (≤ 7 days) · UPCOMING
+ *    Utang status:       PAID · OVERDUE (any installment late) · PARTIAL · OPEN
+ * ========================================================================== */
+var DebtMath = (function () {
+  var FREQUENCIES = ['MONTHLY', 'BIWEEKLY', 'WEEKLY'];
+  function c(v) { if (v === '' || v === null || v === undefined) return 0; var n = Number(v); return isFinite(n) ? Math.round(n * 100) : 0; }
+  function bool(v) { return v === true || String(v).toLowerCase() === 'true'; }
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function ymd(s) { return typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s); }
+  function dim(y, m) { return new Date(Date.UTC(y, m, 0)).getUTCDate(); }
+  function addDays(s, n) { var d = new Date(Date.UTC(+s.slice(0, 4), +s.slice(5, 7) - 1, +s.slice(8, 10)) + n * 86400000); return d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate()); }
+  function addMonthsKeepDay(s, i) {
+    var idx = (+s.slice(0, 4)) * 12 + (+s.slice(5, 7) - 1) + i, y = Math.floor(idx / 12), m = idx % 12 + 1;
+    return y + '-' + pad(m) + '-' + pad(Math.min(+s.slice(8, 10), dim(y, m)));
+  }
+  function isInstallment(x) { return String(x.planType || '') === 'INSTALLMENT' && parseInt(x.installmentCount, 10) >= 1 && ymd(String(x.firstDueDate || '')); }
+  /** [{ n, dueDate, amountCents }] — one item for a one-time utang. */
+  function schedule(x) {
+    var total = c(x.amount);
+    if (!isInstallment(x)) return [{ n: 1, dueDate: ymd(String(x.dueDate || '')) ? String(x.dueDate) : '', amountCents: total }];
+    var n = Math.min(360, parseInt(x.installmentCount, 10)), per = c(x.installmentAmount) || Math.round(total / n);
+    var freq = FREQUENCIES.indexOf(x.installmentFrequency) >= 0 ? x.installmentFrequency : 'MONTHLY';
+    var first = String(x.firstDueDate), out = [], used = 0;
+    for (var i = 0; i < n; i++) {
+      var amt = i === n - 1 ? total - used : Math.min(per, total - used);
+      if (amt <= 0) break;
+      used += amt;
+      var due = freq === 'MONTHLY' ? addMonthsKeepDay(first, i) : addDays(first, (freq === 'BIWEEKLY' ? 14 : 7) * i);
+      out.push({ n: i + 1, dueDate: due, amountCents: amt });
+    }
+    return out;
+  }
+  function apply(x, payments, today) {
+    var pays = (payments || []).filter(function (p) { return p.debtId === x.debtId && !bool(p.isVoid); })
+      .sort(function (a, b) { return String(a.date) < String(b.date) ? -1 : String(a.date) > String(b.date) ? 1 : (String(a.createdAt || '') < String(b.createdAt || '') ? -1 : 1); });
+    var total = c(x.amount), paid = 0, last = '';
+    var items = schedule(x).map(function (s) { return { n: s.n, dueDate: s.dueDate, amountCents: s.amountCents, paidCents: 0, paidDate: '' }; });
+    var k = 0;
+    pays.forEach(function (p) {
+      var left = c(p.amount);
+      paid += left;
+      if (String(p.date) > last) last = String(p.date);
+      while (left > 0 && k < items.length) {
+        var it = items[k], take = Math.min(it.amountCents - it.paidCents, left);
+        it.paidCents += take; left -= take;
+        if (it.paidCents >= it.amountCents) { it.paidDate = String(p.date); k++; }
+      }
+    });
+    var soon = addDays(today, 7);
+    items.forEach(function (it) {
+      it.remainingCents = Math.max(0, it.amountCents - it.paidCents);
+      it.status = it.remainingCents <= 0 ? 'PAID' : (it.dueDate && it.dueDate < today) ? 'OVERDUE' : it.paidCents > 0 ? 'PARTIAL' : (it.dueDate && it.dueDate <= soon) ? 'DUE SOON' : 'UPCOMING';
+    });
+    var open = items.filter(function (it) { return it.remainingCents > 0; });
+    var status = paid >= total ? 'PAID' : items.some(function (it) { return it.status === 'OVERDUE'; }) ? 'OVERDUE' : paid > 0 ? 'PARTIAL' : 'OPEN';
+    return {
+      installment: isInstallment(x), items: items, paidCents: paid, remainingCents: Math.max(0, total - paid), status: status,
+      next: status === 'PAID' ? null : (open[0] || null), paidCount: items.length - open.length, count: items.length, lastPaymentDate: last,
+      dueItems: status === 'PAID' ? [] : open.filter(function (it) { return it.dueDate; }).map(function (it) { return { n: it.n, dueDate: it.dueDate, amountCents: it.remainingCents }; })
+    };
+  }
+  return { schedule: schedule, apply: apply, isInstallment: isInstallment, FREQUENCIES: FREQUENCIES };
+})();
+
+/* =============================================================================
  *  CREDIT CARD MATH  (shared — the identical code runs in Code.gs and index.html)
  *  Each card gets a monthly statement (balance, minimum due, due date). Payments
  *  are recorded against a statement. Only the LATEST statement of a card is open:
@@ -1374,6 +1473,8 @@ const Sync = {
  *    MIN PAID      due date passed, at least the minimum paid, rest carries over
  *    PARTIAL       some paid, not due yet
  *    UNPAID        nothing paid, not due yet
+ *  New charges = expenses charged to the card (cardId) after its latest statement
+ *  date — what will show up on the next statement.
  * ========================================================================== */
 var CardMath = (function () {
   function c(v) { if (v === '' || v === null || v === undefined) return 0; var n = Number(v); return isFinite(n) ? Math.round(n * 100) : 0; }
@@ -1385,7 +1486,7 @@ var CardMath = (function () {
   /**
    * @return {{ statements: Array, cards: Array, open: Array }} amounts in centavos (…Cents fields)
    */
-  function derive(cards, statements, payments, today) {
+  function derive(cards, statements, payments, today, expenses) {
     var cardById = {};
     (cards || []).forEach(function (k) { cardById[k.cardId] = k; });
     var pays = {};
@@ -1409,7 +1510,9 @@ var CardMath = (function () {
     out.forEach(function (s) { byId[s.statementId] = s; });
     var cardList = (cards || []).filter(function (k) { return !bool(k.isDeleted); }).map(function (k) {
       var ls = latest[k.cardId] ? byId[latest[k.cardId].statementId] : null;
-      return { cardId: k.cardId, name: k.name, balanceCents: ls ? ls.remainingCents : 0, limitCents: c(k.creditLimit), latest: ls };
+      var since = ls ? String(ls.statementDate) : '', nc = 0, ncCount = 0;
+      (expenses || []).forEach(function (e) { if (!bool(e.isDeleted) && e.cardId === k.cardId && String(e.date) > since) { nc += c(e.amount); ncCount++; } });
+      return { cardId: k.cardId, name: k.name, balanceCents: ls ? ls.remainingCents : 0, limitCents: c(k.creditLimit), latest: ls, newChargesCents: nc, newChargesCount: ncCount };
     });
     var open = out.filter(function (s) { return s.isLatest && s.remainingCents > 0 && !s.cardDeleted; });
     return { statements: out, cards: cardList, open: open };
@@ -1440,7 +1543,7 @@ var CardMath = (function () {
  *                 − a safety buffer
  * ========================================================================== */
 var FinancialInsight = (function () {
-  var RULES_VERSION = '1.2';
+  var RULES_VERSION = '1.4';
   var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   var MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
@@ -1523,7 +1626,7 @@ var FinancialInsight = (function () {
     (d.budgets || []).forEach(function (b) { if (b.month === M) row = b; });
     if (row && !blank(row.plannedAmount)) budget = c(row.plannedAmount); else budget = c(st.defaultMonthlyBudget || 0);
     var cardPaidM = CardMath.paidInMonth(d.cardPayments, M);
-    var spent = paid + other + cardPaidM;
+    var spent = paid + other;
     var budgetRemaining = budget - spent;
     var budgetUsed = budget > 0 ? spent / budget : 0;
 
@@ -1542,7 +1645,7 @@ var FinancialInsight = (function () {
     var cash = c(st.openingBalance || 0);
     (d.income || []).forEach(function (r) { if (!bool(r.isDeleted) && r.status !== 'CANCELLED' && !blank(r.actualAmount) && String(r.date) >= openingDate && String(r.date) <= today) cash += c(r.actualAmount); });
     (d.payments || []).forEach(function (p) { if (!bool(p.isVoid) && String(p.paymentDate) >= openingDate && String(p.paymentDate) <= today) cash -= c(p.amount); });
-    (d.expenses || []).forEach(function (e) { if (!bool(e.isDeleted) && String(e.date) >= openingDate && String(e.date) <= today) cash -= c(e.amount); });
+    (d.expenses || []).forEach(function (e) { if (!bool(e.isDeleted) && !e.cardId && String(e.date) >= openingDate && String(e.date) <= today) cash -= c(e.amount); });
     (d.loans || []).forEach(function (l) { if (!bool(l.isDeleted) && String(l.dateLent) >= openingDate && String(l.dateLent) <= today) cash -= c(l.amount); });
     (d.loanRepayments || []).forEach(function (r) { if (!bool(r.isVoid) && String(r.date) >= openingDate && String(r.date) <= today) cash += c(r.amount); });
     (d.debts || []).forEach(function (x) { if (!bool(x.isDeleted) && bool(x.addToCash) && String(x.dateBorrowed) >= openingDate && String(x.dateBorrowed) <= today) cash += c(x.amount); });
@@ -1562,16 +1665,19 @@ var FinancialInsight = (function () {
     var utangOwed = 0, utangDue = 0, utangDueList = [], overdueDebts = [], dueSoonDebts = [];
     (d.debts || []).forEach(function (x) {
       if (bool(x.isDeleted)) return;
-      var paidOff = 0;
-      (d.debtPayments || []).forEach(function (r) { if (r.debtId === x.debtId && !bool(r.isVoid)) paidOff += c(r.amount); });
-      var rem = c(x.amount) - paidOff;
-      if (rem <= 0) return;
-      utangOwed += rem;
-      if (mode === 'past' || !x.dueDate || x.dueDate > monthEnd) return;
-      utangDue += rem;
-      utangDueList.push({ name: x.lender, amount: rem, dueDate: x.dueDate });
-      if (x.dueDate < today) overdueDebts.push({ lender: x.lender, amount: rem, dueDate: x.dueDate });
-      else if (x.dueDate <= addDaysStr(today, 7)) dueSoonDebts.push({ lender: x.lender, amount: rem, dueDate: x.dueDate });
+      var a = DebtMath.apply(x, d.debtPayments, today);
+      if (a.remainingCents <= 0) return;
+      utangOwed += a.remainingCents;
+      if (mode === 'past') return;
+      var od = 0, odFirst = '';
+      a.dueItems.forEach(function (it) {
+        if (it.dueDate > monthEnd) return;
+        utangDue += it.amountCents;
+        utangDueList.push({ name: x.lender, amount: it.amountCents, dueDate: it.dueDate });
+        if (it.dueDate < today) { od += it.amountCents; if (!odFirst) odFirst = it.dueDate; }
+      });
+      if (od > 0) overdueDebts.push({ lender: x.lender, amount: od, dueDate: odFirst });
+      else if (a.next && a.next.dueDate && a.next.dueDate >= today && a.next.dueDate <= addDaysStr(today, 7)) dueSoonDebts.push({ lender: x.lender, amount: a.next.remainingCents, dueDate: a.next.dueDate, inst: a.installment ? a.next.n + ' of ' + a.count : '' });
     });
     /* money lent out that is still owed (expected back, but never counted as spendable) */
     var owed = 0, overdueLoans = [], dueSoonLoans = [];
@@ -1588,7 +1694,7 @@ var FinancialInsight = (function () {
     var available, stillComing;
     if (mode === 'current') { available = cash; stillComing = upcomingInc; }
     else if (mode === 'future') { available = 0; stillComing = pending; }
-    else { available = actInc - paid - other - cardPaidM; stillComing = 0; }
+    else { available = actInc - paid - other; stillComing = 0; }
     var safe = available + stillComing - totalRemaining - utangDue - cardsDue - planned - buffer;
 
     /* ---------- next income & cash crunch (current month) ---------- */
@@ -1614,7 +1720,7 @@ var FinancialInsight = (function () {
     /* ---------- status ---------- */
     var status, reasons = [];
     if (mode === 'past') {
-      var result = actInc - paid - other - cardPaidM;
+      var result = actInc - paid - other;
       if ((result < 0 && remaining > 0) || budgetUsed >= 1.25) status = 'CRITICAL';
       else if (result < 0 || overdue.length >= 2 || budgetUsed > 1) status = 'WARNING';
       else if (remaining > 0 || late > 0 || budgetUsed >= 0.9) status = 'CAUTION';
@@ -1650,9 +1756,9 @@ var FinancialInsight = (function () {
     var nextText = nextIncome ? (nextIncome.source + ' on ' + dshort(nextIncome.date)) : '';
     var headline, comment;
     if (mode === 'past') {
-      var res = actInc - paid - other - cardPaidM;
+      var res = actInc - paid - other;
       headline = { COMFORTABLE: mn + ' finished comfortably.', STABLE: mn + ' finished on budget, with a thin margin.', CAUTION: mn + ' closed with loose ends.', WARNING: mn + ' cost more than it brought in.', CRITICAL: mn + ' ended in a serious shortfall.' }[status];
-      comment = 'The household received ' + peso(actInc) + ' and paid out ' + peso(paid + other + cardPaidM) + ', ' + (res >= 0 ? 'leaving ' + peso(res) + '.' : 'a shortfall of ' + peso(-res) + '.') +
+      comment = 'The household received ' + peso(actInc) + ' and spent ' + peso(paid + other) + ', ' + (res >= 0 ? 'leaving ' + peso(res) + '.' : 'a shortfall of ' + peso(-res) + '.') +
         (remaining > 0 ? ' ' + plural(unpaid.length, 'bill') + ' from that month (' + peso(remaining) + ') are still unpaid.' : ' Every bill for the month was paid.');
     } else if (mode === 'future') {
       headline = { COMFORTABLE: mn + ' looks comfortable on paper.', STABLE: mn + ' looks manageable.', CAUTION: mn + ' will be tight.', WARNING: mn + ' needs planning now.', CRITICAL: mn + ' does not add up yet.' }[status];
@@ -1698,7 +1804,7 @@ var FinancialInsight = (function () {
     if (mode !== 'past' && overdueCards.length) { var oc = overdueCards.sort(function (a, b) { return a.dueDate < b.dueDate ? -1 : 1; })[0]; add('cardOverdue', oc.status === 'MIN PAID' ? 'Your ' + oc.name + ' minimum was paid, but ' + peso(oc.amount) + ' is still on the card (due ' + dshort(oc.dueDate) + ') and will collect interest.' : 'Your ' + oc.name + ' payment was due ' + dshort(oc.dueDate) + ' — pay at least the ' + peso(oc.minLeft) + ' minimum now to avoid late fees (' + peso(oc.amount) + ' to clear it).'); }
     else if (mode === 'current' && dueSoonCards.length) { var dc = dueSoonCards.sort(function (a, b) { return a.dueDate < b.dueDate ? -1 : 1; })[0]; add('cardDue', 'Your ' + dc.name + ' balance (' + peso(dc.amount) + ') is due ' + dshort(dc.dueDate) + '. It is already set aside in your safe-to-spend.'); }
     if (mode !== 'past' && overdueDebts.length) { var od = overdueDebts.sort(function (a, b) { return a.dueDate < b.dueDate ? -1 : 1; }); add('debtOverdue', od.length === 1 ? 'Your utang to ' + od[0].lender + ' (' + peso(od[0].amount) + ') was due ' + dshort(od[0].dueDate) + '.' : plural(od.length, 'utang', 'utang') + ' are past due, totaling ' + peso(od.reduce(function (s, x) { return s + x.amount; }, 0)) + '.'); }
-    else if (mode === 'current' && dueSoonDebts.length) { var ds = dueSoonDebts.sort(function (a, b) { return a.dueDate < b.dueDate ? -1 : 1; })[0]; add('debtDue', 'Your utang to ' + ds.lender + ' (' + peso(ds.amount) + ') is due ' + dshort(ds.dueDate) + '. It is already set aside in your safe-to-spend.'); }
+    else if (mode === 'current' && dueSoonDebts.length) { var ds = dueSoonDebts.sort(function (a, b) { return a.dueDate < b.dueDate ? -1 : 1; })[0]; add('debtDue', (ds.inst ? 'Installment ' + ds.inst + ' to ' + ds.lender : 'Your utang to ' + ds.lender) + ' (' + peso(ds.amount) + ') is due ' + dshort(ds.dueDate) + '. It is already set aside in your safe-to-spend.'); }
     if (crunch && reasons[0] !== 'crunch') add('crunch', peso(crunch.amount) + ' in bills is due before ' + (crunch.until ? dshort(crunch.until) : 'month end') + ', but only ' + peso(Math.max(0, crunch.cash)) + ' is on hand.');
     if (mode === 'current') {
       var big = upcoming.filter(function (o) { return o.dueDate >= today && o.dueDate <= addDaysStr(today, 7) && o.amount >= Math.max(500000, expInc * 0.05); })
@@ -1709,7 +1815,7 @@ var FinancialInsight = (function () {
     if (mode !== 'past' && overdueLoans.length) { var ol = overdueLoans.sort(function (a, b) { return b.amount - a.amount; }); add('loanOverdue', (ol.length === 1 ? ol[0].borrower + ' still owes ' + peso(ol[0].amount) + ' (was due ' + dshort(ol[0].dueDate) + ')' : plural(ol.length, 'person', 'people') + ' are past their repayment date, owing ' + peso(ol.reduce(function (s, x) { return s + x.amount; }, 0))) + '. It isn\u2019t counted as spendable until it\u2019s repaid.'); }
     else if (mode === 'current' && dueSoonLoans.length) add('loanDue', dueSoonLoans[0].borrower + ' is expected to repay ' + peso(dueSoonLoans[0].amount) + ' by ' + dshort(dueSoonLoans[0].dueDate) + '.');
     if (spent > budget && budget > 0) add('overBudget', 'Household spending is currently ' + peso(spent - budget) + ' above your monthly budget.');
-    else if (mode !== 'past' && budget > 0 && paid + totalRemaining + other + cardPaidM + cardsDue + planned > budget) add('projectedOver', 'At this pace the month will end about ' + peso(paid + totalRemaining + other + cardPaidM + cardsDue + planned - budget) + ' over your ' + peso(budget) + ' budget.');
+    else if (mode !== 'past' && budget > 0 && paid + totalRemaining + other + planned > budget) add('projectedOver', 'At this pace the month will end about ' + peso(paid + totalRemaining + other + planned - budget) + ' over your ' + peso(budget) + ' budget.');
     if (mode !== 'past' && safe >= 0 && safe < 500000) add('lowRoom', 'Your safe-to-spend amount is below ' + peso(500000) + '. Consider limiting discretionary spending.');
     if (unpaid.length >= 2) add('unpaid', 'You still have ' + plural(unpaid.length, 'unpaid recurring bill') + ' this month totaling ' + peso(remaining) + '.');
     if (overBills.length) { var ob = overBills.sort(function (a, b) { return b.over - a.over; })[0]; add('billAbove', ob.name + ' came in ' + peso(ob.over) + ' above its expected amount.'); }
@@ -2140,7 +2246,7 @@ const Views = {
       <div class="kpis">
         ${kpi('Monthly Budget', s.monthlyBudget, `${s.budgetSource === 'month' ? 'Planned for ' + U.monthLabel(Store.month) : 'Default budget'} · <a href="#" data-action="edit-budget" style="color:inherit">Adjust</a>`, 'lead')}
         ${kpi('Expected', s.expectedBills, `${scheduled} bill${scheduled === 1 ? '' : 's'} scheduled this month${s.settledUnderBudget > 0 ? ` · <span class="under">${U.peso(s.settledUnderBudget, true)} under on settled bills</span>` : ''}`)}
-        ${kpi('Actual', s.totalSpent, `Bills ${U.peso(s.actualBills, true)} · Other ${U.peso(s.otherExpenses, true)}${s.cardPayments ? ' · Cards ' + U.peso(s.cardPayments, true) : ''}`)}
+        ${kpi('Actual', s.totalSpent, `Bills ${U.peso(s.actualBills, true)} · Other ${U.peso(s.otherExpenses, true)}${s.cardCharges ? ' (incl. ' + U.peso(s.cardCharges, true) + ' on cards)' : ''}`)}
         ${kpi('Remaining', s.remaining, s.remaining < 0 ? 'Over the planned budget' : 'Budget left after spending', '', s.remaining < 0 ? '--overdue' : '--paid')}
         ${kpi('Unpaid', s.unpaidAmount, `${unpaidN} open · ${s.counts.OVERDUE} overdue`, '', s.counts.OVERDUE ? '--overdue' : '')}
         ${kpi('Over Budget', s.overBudgetAmount, `${s.counts['OVER BUDGET']} bill${s.counts['OVER BUDGET'] === 1 ? '' : 's'} above expected`, '', s.overBudgetAmount > 0 ? '--over' : '')}
@@ -2358,7 +2464,7 @@ const Views = {
       <div class="toolbar"><div class="left"><h2 class="section-title">Credit Cards</h2><span class="sub" style="color:var(--muted)">Balances, due dates and payments per card</span></div><button class="btn primary" data-action="add-card">${svgIcon('plus', 16)} Add card</button></div>
       ${oldBill && !t.list.length ? `<div class="banner" style="margin-bottom:14px">When you add your first card, the old <b>${U.esc(oldBill.name)}</b> recurring bill (${U.peso(oldBill.amount, true)}/month) is switched off so card payments aren't counted twice. Past payments stay in your history.</div>` : ''}
       ${t.list.length ? `<div class="loan-stats">
-        ${stat('cs-owe', 'Total card balance', U.peso(t.owed, true), t.openCount ? `${t.openCount} card${t.openCount === 1 ? '' : 's'} to pay` : 'All cards paid 🎉')}
+        ${stat('cs-owe', 'Total card balance', U.peso(t.owed, true), (t.openCount ? `${t.openCount} card${t.openCount === 1 ? '' : 's'} to pay` : 'All cards paid 🎉') + (t.newCharges ? ` · <b>+${U.peso(t.newCharges, true)}</b> new charges` : ''))}
         ${stat('cs-next', 'Next due', nx ? U.esc(U.fmtDate(nx.latest.dueDate).replace(/, \d{4}$/, '')) : '—', nxMeta)}
         ${stat('cs-paid', 'Paid this month', U.peso(t.paidThisMonth, true), t.late.length ? `<span class="neg">${t.late.length} past due</span>` : 'Nothing past due')}
         ${stat('cs-avail', 'Available credit', t.available === null ? '—' : U.peso(t.available, true), t.available === null ? 'Add credit limits to see this' : 'of ' + U.peso(t.limit, true) + ' total limit')}
@@ -2392,12 +2498,14 @@ const Views = {
         <div class="cc-body">
           <div class="cc-due">${dueLine}</div>
           ${L && L.status !== 'PAID' && L.paidCents ? `<div class="sub" style="margin-top:6px;font-size:12.5px;color:var(--muted)">Paid ${U.peso(U.fromCents(L.paidCents), true)} of ${U.peso(U.fromCents(L.balanceCents), true)} statement</div>` : ''}
+          ${k.newChargesCount ? `<div class="cc-new"><span>+ <b>${U.peso(k.newCharges, true)}</b> new charges${L ? ' since ' + U.esc(U.fmtDate(L.statementDate).replace(/, \d{4}$/, '')) : ''} · ${k.newChargesCount} purchase${k.newChargesCount === 1 ? '' : 's'}</span><span class="sub">on your next statement</span></div>` : ''}
           ${use}
           <div class="cc-actions">
             ${L && L.remainingCents > 0 ? `<button class="btn sm pay" data-action="card-pay" data-id="${U.esc(k.id)}">Record payment</button>` : ''}
             <button class="btn sm ${L ? '' : 'pay'}" data-action="add-statement" data-id="${U.esc(k.id)}">${L ? 'New statement' : 'Add statement'}</button>
             <button class="btn sm ghost" data-action="edit-card" data-id="${U.esc(k.id)}">Edit card</button>
           </div>
+          ${k.charges.length ? `<details class="cc-hist"><summary>New charges (${k.charges.length}) ›</summary>${k.charges.map(e => `<div class="cc-st"><div class="cc-st-head"><span><b>${U.peso(e.amount)}</b> <span class="sub">${U.esc(U.fmtDate(e.date))} · ${U.esc(e.description)} · ${U.esc(e.category || '')}</span> ${localTag(e)}</span><button class="btn sm ghost" data-action="edit-expense" data-id="${U.esc(e.id)}">Edit</button></div></div>`).join('')}</details>` : ''}
           ${hist}
         </div>
       </article>`;
@@ -2412,14 +2520,14 @@ const Views = {
     t.list.forEach(x => { if (x.status !== 'PAID') counts.open++; if (x.dueSoon) counts.soon++; if (counts[x.status] !== undefined) counts[x.status]++; });
     const stat = (cls, label, value, meta) => `<div class="loan-stat ${cls}"><div class="label">${label}</div><div class="value">${value}</div><div class="meta">${meta}</div></div>`;
     const nx = t.next;
-    const nextMeta = nx ? `${U.esc(nx.lender)} · ${U.peso(nx.remainingAmount, true)}${nx.daysToDue < 0 ? ' · <span class="neg">' + (-nx.daysToDue) + ' day' + (nx.daysToDue === -1 ? '' : 's') + ' late</span>' : nx.daysToDue === 0 ? ' · today' : ' · in ' + nx.daysToDue + ' day' + (nx.daysToDue === 1 ? '' : 's')}` : 'No due dates set';
+    const nextMeta = nx ? `${U.esc(nx.lender)} · ${U.peso(nx.nextAmount, true)}${nx.plan.installment ? ' (#' + nx.plan.next.n + ' of ' + nx.plan.count + ')' : ''}${nx.daysToDue < 0 ? ' · <span class="neg">' + (-nx.daysToDue) + ' day' + (nx.daysToDue === -1 ? '' : 's') + ' late</span>' : nx.daysToDue === 0 ? ' · today' : ' · in ' + nx.daysToDue + ' day' + (nx.daysToDue === 1 ? '' : 's')}` : 'No due dates set';
     return `${UI.cachedBanner()}
       <div class="toolbar"><div class="left"><h2 class="section-title">My Utang</h2><span class="sub" style="color:var(--muted)">Money you owe to other people</span></div><button class="btn primary" data-action="add-debt">${svgIcon('plus', 16)} Add utang</button></div>
       <div class="loan-stats">
         ${stat('us-owe', 'Total utang left', U.peso(t.owed, true), t.openCount ? `${t.openCount} utang to pay` : 'You don’t owe anyone 🎉')}
-        ${stat('us-next', 'Next due', nx ? U.esc(U.fmtDate(nx.dueDate).replace(/, \d{4}$/, '')) : '—', nextMeta)}
+        ${stat('us-next', 'Next due', nx ? U.esc(U.fmtDate(nx.nextDue).replace(/, \d{4}$/, '')) : '—', nextMeta)}
         ${stat('us-soon', 'Due in 7 days', U.peso(t.dueSoonAmount, true), t.dueSoon.length ? `${t.dueSoon.length} utang · set aside in safe-to-spend` : 'Nothing due this week')}
-        ${stat('us-paid', 'Paid this month', U.peso(t.paidThisMonth, true), t.overdue.length ? `<span class="neg">${t.overdue.length} overdue · ${U.peso(t.overdue.reduce((a, x) => a + x.remainingAmount, 0), true)}</span>` : 'Nothing overdue')}
+        ${stat('us-paid', 'Paid this month', U.peso(t.paidThisMonth, true), t.overdue.length ? `<span class="neg">${t.overdue.length} overdue · ${U.peso(t.overdueAmount, true)}</span>` : 'Nothing overdue')}
       </div>
       <div class="chips" style="margin-top:4px">${[['open', 'Still to pay'], ['soon', 'Due soon'], ['OVERDUE', 'Overdue'], ['PAID', 'Fully paid'], ['all', 'All']].map(c => `<button class="chip ${f.status === c[0] ? 'on' : ''}" data-action="debt-chip" data-status="${c[0]}">${c[1]} <b>${counts[c[0]]}</b></button>`).join('')}</div>
       <div class="filters" style="margin-bottom:14px"><div class="field grow"><label for="fuS">Search</label><input id="fuS" class="input" type="search" placeholder="Name or note" value="${U.esc(f.search)}" data-filter="utang.search"></div></div>
@@ -2427,32 +2535,40 @@ const Views = {
   },
   utangList() {
     const f = UI.filters.utang, q = f.search.trim().toLowerCase();
-    const rank = x => (x.status === 'OVERDUE' ? 0 : x.status === 'PAID' ? 3 : x.dueDate ? 1 : 2);
+    const rank = x => (x.status === 'OVERDUE' ? 0 : x.status === 'PAID' ? 3 : x.nextDue ? 1 : 2);
     const list = Calc.debts().filter(x => (f.status === 'all' || (f.status === 'open' ? x.status !== 'PAID' : f.status === 'soon' ? x.dueSoon : x.status === f.status)) &&
       (!q || [x.lender, x.notes].join(' ').toLowerCase().includes(q)))
-      .sort((a, b) => (rank(a) - rank(b)) || ((a.dueDate || '9999') < (b.dueDate || '9999') ? -1 : (a.dueDate || '9999') > (b.dueDate || '9999') ? 1 : 0));
+      .sort((a, b) => (rank(a) - rank(b)) || ((a.nextDue || '9999') < (b.nextDue || '9999') ? -1 : (a.nextDue || '9999') > (b.nextDue || '9999') ? 1 : 0));
     if (!list.length) return `<div class="card empty"><div class="section-title">${Store.list('debts').length ? 'Nothing here' : 'No utang yet'}</div>${Store.list('debts').length ? 'Try another filter.' : 'Add what you owe — who, how much and when it’s due — and the app will remind you and set the money aside before the due date.'}<div style="margin-top:14px"><button class="btn primary" data-action="add-debt">Add utang</button></div></div>`;
     return `<div class="loan-grid">${list.map(x => {
       const color = avatarColor(x.lender);
       const open = f.open[x.id];
       const done = x.status === 'PAID';
+      const P = x.plan, nx = P.next;
+      const instTxt = P.installment && nx ? `#${nx.n} of ${P.count} · ${U.peso(x.nextAmount, true)} ` : '';
       let due = 'No due date', dueCls = '';
-      if (!done && x.dueDate) {
-        if (x.daysToDue < 0) { due = `Overdue · ${-x.daysToDue} day${x.daysToDue === -1 ? '' : 's'} late (was due ${U.fmtDate(x.dueDate).replace(/, \d{4}$/, '')})`; dueCls = 'late'; }
-        else if (x.daysToDue === 0) { due = 'Due today'; dueCls = 'soon'; }
-        else if (x.daysToDue <= 7) { due = `Due soon · in ${x.daysToDue} day${x.daysToDue === 1 ? '' : 's'} · ${U.fmtDay(x.dueDate)}`; dueCls = 'soon'; }
-        else due = 'Due ' + U.fmtDate(x.dueDate);
+      if (!done && x.nextDue) {
+        if (x.daysToDue < 0) { due = `${instTxt}Overdue · ${-x.daysToDue} day${x.daysToDue === -1 ? '' : 's'} late (was due ${U.fmtDate(x.nextDue).replace(/, \d{4}$/, '')})`; dueCls = 'late'; }
+        else if (x.daysToDue === 0) { due = instTxt + 'Due today'; dueCls = 'soon'; }
+        else if (x.daysToDue <= 7) { due = `${instTxt}Due in ${x.daysToDue} day${x.daysToDue === 1 ? '' : 's'} · ${U.fmtDay(x.nextDue)}`; dueCls = 'soon'; }
+        else due = instTxt + 'Due ' + U.fmtDate(x.nextDue);
       } else if (done) { const last = x.payments[x.payments.length - 1]; due = 'Fully paid' + (last ? ' · ' + U.fmtDate(last.date) : ''); dueCls = 'done'; }
+      const tagCls = st => st.replace(' ', '_');
+      const instTable = P.installment ? `<div class="t-label" style="margin-bottom:6px">Installments · ${P.paidCount} of ${P.count} paid</div>
+          <div class="table-scroll"><table class="inst-table"><thead><tr><th>#</th><th>Due date</th><th class="n">Amount</th><th>Status</th><th>Date paid</th></tr></thead><tbody>
+          ${P.items.map(it => `<tr class="${nx && it.n === nx.n ? 'is-next' : ''}"><td>${it.n}</td><td>${U.esc(U.fmtDate(it.dueDate))}</td><td class="n">${U.peso(U.fromCents(it.amountCents), true)}${it.status === 'PARTIAL' || (it.status === 'OVERDUE' && it.paidCents) ? `<div class="sub" style="font-size:11.5px;color:var(--muted)">${U.peso(U.fromCents(it.remainingCents), true)} left</div>` : ''}</td><td><span class="tag ${tagCls(it.status)}">${U.esc(it.status)}</span></td><td>${it.paidDate ? U.esc(U.fmtDate(it.paidDate)) : '<span style="color:var(--muted)">—</span>'}</td></tr>`).join('')}
+          </tbody></table></div>` : '';
       return `<article class="loan-card s-${x.status} ${open ? 'open' : ''}" style="--av:${color}">
         <button class="loan-head" data-action="debt-toggle" data-id="${U.esc(x.id)}" aria-expanded="${open ? 'true' : 'false'}">
           <span class="avatar">${U.esc(initials(x.lender))}</span>
-          <span class="who"><b>${U.esc(x.lender)}</b> ${localTag(x)}<span class="sub">Borrowed ${U.esc(U.fmtDate(x.dateBorrowed))}${x.paymentMethod ? ' · pay via ' + U.esc(x.paymentMethod) : ''}</span></span>
+          <span class="who"><b>${U.esc(x.lender)}</b> ${localTag(x)}<span class="sub">${P.installment ? U.esc(P.count + ' × ' + U.peso(x.installmentAmount, true) + ' ' + ({ MONTHLY: 'monthly', BIWEEKLY: 'every 2 weeks', WEEKLY: 'weekly' }[x.installmentFrequency] || 'monthly')) : 'Borrowed ' + U.esc(U.fmtDate(x.dateBorrowed))}${x.paymentMethod ? ' · pay via ' + U.esc(x.paymentMethod) : ''}</span></span>
           <span class="amt"><b>${U.peso(done ? x.amount : x.remainingAmount, true)}</b><span class="sub">${done ? 'paid off' : 'left of ' + U.peso(x.amount, true)}</span></span>
           <span class="chev" aria-hidden="true">›</span>
         </button>
-        <div class="loan-prog"><div class="bar utang"><i style="--p:${x.progress}"></i></div><div class="prog-meta"><span>${Math.round(x.progress * 100)}% paid</span><span class="due ${dueCls}">${U.esc(due)}</span></div></div>
+        <div class="loan-prog"><div class="bar utang"><i style="--p:${x.progress}"></i></div><div class="prog-meta"><span>${P.installment ? P.paidCount + ' of ' + P.count + ' paid' : Math.round(x.progress * 100) + '% paid'}</span><span class="due ${dueCls}">${U.esc(due)}</span></div></div>
         <div class="loan-more">
           ${x.notes ? `<p class="loan-note">${U.esc(x.notes)}</p>` : ''}
+          ${instTable}
           <div class="t-label" style="margin-bottom:6px">Payments</div>
           ${x.payments.length ? `<ol class="timeline">${x.payments.map(r => `<li><span class="dot"></span><span class="tl-main"><b>${U.peso(r.amount)}</b> · ${U.esc(U.fmtDate(r.date))} · ${U.esc(r.paymentMethod || '')} ${localTag(r)}${r.notes ? `<span class="sub">${U.esc(r.notes)}</span>` : ''}</span><button class="btn sm ghost" data-action="void-debt-payment" data-id="${U.esc(r.id)}" title="Remove this payment">Undo</button></li>`).join('')}</ol>` : '<p class="sub" style="margin:0 0 10px;color:var(--muted)">No payments yet.</p>'}
           <div class="loan-actions">
@@ -2555,7 +2671,7 @@ const Views = {
   expensesList() {
     const f = UI.filters.expenses, q = f.search.trim().toLowerCase();
     const list = Store.list('expenses').filter(e => !U.bool(e.isDeleted) && this.dateScope(f, e.date) && (!f.category || e.category === f.category) &&
-      (!q || [e.description, e.category, e.notes, e.paymentMethod].join(' ').toLowerCase().includes(q))).sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : (a.createdAt < b.createdAt ? 1 : -1)));
+      (!q || [e.description, e.category, e.notes, e.paymentMethod, e.cardId ? (Store.get('cards', e.cardId) || {}).name : ''].join(' ').toLowerCase().includes(q))).sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : (a.createdAt < b.createdAt ? 1 : -1)));
     if (!list.length) return `<div class="empty"><div class="section-title">No expenses</div>Nothing recorded for ${U.esc(this.scopeLabel(f))}.<div style="margin-top:14px"><button class="btn primary" data-action="add-expense">Add expense</button></div></div>`;
     const total = list.reduce((a, e) => a + U.cents(e.amount), 0);
     return `<div class="list"><div class="row head cols-exp"><div>Date</div><div>Description</div><div>Category</div><div>Method</div><div class="num">Amount</div><div></div></div>
@@ -2563,7 +2679,7 @@ const Views = {
         <div data-label="Date">${U.fmtDate(e.date)}</div>
         <div class="primary-cell"><div class="name">${U.esc(e.description)} ${localTag(e)}</div>${e.notes ? `<div class="sub">${U.esc(e.notes)}</div>` : ''}</div>
         <div data-label="Category">${U.esc(e.category)}</div>
-        <div data-label="Method">${U.esc(e.paymentMethod)}</div>
+        <div data-label="Method">${e.cardId ? `<span title="Charged to this card">${U.esc((Store.get('cards', e.cardId) || {}).name || 'Credit Card')}</span>` : U.esc(e.paymentMethod)}</div>
         <div class="num status-cell"><b>${U.peso(e.amount)}</b></div>
         <div class="actions"><button class="btn sm" data-action="edit-expense" data-id="${U.esc(e.id)}">Edit</button><button class="btn sm danger" data-action="delete-expense" data-id="${U.esc(e.id)}">Delete</button></div>
       </div>`).join('')}</div>
@@ -3081,6 +3197,7 @@ const Forms = {
   expense(id) {
     const cur = id ? Store.get('expenses', id) : null;
     const expenseId = cur ? cur.id : U.uid('EXP');
+    const cards = Store.list('cards').filter(k => !U.bool(k.isDeleted) || (cur && cur.cardId === k.cardId)).sort((a, b) => String(a.name).localeCompare(b.name));
     Modal.open({
       title: cur ? 'Edit expense' : 'Add expense', eyebrow: 'Other expenses',
       body: `<div class="form-grid">
@@ -3089,13 +3206,19 @@ const Forms = {
         ${F.text('description', 'Description', cur ? cur.description : '', { required: true, full: true, attrs: 'placeholder="e.g. Weekly groceries"' })}
         ${F.select('category', 'Category', Store.categories('EXPENSE'), cur ? cur.category : 'Groceries')}
         ${F.select('paymentMethod', 'Payment method', PAYMENT_METHODS, cur ? cur.paymentMethod : 'Cash')}
+        ${cards.length ? `<div class="field full" id="cardPick" ${(cur ? cur.paymentMethod : 'Cash') === 'Credit Card' ? '' : 'hidden'}><label for="f_cardId">Which card?</label><select id="f_cardId" name="cardId" class="input">${cards.map(k => `<option value="${U.esc(k.cardId)}" ${cur && cur.cardId === k.cardId ? 'selected' : ''}>${U.esc(k.name)}${k.last4 ? ' •••• ' + U.esc(k.last4) : ''}</option>`).join('')}<option value="" ${cur && cur.paymentMethod === 'Credit Card' && !cur.cardId ? 'selected' : ''}>Other card (not tracked)</option></select><span class="hint">Counts as spending today. It does not leave your cash until you pay the card — it shows on the card as a new charge.</span></div>` : ''}
         ${F.notes(cur ? cur.notes : '')}</div>`,
       foot: `${cur ? '<button type="button" class="btn danger" data-action="delete-expense" data-id="' + U.esc(cur.id) + '" style="margin-right:auto">Delete</button>' : ''}<button type="button" class="btn" data-close>Cancel</button><button type="submit" class="btn primary">${cur ? 'Save changes' : 'Save expense'}</button>`,
+      onOpen(form) {
+        const pm = form.querySelector('[name=paymentMethod]'), box = form.querySelector('#cardPick');
+        if (box) pm.addEventListener('change', () => { box.hidden = pm.value !== 'Credit Card'; });
+      },
       async onSubmit(fd) {
-        const rec = { date: F.date10(fd, 'date', 'Date'), description: F.req(fd, 'description', 'Description'), category: fd.get('category'), amount: F.amount(fd, 'amount', 'Amount', { positive: true }), paymentMethod: fd.get('paymentMethod'), notes: String(fd.get('notes') || '').trim() };
+        const method = fd.get('paymentMethod');
+        const rec = { date: F.date10(fd, 'date', 'Date'), description: F.req(fd, 'description', 'Description'), category: fd.get('category'), amount: F.amount(fd, 'amount', 'Amount', { positive: true }), paymentMethod: method, cardId: method === 'Credit Card' ? String(fd.get('cardId') || '') : '', notes: String(fd.get('notes') || '').trim() };
         const outcome = cur ? await Data.update('expenses', cur.id, rec, Modal.current.opId) : await Data.create('expenses', Object.assign({ expenseId, isDeleted: false }, rec), Modal.current.opId);
         Modal.close();
-        if (outcome === 'nochange') UI.toast('No changes to save.'); else UI.saveOutcome(outcome, 'Expense');
+        if (outcome === 'nochange') UI.toast('No changes to save.'); else UI.saveOutcome(outcome, rec.cardId ? 'Charge on ' + ((Store.get('cards', rec.cardId) || {}).name || 'card') : 'Expense');
         UI.refresh();
       }
     });
@@ -3379,22 +3502,71 @@ const Forms = {
   debt(id) {
     const cur = id ? Store.get('debts', id) : null;
     const debtId = cur ? cur.id : U.uid('DEBT');
+    const inst = !!cur && DebtMath.isInstallment(cur);
     const names = Array.from(new Set(Store.list('debts').map(x => String(x.lender || '').trim()).filter(Boolean))).sort();
     const opening = Store.settings.openingBalanceDate || '';
     Modal.open({
       title: cur ? 'Edit utang' : 'Add utang', eyebrow: 'My utang',
       body: `<div class="form-grid">
         <div class="field full"><label for="f_lender">Who do you owe?</label><input id="f_lender" name="lender" class="input" list="lenderList" maxlength="120" value="${U.esc(cur ? cur.lender : '')}" placeholder="e.g. Tita Nena, Home Credit, BPI loan" required><datalist id="lenderList">${names.map(n => `<option value="${U.esc(n)}">`).join('')}</datalist></div>
-        ${F.money('amount', 'How much do you owe?', cur ? cur.amount : '', { required: true, hint: cur ? 'The full amount you borrowed. Payments are recorded separately.' : 'If you already paid some of it, enter the full amount and record what you paid with “Record payment”.' })}
-        ${F.date('dueDate', 'Due date', cur ? cur.dueDate : '', { hint: 'When you need to pay it. Leave blank if there is no fixed date.' })}
+        ${F.money('amount', 'Total amount you owe', cur ? cur.amount : '', { required: true, hint: cur ? 'The full amount. Payments are recorded separately.' : 'If you already paid some of it, enter the full amount and record what you paid with “Record payment”.' })}
         ${F.date('dateBorrowed', 'Date borrowed', cur ? cur.dateBorrowed : U.today(), { required: true })}
+        <div class="field full"><label>How will you pay it?</label><div class="seg" role="radiogroup">
+          <label><input type="radio" name="planType" value="ONE_TIME" ${inst ? '' : 'checked'}><span>One time</span></label>
+          <label><input type="radio" name="planType" value="INSTALLMENT" ${inst ? 'checked' : ''}><span>Installments</span></label></div></div>
+        <div class="full form-grid" id="oneTimeBox" style="margin:0" ${inst ? 'hidden' : ''}>
+          ${F.date('dueDate', 'Due date', cur && !inst ? cur.dueDate : '', { hint: 'When you need to pay it. Leave blank if there is no fixed date.' })}
+        </div>
+        <div class="full form-grid" id="instBox" style="margin:0" ${inst ? '' : 'hidden'}>
+          ${F.text('installmentCount', 'Number of installments', inst ? cur.installmentCount : '', { type: 'number', attrs: 'min="1" max="360" inputmode="numeric" placeholder="e.g. 6"' })}
+          ${F.select('installmentFrequency', 'How often', [{ value: 'MONTHLY', label: 'Monthly' }, { value: 'BIWEEKLY', label: 'Every 2 weeks' }, { value: 'WEEKLY', label: 'Weekly' }], inst ? cur.installmentFrequency : 'MONTHLY')}
+          ${F.date('firstDueDate', 'First due date', inst ? cur.firstDueDate : '', {})}
+          ${F.money('installmentAmount', 'Amount per installment', inst ? cur.installmentAmount : '', { hint: 'Filled in for you (total ÷ number). Change it if your plan says otherwise — the last one covers any difference.' })}
+          <div class="field full"><label>Schedule</label><div id="schedPreview" class="sched-prev"><span class="sub">Enter the total, number of installments and first due date.</span></div></div>
+        </div>
         ${F.select('paymentMethod', 'Usually pay via', PAYMENT_METHODS, cur ? cur.paymentMethod : 'GCash')}
         <label class="check-row full"><input type="checkbox" name="addToCash" value="1" ${cur && U.bool(cur.addToCash) ? 'checked' : ''}><span><b>Add this money to my cash on hand</b><br>Tick only if you received the cash${opening ? ' on or after your starting balance date (' + U.esc(U.fmtDate(opening)) + ')' : ''}. Leave unticked for older utang — that money is already in your starting balance or already spent.</span></label>
         ${F.notes(cur ? cur.notes : '')}
         <p class="full sub" style="margin:0;color:var(--muted)">Payments you record take money out of your cash on hand. If there's a due date, what's still unpaid is set aside in your safe-to-spend before it's due — like a bill. Utang is not counted as an expense in your monthly budget.</p></div>`,
       foot: `${cur ? `<button type="button" class="btn danger" data-action="delete-debt" data-id="${U.esc(cur.id)}" style="margin-right:auto">Delete</button>` : ''}<button type="button" class="btn" data-close>Cancel</button><button type="submit" class="btn primary">${cur ? 'Save changes' : 'Save utang'}</button>`,
+      onOpen(form) {
+        const q = n => form.querySelector('[name=' + n + ']');
+        const box1 = form.querySelector('#oneTimeBox'), box2 = form.querySelector('#instBox'), prev = form.querySelector('#schedPreview');
+        let perTouched = inst;
+        q('installmentAmount').addEventListener('input', () => { perTouched = true; draw(); });
+        const draw = () => {
+          const isInst = form.querySelector('[name=planType]:checked').value === 'INSTALLMENT';
+          box1.hidden = isInst; box2.hidden = !isInst;
+          if (!isInst) return;
+          const total = U.parseMoney(q('amount').value), n = parseInt(q('installmentCount').value, 10), first = q('firstDueDate').value;
+          if (!perTouched && total > 0 && n >= 1) q('installmentAmount').value = (Math.round(total / n * 100) / 100).toFixed(2);
+          const per = U.parseMoney(q('installmentAmount').value);
+          if (!(total > 0) || !(n >= 1) || !U.isYmd(first)) { prev.innerHTML = '<span class="sub">Enter the total, number of installments and first due date.</span>'; return; }
+          const sch = DebtMath.schedule({ planType: 'INSTALLMENT', amount: total, installmentCount: n, installmentAmount: per > 0 ? per : '', installmentFrequency: q('installmentFrequency').value, firstDueDate: first });
+          const bad = per > 0 && U.cents(per) * (n - 1) >= U.cents(total);
+          prev.innerHTML = bad ? '<span class="neg">The installments add up to more than the total. Lower the amount per installment.</span>' :
+            `<ol>${sch.slice(0, 12).map(x => `<li><span>#${x.n} · ${U.esc(U.fmtDay(x.dueDate))}${x.dueDate.slice(0, 4) !== first.slice(0, 4) ? ', ' + x.dueDate.slice(0, 4) : ''}</span><b>${U.peso(U.fromCents(x.amountCents))}</b></li>`).join('')}${sch.length > 12 ? `<li><span>… ${sch.length - 12} more, last on ${U.esc(U.fmtDate(sch[sch.length - 1].dueDate))}</span><b></b></li>` : ''}</ol>`;
+        };
+        form.querySelectorAll('[name=planType]').forEach(r => r.addEventListener('change', draw));
+        ['amount', 'installmentCount', 'firstDueDate', 'installmentFrequency'].forEach(n => { q(n).addEventListener('input', draw); q(n).addEventListener('change', draw); });
+        draw();
+      },
       async onSubmit(fd) {
-        const rec = { lender: F.req(fd, 'lender', 'Who you owe'), amount: F.amount(fd, 'amount', 'Amount owed', { positive: true }), dateBorrowed: F.date10(fd, 'dateBorrowed', 'Date borrowed'), dueDate: F.date10(fd, 'dueDate', 'Due date', true), paymentMethod: fd.get('paymentMethod'), addToCash: fd.get('addToCash') === '1', notes: String(fd.get('notes') || '').trim() };
+        const planType = fd.get('planType') === 'INSTALLMENT' ? 'INSTALLMENT' : 'ONE_TIME';
+        const rec = { lender: F.req(fd, 'lender', 'Who you owe'), amount: F.amount(fd, 'amount', 'Amount owed', { positive: true }), dateBorrowed: F.date10(fd, 'dateBorrowed', 'Date borrowed'), dueDate: planType === 'ONE_TIME' ? F.date10(fd, 'dueDate', 'Due date', true) : '', paymentMethod: fd.get('paymentMethod'), addToCash: fd.get('addToCash') === '1', notes: String(fd.get('notes') || '').trim(),
+          planType, installmentAmount: '', installmentCount: '', installmentFrequency: '', firstDueDate: '' };
+        if (planType === 'INSTALLMENT') {
+          const n = parseInt(fd.get('installmentCount'), 10);
+          if (!(n >= 1 && n <= 360)) throw new Error('Number of installments must be between 1 and 360.');
+          rec.installmentCount = n;
+          rec.installmentFrequency = fd.get('installmentFrequency');
+          rec.firstDueDate = F.date10(fd, 'firstDueDate', 'First due date');
+          rec.installmentAmount = F.amount(fd, 'installmentAmount', 'Amount per installment', { positive: true });
+          if (rec.firstDueDate < rec.dateBorrowed) throw new Error('The first due date cannot be before the date you borrowed it.');
+          if (U.cents(rec.installmentAmount) * (n - 1) >= U.cents(rec.amount)) throw new Error('The installments add up to more than the amount owed.');
+          const sch = DebtMath.schedule(rec);
+          rec.dueDate = sch[sch.length - 1].dueDate;
+        }
         if (rec.dueDate && rec.dueDate < rec.dateBorrowed) throw new Error('The due date cannot be before the date you borrowed it.');
         const outcome = cur ? await Data.update('debts', cur.id, rec, Modal.current.opId) : await Data.create('debts', Object.assign({ debtId, isDeleted: false }, rec), Modal.current.opId);
         Modal.close();
@@ -3412,7 +3584,7 @@ const Forms = {
       title: 'Record payment', eyebrow: 'Utang · ' + x.lender,
       body: `<div class="summary-box"><div><span>Owed</span><b>${U.peso(x.amount)}</b></div><div><span>Paid so far</span><b>${U.peso(x.paidAmount)}</b></div><div><span>Still to pay</span><b>${U.peso(x.remainingAmount)}</b></div></div>
         <div class="form-grid">
-          ${F.money('amount', 'Amount paid', x.remainingAmount, { required: true, hint: '&nbsp;' })}
+          ${F.money('amount', 'Amount paid', x.plan.installment && x.plan.next ? x.nextAmount : x.remainingAmount, { required: true, hint: '&nbsp;' })}
           ${F.date('date', 'Date paid', U.today(), { required: true })}
           ${F.select('paymentMethod', 'Paid via', PAYMENT_METHODS, x.paymentMethod || 'Cash', { full: true })}
           ${F.notes('')}
@@ -3420,7 +3592,17 @@ const Forms = {
       foot: `<button type="button" class="btn" data-close>Cancel</button><button type="submit" class="btn primary">Save payment</button>`,
       onOpen(form) {
         const amt = form.querySelector('[name=amount]'), hint = form.querySelector('#h_amount');
-        const upd = () => { const v = U.parseMoney(amt.value); if (isNaN(v) || v === '') { hint.textContent = ''; return; } const left = U.fromCents(U.cents(x.remainingAmount) - U.cents(v)); hint.innerHTML = left > 0 ? `You will still owe <b>${U.esc(U.peso(left))}</b>.` : left === 0 ? '<b>Fully paid</b> after this.' : `That is <b>${U.esc(U.peso(-left))}</b> more than what you owe.`; };
+        const upd = () => {
+          const v = U.parseMoney(amt.value); if (isNaN(v) || v === '') { hint.textContent = ''; return; }
+          const left = U.fromCents(U.cents(x.remainingAmount) - U.cents(v));
+          let what = '';
+          if (x.plan.installment && left >= 0) {
+            let money = U.cents(v); const covered = [];
+            x.plan.items.filter(it => it.remainingCents > 0).forEach(it => { if (money <= 0) return; const take = Math.min(money, it.remainingCents); money -= take; covered.push('#' + it.n + (take < it.remainingCents ? ' (part)' : '')); });
+            what = covered.length ? `Pays installment ${covered.join(', ')}. ` : '';
+          }
+          hint.innerHTML = what + (left > 0 ? `You will still owe <b>${U.esc(U.peso(left))}</b>.` : left === 0 ? '<b>Fully paid</b> after this.' : `That is <b>${U.esc(U.peso(-left))}</b> more than what you owe.`);
+        };
         amt.addEventListener('input', upd); upd();
       },
       async onSubmit(fd) {
@@ -3428,7 +3610,7 @@ const Forms = {
         const outcome = await Data.create('debtPayments', { debtPaymentId, debtId: x.debtId, lender: x.lender, date: F.date10(fd, 'date', 'Date paid'), amount, paymentMethod: fd.get('paymentMethod'), notes: String(fd.get('notes') || '').trim(), isVoid: false }, Modal.current.opId);
         Modal.close();
         const after = Calc.debt(Store.get('debts', x.id));
-        if (outcome === 'synced' || outcome === 'local') UI.toast(after.status === 'PAID' ? `✓ Your utang to ${x.lender} is fully paid.` : `Paid ${U.peso(amount, true)} to ${x.lender} · ${U.peso(after.remainingAmount, true)} left.`);
+        if (outcome === 'synced' || outcome === 'local') UI.toast(after.status === 'PAID' ? `✓ Your utang to ${x.lender} is fully paid.` : `Paid ${U.peso(amount, true)} to ${x.lender} · ${U.peso(after.remainingAmount, true)} left${after.plan.installment ? ' · ' + after.plan.paidCount + ' of ' + after.plan.count + ' installments paid' : ''}.`);
         if (outcome !== 'synced') UI.saveOutcome(outcome, 'Payment');
         UI.filters.utang.open[x.id] = true;
         UI.refresh();
