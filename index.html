@@ -193,6 +193,43 @@ textarea.input{min-height:76px;resize:vertical}
 .loan-stat .value{font-family:var(--serif);font-size:30px;font-weight:600;margin-top:6px;color:var(--ink);font-variant-numeric:lining-nums tabular-nums}
 .loan-stat .meta{font-size:12.5px;color:var(--ink-2);margin-top:2px}
 .ls-lent{--c:#7B4B94;--bg:#EFE6F3}.ls-back{--c:#3E7A55;--bg:#E6F0E9}.ls-late{--c:#B0363A;--bg:#F6E1DF}
+.us-owe{--c:#B0363A;--bg:#F6E1DF}.us-soon{--c:#94661A;--bg:#F5ECD8}.us-paid{--c:#3E7A55;--bg:#E6F0E9}.us-next{--c:#2470A8;--bg:#E3EEF7}
+.loan-card.s-PAID{opacity:.92}
+.loan-prog .bar.utang i{background:linear-gradient(90deg,#2470A8,#5B93C4)}
+/* ---------- Credit cards ---------- */
+.cs-owe{--c:#8E1B1F;--bg:#F6E1DF}.cs-next{--c:#2470A8;--bg:#E3EEF7}.cs-paid{--c:#3E7A55;--bg:#E6F0E9}.cs-avail{--c:#7B4B94;--bg:#EFE6F3}
+.cc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:16px}
+.cc{background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);overflow:hidden}
+.cc-face{--g1:#2B2926;--g2:#57524B;position:relative;padding:18px 20px 16px;color:#FFF;background:linear-gradient(135deg,var(--g1),var(--g2));min-height:150px;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden}
+.cc-face::after{content:'';position:absolute;right:-40px;top:-50px;width:170px;height:170px;border-radius:50%;background:rgba(255,255,255,.08)}
+.cc-face::before{content:'';position:absolute;right:30px;bottom:-70px;width:150px;height:150px;border-radius:50%;background:rgba(255,255,255,.06)}
+.cc-face.b-BPI{--g1:#7A1418;--g2:#C8323A}.cc-face.b-RCBC{--g1:#0B3D91;--g2:#2D7BD8}.cc-face.b-BDO{--g1:#0A2A6B;--g2:#1F57B5}.cc-face.b-Metrobank{--g1:#123A7A;--g2:#3C6FC0}.cc-face.b-UnionBank{--g1:#C2560E;--g2:#F08A2C}.cc-face.b-Security_Bank{--g1:#0F5A3A;--g2:#2A9466}
+.cc-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;position:relative;z-index:1}
+.cc-bank{font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:700;opacity:.85}
+.cc-name{font-family:var(--serif);font-size:20px;font-weight:600;margin-top:2px}
+.cc-chip{width:34px;height:25px;border-radius:5px;background:linear-gradient(135deg,#E9D29A,#B8954D);box-shadow:inset 0 0 0 1px rgba(0,0,0,.15);flex:none}
+.cc-bottom{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;position:relative;z-index:1;margin-top:16px}
+.cc-bal{font-family:var(--serif);font-size:30px;font-weight:600;font-variant-numeric:lining-nums tabular-nums;line-height:1}
+.cc-bal-l{font-size:11px;letter-spacing:1.4px;text-transform:uppercase;opacity:.8;margin-bottom:4px}
+.cc-num{font-family:ui-monospace,Menlo,monospace;font-size:13px;letter-spacing:2px;opacity:.85}
+.cc-body{padding:14px 18px 16px}
+.cc-due{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;font-size:13.5px;color:var(--ink-2)}
+.cc-due b{color:var(--ink)}
+.cc-use{margin-top:12px}
+.cc-use .bar{height:8px;border-radius:8px;background:var(--surface-3);overflow:hidden}
+.cc-use .bar i{display:block;height:100%;border-radius:8px;background:var(--paid);width:calc(var(--p) * 100%)}
+.cc-use .bar i.hi{background:var(--partial)}.cc-use .bar i.max{background:var(--overdue)}
+.cc-use .meta{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:5px}
+.cc-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.cc-hist{margin-top:14px;border-top:1px solid var(--line);padding-top:10px}
+.cc-hist summary{cursor:pointer;font-size:12.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);list-style:none}
+.cc-hist summary::-webkit-details-marker{display:none}
+.cc-st{padding:10px 0;border-bottom:1px dashed var(--line);font-size:13.5px}
+.cc-st:last-child{border-bottom:0}
+.cc-st-head{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap}
+.cc-st .sub{font-size:12px;color:var(--muted)}
+.cc-st .timeline{margin:8px 0 4px}
+.tag.MIN_PAID{color:var(--partial);background:var(--partial-bg)}.tag.CARRIED_OVER{color:var(--void);background:var(--void-bg)}
 .avatar{width:44px;height:44px;border-radius:50%;flex:none;display:grid;place-items:center;font-weight:700;font-size:15px;letter-spacing:.5px;color:#fff;background:var(--av,#2470A8);box-shadow:0 0 0 3px #fff,0 0 0 4px color-mix(in srgb,var(--av,#2470A8) 35%,transparent)}
 .avatar.sm{width:30px;height:30px;font-size:11.5px;box-shadow:none}
 .owe-card{margin-bottom:6px}
@@ -257,6 +294,15 @@ textarea.input{min-height:76px;resize:vertical}
 .tag{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-size:11.5px;font-weight:700;letter-spacing:.6px;white-space:nowrap}
 .tag::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor}
 .tag.PAID{color:var(--paid);background:var(--paid-bg)}
+.tag.SETTLED{color:var(--paid);background:var(--paid-bg);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--paid) 30%,transparent)}
+.under{color:var(--paid);font-weight:600}
+.settle-box{display:flex;align-items:flex-start;gap:12px;background:var(--paid-bg);border:1px solid color-mix(in srgb,var(--paid) 25%,transparent);border-radius:12px;padding:12px 14px;margin:0 0 16px;font-size:13.5px;color:var(--ink-2)}
+.settle-box b{color:var(--ink)}
+.settle-box .grow{flex:1}
+.settle-box.off{background:var(--surface-2);border-color:var(--line)}
+.check-row{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2);cursor:pointer;font-size:13.5px;color:var(--ink-2)}
+.check-row input{width:18px;height:18px;margin:1px 0 0;accent-color:var(--paid);flex:none}
+.check-row b{color:var(--ink)}
 .tag.PARTIAL{color:var(--partial);background:var(--partial-bg)}
 .tag.UNPAID{color:var(--unpaid);background:var(--unpaid-bg)}
 .tag.OVERDUE{color:var(--overdue);background:var(--overdue-bg)}
@@ -282,7 +328,7 @@ textarea.input{min-height:76px;resize:vertical}
 .row .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 .row .actions{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}
 .row:hover:not(.head){background:var(--surface-2)}
-.cols-bills{grid-template-columns:minmax(150px,2fr) 110px 110px 110px 110px 120px 180px}
+.cols-bills{grid-template-columns:minmax(150px,2fr) 110px 110px 110px 120px 120px 230px}
 .cols-exp{grid-template-columns:110px minmax(150px,2fr) 130px 130px 120px 130px}
 .cols-inc{grid-template-columns:110px minmax(140px,2fr) 110px 120px 120px 110px 130px}
 .cols-pay{grid-template-columns:110px minmax(150px,2fr) 110px 130px minmax(100px,1fr) 100px}
@@ -507,7 +553,7 @@ textarea.input{min-height:76px;resize:vertical}
  * Layers:  Util → LocalDB (IndexedDB) → Store (in-memory) → Calc (same rules as
  *          Code.gs) → Api (fetch or google.script.run) → Sync (queue engine) → UI
  * ========================================================================== */
-const APP_VERSION = '1.3.0';
+const APP_VERSION = '1.5.0';
 const TZ = 'Asia/Manila';
 const PAYMENT_METHODS = ['Cash', 'Bank Transfer', 'Online Bank', 'Credit Card', 'Debit Card', 'GCash', 'Other'];
 const FREQUENCIES = ['WEEKLY', 'BIWEEKLY', 'MONTHLY', 'QUARTERLY', 'YEARLY', 'CUSTOM'];
@@ -601,7 +647,12 @@ const ENTITY = {
   categories: { idField: 'categoryId', type: 'CATEGORY' },
   recurringIncome: { idField: 'recurringIncomeId', type: 'RECURRING_INCOME' },
   loans: { idField: 'loanId', type: 'LOAN' },
-  loanRepayments: { idField: 'repaymentId', type: 'LOAN_REPAYMENT' }
+  loanRepayments: { idField: 'repaymentId', type: 'LOAN_REPAYMENT' },
+  debts: { idField: 'debtId', type: 'DEBT' },
+  debtPayments: { idField: 'debtPaymentId', type: 'DEBT_PAYMENT' },
+  cards: { idField: 'cardId', type: 'CARD' },
+  cardStatements: { idField: 'statementId', type: 'CARD_STATEMENT' },
+  cardPayments: { idField: 'cardPaymentId', type: 'CARD_PAYMENT' }
 };
 const STORES = Object.keys(ENTITY).concat(['meta', 'queue', 'conflicts', 'dashboard', 'syncLog']);
 
@@ -722,12 +773,13 @@ const Store = {
 
 /* ------------------------------------------------------------------ Calc (mirrors Code.gs rules exactly) */
 const Calc = {
-  status(expected, actual, dueDate, today, isVoid) {
+  status(expected, actual, dueDate, today, isVoid, settled) {
     if (isVoid) return ST.VOID;
     const has = !U.blank(actual);
     const exp = U.cents(expected), act = has ? U.cents(actual) : 0;
     if (has && act > exp) return ST.OVER;
     if (has && act >= exp) return ST.PAID;
+    if (settled) return ST.PAID;
     if (dueDate && dueDate < today) return ST.OVERDUE;
     if (has && act > 0) return ST.PARTIAL;
     return ST.UNPAID;
@@ -743,15 +795,18 @@ const Calc = {
     let cents = 0, lastDate = '', lastMethod = '';
     pays.forEach(p => { cents += U.cents(p.amount); if (!lastDate || p.paymentDate >= lastDate) { lastDate = p.paymentDate; lastMethod = p.paymentMethod; } });
     const exp = U.cents(inst.expectedAmount);
+    const settled = U.bool(inst.settled);
     const d = Object.assign({}, inst);
+    d.settled = settled;
     d.paymentCount = pays.length;
     d.actualAmount = pays.length ? U.fromCents(cents) : '';
-    d.remainingAmount = U.fromCents(exp - (pays.length ? cents : 0));
-    d.difference = pays.length ? U.fromCents(exp - cents) : '';
-    d.paidDate = pays.length && cents >= exp ? lastDate : '';
+    d.remainingAmount = settled && cents < exp ? 0 : U.fromCents(exp - (pays.length ? cents : 0));
+    d.difference = pays.length ? U.fromCents(exp - cents) : (settled ? U.fromCents(exp) : '');
+    d.paidDate = pays.length ? (cents >= exp || settled ? lastDate : '') : (settled ? (inst.settledDate || '') : '');
     if (lastMethod) d.paymentMethod = lastMethod;
     d.isVoid = U.bool(inst.isVoid) && !pays.length;
-    d.status = Calc.status(d.expectedAmount, d.actualAmount, d.dueDate, today, d.isVoid);
+    d.status = Calc.status(d.expectedAmount, d.actualAmount, d.dueDate, today, d.isVoid, settled);
+    d.underBudget = d.settled && d.status === ST.PAID ? Math.max(0, U.fromCents(exp - cents)) : 0;
     d.hasLocal = pays.some(p => p.syncStatus !== 'synced') || (inst.syncStatus && inst.syncStatus !== 'synced');
     return d;
   },
@@ -769,13 +824,17 @@ const Calc = {
   summary(month, instances, today) {
     today = today || U.today();
     instances = instances || Calc.instances(today);
-    const c = { expectedBills: 0, actualBills: 0, paidBills: 0, unpaidBills: 0, partialBills: 0, overdueBills: 0, overBudgetAmount: 0, unpaidAmount: 0, otherExpenses: 0, expectedIncome: 0, actualIncome: 0, projected: 0 };
+    const c = { expectedBills: 0, actualBills: 0, paidBills: 0, unpaidBills: 0, partialBills: 0, overdueBills: 0, overBudgetAmount: 0, unpaidAmount: 0, otherExpenses: 0, expectedIncome: 0, actualIncome: 0, projected: 0, settledUnder: 0 };
+    let settledCount = 0;
     const counts = { PAID: 0, PARTIAL: 0, UNPAID: 0, OVERDUE: 0, 'OVER BUDGET': 0 };
     const byCategory = {}, byBill = {};
     instances.forEach(i => {
       if (i.billingPeriod !== month || i.isVoid) return;
       const exp = U.cents(i.expectedAmount), act = U.cents(i.actualAmount);
-      c.expectedBills += exp; c.actualBills += act; c.projected += Math.max(exp, act);
+      c.expectedBills += exp; c.actualBills += act;
+      const isSettled = U.bool(i.settled) && i.status === ST.PAID && act < exp;
+      c.projected += isSettled ? act : Math.max(exp, act);
+      if (isSettled) { c.settledUnder += exp - act; settledCount++; }
       if (counts[i.status] !== undefined) counts[i.status]++;
       if (i.status === ST.PAID || i.status === ST.OVER) c.paidBills += act;
       else c.unpaidAmount += Math.max(0, exp - act);
@@ -797,9 +856,12 @@ const Calc = {
       if (U.bool(r.isDeleted) || r.status === 'CANCELLED' || String(r.date).slice(0, 7) !== month) return;
       c.expectedIncome += U.cents(r.expectedAmount); c.actualIncome += U.cents(r.actualAmount);
     });
+    const cardPaid = CardMath.paidInMonth(Store.list('cardPayments'), month);
+    let cardDue = 0;
+    Calc.cardSnap(today).open.forEach(o => { if (String(o.dueDate).slice(0, 7) === month) cardDue += o.remainingCents; });
     const planned = Calc.budgetFor(month);
     const budgetCents = Math.round(planned.amount * 100);
-    const totalSpent = c.actualBills + c.otherExpenses;
+    const totalSpent = c.actualBills + c.otherExpenses + cardPaid;
     const f = U.fromCents;
     const s = {
       month, monthlyBudget: f(budgetCents), budgetSource: planned.source,
@@ -807,8 +869,8 @@ const Calc = {
       partialBills: f(c.partialBills), overdueBills: f(c.overdueBills), overBudgetBills: f(c.overBudgetAmount),
       unpaidAmount: f(c.unpaidAmount), overBudgetAmount: f(c.overBudgetAmount), otherExpenses: f(c.otherExpenses),
       expectedIncome: f(c.expectedIncome), actualIncome: f(c.actualIncome), totalMoneyIn: f(c.actualIncome), totalMoneyOut: f(totalSpent),
-      totalSpent: f(totalSpent), projectedSpend: f(c.projected + c.otherExpenses), remaining: f(budgetCents - totalSpent),
-      netCashFlow: f(c.actualIncome - c.actualBills - c.otherExpenses), counts,
+      totalSpent: f(totalSpent), projectedSpend: f(c.projected + c.otherExpenses + cardPaid + cardDue), remaining: f(budgetCents - totalSpent),
+      netCashFlow: f(c.actualIncome - c.actualBills - c.otherExpenses - cardPaid), cardPayments: f(cardPaid), cardDue: f(cardDue), settledUnderBudget: f(c.settledUnder), settledCount, counts,
       byCategory: Object.keys(byCategory).map(k => ({ category: k, amount: f(byCategory[k]) })).filter(x => x.amount > 0).sort((a, b) => b.amount - a.amount),
       byBill: Object.keys(byBill).map(k => ({ name: byBill[k].name, expected: f(byBill[k].expected), actual: f(byBill[k].actual) })).sort((a, b) => b.expected - a.expected)
     };
@@ -868,12 +930,15 @@ const Calc = {
     const openingDate = U.isYmd(String(st.openingBalanceDate || '')) ? st.openingBalanceDate : '';
     const cm = today.slice(0, 7);
     const by = {};
-    const add = (date, k, cents) => { if (!U.isYmd(String(date)) || (openingDate && date < openingDate) || date > today) return; const m = date.slice(0, 7); by[m] = by[m] || { inc: 0, bills: 0, other: 0, lent: 0, back: 0 }; by[m][k] += cents; };
+    const add = (date, k, cents) => { if (!U.isYmd(String(date)) || (openingDate && date < openingDate) || date > today) return; const m = date.slice(0, 7); by[m] = by[m] || { inc: 0, bills: 0, other: 0, lent: 0, back: 0, borrowed: 0, utangPaid: 0 }; by[m][k] += cents; };
     Store.list('income').forEach(r => { if (!U.bool(r.isDeleted) && r.status !== 'CANCELLED' && !U.blank(r.actualAmount)) add(r.date, 'inc', U.cents(r.actualAmount)); });
     Store.list('payments').forEach(p => { if (!U.bool(p.isVoid)) add(p.paymentDate, 'bills', U.cents(p.amount)); });
+    Store.list('cardPayments').forEach(p => { if (!U.bool(p.isVoid)) add(p.date, 'bills', U.cents(p.amount)); });
     Store.list('expenses').forEach(e => { if (!U.bool(e.isDeleted)) add(e.date, 'other', U.cents(e.amount)); });
     Store.list('loans').forEach(l => { if (!U.bool(l.isDeleted)) add(l.dateLent, 'lent', U.cents(l.amount)); });
     Store.list('loanRepayments').forEach(r => { if (!U.bool(r.isVoid)) add(r.date, 'back', U.cents(r.amount)); });
+    Store.list('debts').forEach(x => { if (!U.bool(x.isDeleted) && U.bool(x.addToCash)) add(x.dateBorrowed, 'borrowed', U.cents(x.amount)); });
+    Store.list('debtPayments').forEach(r => { if (!U.bool(r.isVoid)) add(r.date, 'utangPaid', U.cents(r.amount)); });
     const known = Object.keys(by).sort();
     let start = openingDate ? openingDate.slice(0, 7) : (known[0] || cm);
     if (U.mIdx(cm) - U.mIdx(start) > 35) start = U.addMonths(cm, -35);
@@ -884,12 +949,14 @@ const Calc = {
       running += saved;
       return { month: m, income: U.fromCents(v.inc), bills: U.fromCents(v.bills), other: U.fromCents(v.other), out: U.fromCents(v.bills + v.other), saved: U.fromCents(saved), rate: v.inc > 0 ? saved / v.inc : null, running: U.fromCents(running), partial: m === cm };
     });
-    rows.forEach(r => { const v = by[r.month] || {}; r.lent = U.fromCents(v.lent || 0); r.repaid = U.fromCents(v.back || 0); });
+    rows.forEach(r => { const v = by[r.month] || {}; r.lent = U.fromCents(v.lent || 0); r.repaid = U.fromCents(v.back || 0); r.borrowed = U.fromCents(v.borrowed || 0); r.utangPaid = U.fromCents(v.utangPaid || 0); });
     const netLent = rows.reduce((a, r) => a + U.cents(r.lent) - U.cents(r.repaid), 0);
+    const netUtang = rows.reduce((a, r) => a + U.cents(r.borrowed) - U.cents(r.utangPaid), 0);
     const totalInc = rows.reduce((a, r) => a + U.cents(r.income), 0);
     const full = rows.filter(r => !r.partial);
     return {
       rows, start, openingDate, openingBalance: Number(st.openingBalance || 0), netLent: U.fromCents(netLent), owedToYou: Calc.loanTotals().owed,
+      netUtang: U.fromCents(netUtang), utangOwed: Calc.debtTotals().owed,
       totalSaved: U.fromCents(running), totalIncome: U.fromCents(totalInc), overallRate: totalInc > 0 ? running / totalInc : null,
       average: full.length ? U.fromCents(full.reduce((a, r) => a + U.cents(r.saved), 0) / full.length) : null,
       best: full.length ? full.reduce((a, r) => (r.saved > a.saved ? r : a)) : null
@@ -918,10 +985,58 @@ const Calc = {
       lifetimeLent: sum(list, 'amount'), lifetimeRepaid: sum(list, 'repaidAmount'), list
     };
   },
+  /** Utang with derived paid / remaining / status (same rules as recalcDebt_ in Code.gs). */
+  debt(x, today) {
+    today = today || U.today();
+    const pays = Store.list('debtPayments').filter(r => r.debtId === x.debtId && !U.bool(r.isVoid)).sort((a, b) => (a.date < b.date ? -1 : 1));
+    const paid = pays.reduce((a, r) => a + U.cents(r.amount), 0), amt = U.cents(x.amount);
+    const d = Object.assign({}, x, { paidAmount: U.fromCents(paid), remainingAmount: U.fromCents(Math.max(0, amt - paid)), payments: pays, progress: amt > 0 ? Math.min(1, paid / amt) : 0 });
+    d.status = paid >= amt ? 'PAID' : (x.dueDate && x.dueDate < today) ? 'OVERDUE' : paid > 0 ? 'PARTIAL' : 'OPEN';
+    d.daysToDue = x.dueDate ? U.ymdToDays(x.dueDate) - U.ymdToDays(today) : null;
+    d.dueSoon = d.status !== 'PAID' && d.status !== 'OVERDUE' && d.daysToDue !== null && d.daysToDue <= 7;
+    return d;
+  },
+  debts(today) { return Store.list('debts').filter(x => !U.bool(x.isDeleted)).map(x => Calc.debt(x, today)); },
+  debtTotals(today) {
+    today = today || U.today();
+    const cm = today.slice(0, 7), list = Calc.debts(today);
+    const open = list.filter(x => x.status !== 'PAID');
+    const sum = (a, k) => U.fromCents(a.reduce((s, x) => s + U.cents(x[k]), 0));
+    const soon = open.filter(x => x.dueSoon);
+    return {
+      owed: sum(open, 'remainingAmount'), openCount: open.length, overdue: open.filter(x => x.status === 'OVERDUE'), dueSoon: soon, dueSoonAmount: sum(soon, 'remainingAmount'),
+      paidThisMonth: U.fromCents(Store.list('debtPayments').filter(r => !U.bool(r.isVoid) && String(r.date).slice(0, 7) === cm).reduce((s, r) => s + U.cents(r.amount), 0)),
+      next: open.filter(x => x.dueDate).sort((a, b) => (a.dueDate < b.dueDate ? -1 : 1))[0] || null, list
+    };
+  },
+  /** Credit card balances & statement statuses (CardMath — same rules as Code.gs). */
+  cardSnap(today) { return CardMath.derive(Store.list('cards'), Store.list('cardStatements'), Store.list('cardPayments'), today || U.today()); },
+  cards(today) {
+    today = today || U.today();
+    const snap = Calc.cardSnap(today), f = U.fromCents;
+    const pays = Store.list('cardPayments').filter(p => !U.bool(p.isVoid));
+    return Store.list('cards').filter(k => !U.bool(k.isDeleted)).map(k => {
+      const sts = snap.statements.filter(x => x.cardId === k.cardId).sort((a, b) => (a.statementDate < b.statementDate ? 1 : -1))
+        .map(x => Object.assign({}, x, { id: x.statementId, raw: Store.get('cardStatements', x.statementId), payments: pays.filter(p => p.statementId === x.statementId).sort((a, b) => (a.date < b.date ? -1 : 1)) }));
+      const latest = sts.find(x => x.isLatest) || null;
+      const balance = latest ? f(latest.remainingCents) : 0, limit = U.cents(k.creditLimit);
+      const daysToDue = latest && latest.dueDate ? U.ymdToDays(latest.dueDate) - U.ymdToDays(today) : null;
+      return Object.assign({}, k, { statements: sts, latest, balance, limit: f(limit), usage: limit > 0 ? Math.min(1, (latest ? latest.remainingCents : 0) / limit) : null, daysToDue, open: !!latest && latest.remainingCents > 0 });
+    }).sort((a, b) => String(a.bank || '').localeCompare(String(b.bank || '')) || String(a.name).localeCompare(String(b.name)));
+  },
+  cardTotals(today) {
+    today = today || U.today();
+    const list = Calc.cards(today), cm = today.slice(0, 7);
+    const open = list.filter(k => k.open);
+    const next = open.filter(k => k.latest.dueDate).sort((a, b) => (a.latest.dueDate < b.latest.dueDate ? -1 : 1))[0] || null;
+    const limit = list.reduce((a, k) => a + U.cents(k.limit), 0), owedWithLimit = list.filter(k => k.limit > 0).reduce((a, k) => a + U.cents(k.balance), 0);
+    return { list, owed: U.fromCents(list.reduce((a, k) => a + U.cents(k.balance), 0)), openCount: open.length, next, late: open.filter(k => k.latest.status === 'OVERDUE' || k.latest.status === 'MIN PAID'),
+      paidThisMonth: U.fromCents(CardMath.paidInMonth(Store.list('cardPayments'), cm)), available: limit > 0 ? U.fromCents(limit - owedWithLimit) : null, limit: U.fromCents(limit) };
+  },
   /** Smart Financial Insight for a month — same rules as generateFinancialInsight() in Code.gs. */
   insight(month, today) {
     today = today || U.today();
-    return FinancialInsight.generate({ today, month: month || Store.month, instances: Calc.instances(today), income: Store.list('income'), payments: Store.list('payments'), expenses: Store.list('expenses'), budgets: Store.list('budgets'), settings: Store.settings || {}, loans: Store.list('loans'), loanRepayments: Store.list('loanRepayments') });
+    return FinancialInsight.generate({ today, month: month || Store.month, instances: Calc.instances(today), income: Store.list('income'), payments: Store.list('payments'), expenses: Store.list('expenses'), budgets: Store.list('budgets'), settings: Store.settings || {}, loans: Store.list('loans'), loanRepayments: Store.list('loanRepayments'), debts: Store.list('debts'), debtPayments: Store.list('debtPayments'), cards: Store.list('cards'), cardStatements: Store.list('cardStatements'), cardPayments: Store.list('cardPayments') });
   },
   /** Cash on hand & safe to spend — mirrors computeAvailable_() in Code.gs. */
   available(today, instances) {
@@ -937,14 +1052,24 @@ const Calc = {
     let lentOut = 0, repaidIn = 0;
     Store.list('loans').forEach(l => { if (!U.bool(l.isDeleted) && String(l.dateLent) >= openingDate) lentOut += U.cents(l.amount); });
     Store.list('loanRepayments').forEach(r => { if (!U.bool(r.isVoid) && String(r.date) >= openingDate) repaidIn += U.cents(r.amount); });
-    const cash = opening + incomeIn - billsOut - otherOut - lentOut + repaidIn;
+    let debtIn = 0, debtOut = 0;
+    Store.list('debts').forEach(x => { if (!U.bool(x.isDeleted) && U.bool(x.addToCash) && String(x.dateBorrowed) >= openingDate) debtIn += U.cents(x.amount); });
+    Store.list('debtPayments').forEach(r => { if (!U.bool(r.isVoid) && String(r.date) >= openingDate) debtOut += U.cents(r.amount); });
+    let cardOut = 0;
+    Store.list('cardPayments').forEach(r => { if (!U.bool(r.isVoid) && String(r.date) >= openingDate) cardOut += U.cents(r.amount); });
+    const cash = opening + incomeIn - billsOut - otherOut - lentOut + repaidIn + debtIn - debtOut - cardOut;
     const upcoming = Store.list('income').filter(r => !U.bool(r.isDeleted) && r.status !== 'CANCELLED' && U.blank(r.actualAmount) && String(r.date) >= today).sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
     const late = Store.list('income').filter(r => !U.bool(r.isDeleted) && r.status !== 'CANCELLED' && U.blank(r.actualAmount) && r.recurringIncomeId && String(r.date) < today && String(r.date) >= openingDate).sort((a, b) => (a.date < b.date ? -1 : 1));
     const next = upcoming[0] || null;
     const horizon = next ? next.date : U.addDays(today, 31);
     const before = instances.filter(i => !i.isVoid && i.status !== ST.PAID && i.status !== ST.OVER && i.dueDate < horizon).sort((a, b) => (a.dueDate < b.dueDate ? -1 : 1));
-    const committed = before.reduce((a, i) => a + Math.max(0, U.cents(i.expectedAmount) - U.cents(i.actualAmount)), 0);
-    return { asOf: today, openingBalance: U.fromCents(opening), openingBalanceDate: openingDate === '0000-01-01' ? '' : openingDate, incomeReceived: U.fromCents(incomeIn), billsPaid: U.fromCents(billsOut), otherExpenses: U.fromCents(otherOut), cashOnHand: U.fromCents(cash), committedBeforeNextIncome: U.fromCents(committed), safeToSpend: U.fromCents(cash - committed), nextIncome: next, horizon, billsBefore: before, upcomingIncome: upcoming.slice(0, 5), lateIncome: late };
+    const billsCommitted = before.reduce((a, i) => a + Math.max(0, U.cents(i.expectedAmount) - U.cents(i.actualAmount)), 0);
+    const debtsBefore = Calc.debts(today).filter(x => x.dueDate && x.dueDate < horizon && U.cents(x.remainingAmount) > 0);
+    const debtCommitted = debtsBefore.reduce((a, x) => a + U.cents(x.remainingAmount), 0);
+    const cardsBefore = Calc.cardSnap(today).open.filter(o => o.dueDate && o.dueDate < horizon);
+    const cardCommitted = cardsBefore.reduce((a, o) => a + o.remainingCents, 0);
+    const committed = billsCommitted + debtCommitted + cardCommitted;
+    return { asOf: today, openingBalance: U.fromCents(opening), openingBalanceDate: openingDate === '0000-01-01' ? '' : openingDate, incomeReceived: U.fromCents(incomeIn), billsPaid: U.fromCents(billsOut), otherExpenses: U.fromCents(otherOut), borrowed: U.fromCents(debtIn), debtsPaid: U.fromCents(debtOut), cashOnHand: U.fromCents(cash), committedBeforeNextIncome: U.fromCents(committed), billsCommitted: U.fromCents(billsCommitted), debtDueBeforeNextIncome: U.fromCents(debtCommitted), debtsBefore, cardsPaid: U.fromCents(cardOut), cardDueBeforeNextIncome: U.fromCents(cardCommitted), cardsBefore, safeToSpend: U.fromCents(cash - committed), nextIncome: next, horizon, billsBefore: before, upcomingIncome: upcoming.slice(0, 5), lateIncome: late };
   },
   attention(month, instances, today) {
     const end = U.lastDay(month), soon = U.addDays(today, 7);
@@ -1189,11 +1314,11 @@ const Sync = {
       setTimeout(() => UI.toast('Fresh start: this device loaded the new data from Google Sheets.'), 50);
     }
     if (resetAt) await Store.setMeta('dataResetAt', resetAt);
-    await this.mergeRecords({ loans: data.loans, loanRepayments: data.loanRepayments, recurringIncome: data.recurringIncome, recurringBills: data.recurringBills, billInstances: data.billInstances, payments: data.payments, expenses: data.expenses, income: data.income, budgets: data.budgets, categories: data.categories, settings: data.settings }, false);
+    await this.mergeRecords({ cards: data.cards, cardStatements: data.cardStatements, cardPayments: data.cardPayments, debts: data.debts, debtPayments: data.debtPayments, loans: data.loans, loanRepayments: data.loanRepayments, recurringIncome: data.recurringIncome, recurringBills: data.recurringBills, billInstances: data.billInstances, payments: data.payments, expenses: data.expenses, income: data.income, budgets: data.budgets, categories: data.categories, settings: data.settings }, false);
     if (data.full) {
       // Full refresh: remove synced local records that no longer exist on the server
       const pendingIds = new Set(Store.queue.map(q => q.localId || q.entityId));
-      const map = { loans: data.loans, loanRepayments: data.loanRepayments, recurringIncome: data.recurringIncome, recurringBills: data.recurringBills, billInstances: data.billInstances, payments: data.payments, expenses: data.expenses, income: data.income, budgets: data.budgets, categories: data.categories };
+      const map = { cards: data.cards, cardStatements: data.cardStatements, cardPayments: data.cardPayments, debts: data.debts, debtPayments: data.debtPayments, loans: data.loans, loanRepayments: data.loanRepayments, recurringIncome: data.recurringIncome, recurringBills: data.recurringBills, billInstances: data.billInstances, payments: data.payments, expenses: data.expenses, income: data.income, budgets: data.budgets, categories: data.categories };
       for (const store of Object.keys(map)) {
         const ids = new Set((map[store] || []).map(r => r[ENTITY[store].idField]));
         for (const rec of Store.list(store)) if (!ids.has(rec.id) && rec.syncStatus === 'synced' && !pendingIds.has(rec.id)) await Store.remove(store, rec.id);
@@ -1238,6 +1363,67 @@ const Sync = {
 };
 
 /* =============================================================================
+ *  CREDIT CARD MATH  (shared — the identical code runs in Code.gs and index.html)
+ *  Each card gets a monthly statement (balance, minimum due, due date). Payments
+ *  are recorded against a statement. Only the LATEST statement of a card is open:
+ *  a newer statement already includes whatever was carried over from the old one.
+ *    remaining = statement balance − payments on that statement
+ *    PAID          remaining is ₱0
+ *    CARRIED OVER  an older statement not paid in full (now inside the newer one)
+ *    OVERDUE       due date passed and less than the minimum was paid
+ *    MIN PAID      due date passed, at least the minimum paid, rest carries over
+ *    PARTIAL       some paid, not due yet
+ *    UNPAID        nothing paid, not due yet
+ * ========================================================================== */
+var CardMath = (function () {
+  function c(v) { if (v === '' || v === null || v === undefined) return 0; var n = Number(v); return isFinite(n) ? Math.round(n * 100) : 0; }
+  function bool(v) { return v === true || String(v).toLowerCase() === 'true'; }
+  function newer(a, b) {
+    if (String(a.statementDate) !== String(b.statementDate)) return String(a.statementDate) > String(b.statementDate);
+    return String(a.createdAt || '') > String(b.createdAt || '');
+  }
+  /**
+   * @return {{ statements: Array, cards: Array, open: Array }} amounts in centavos (…Cents fields)
+   */
+  function derive(cards, statements, payments, today) {
+    var cardById = {};
+    (cards || []).forEach(function (k) { cardById[k.cardId] = k; });
+    var pays = {};
+    (payments || []).forEach(function (p) { if (!bool(p.isVoid)) (pays[p.statementId] = pays[p.statementId] || []).push(p); });
+    var live = (statements || []).filter(function (s) { return !bool(s.isDeleted); });
+    var latest = {};
+    live.forEach(function (s) { var cur = latest[s.cardId]; if (!cur || newer(s, cur)) latest[s.cardId] = s; });
+    var out = live.map(function (s) {
+      var paid = 0, last = '';
+      (pays[s.statementId] || []).forEach(function (p) { paid += c(p.amount); if (String(p.date) > last) last = String(p.date); });
+      var bal = c(s.statementBalance), min = c(s.minimumDue), rem = Math.max(0, bal - paid), isLatest = latest[s.cardId] === s, status;
+      if (rem <= 0) status = 'PAID';
+      else if (!isLatest) status = 'CARRIED OVER';
+      else if (s.dueDate && String(s.dueDate) < today) status = (min > 0 && paid >= min) ? 'MIN PAID' : 'OVERDUE';
+      else status = paid > 0 ? 'PARTIAL' : 'UNPAID';
+      var k = cardById[s.cardId] || {};
+      return { statementId: s.statementId, cardId: s.cardId, cardName: k.name || s.cardName || 'Card', statementDate: s.statementDate, dueDate: s.dueDate,
+        balanceCents: bal, minimumCents: min, paidCents: paid, remainingCents: rem, minLeftCents: Math.max(0, min - paid), status: status, isLatest: isLatest, lastPaymentDate: last, cardDeleted: bool(k.isDeleted) };
+    });
+    var byId = {};
+    out.forEach(function (s) { byId[s.statementId] = s; });
+    var cardList = (cards || []).filter(function (k) { return !bool(k.isDeleted); }).map(function (k) {
+      var ls = latest[k.cardId] ? byId[latest[k.cardId].statementId] : null;
+      return { cardId: k.cardId, name: k.name, balanceCents: ls ? ls.remainingCents : 0, limitCents: c(k.creditLimit), latest: ls };
+    });
+    var open = out.filter(function (s) { return s.isLatest && s.remainingCents > 0 && !s.cardDeleted; });
+    return { statements: out, cards: cardList, open: open };
+  }
+  /** Card payments (not voided) dated inside a month, in centavos. */
+  function paidInMonth(payments, month) {
+    var t = 0;
+    (payments || []).forEach(function (p) { if (!bool(p.isVoid) && String(p.date).slice(0, 7) === month) t += c(p.amount); });
+    return t;
+  }
+  return { derive: derive, paidInMonth: paidInMonth };
+})();
+
+/* =============================================================================
  *  SMART FINANCIAL INSIGHT ENGINE  (shared — the identical code runs in Code.gs
  *  and in index.html, so the phone gives the same answer offline as the server)
  *
@@ -1248,11 +1434,13 @@ const Sync = {
  *  Safe to spend =  money available now
  *                 + expected income still to arrive this month
  *                 − every unpaid bill this month (and older overdue bills)
+ *                 − unpaid utang due by month end (overdue utang included)
+ *                 − unpaid credit card statement balances due by month end
  *                 − expected everyday spending for the rest of the month
  *                 − a safety buffer
  * ========================================================================== */
 var FinancialInsight = (function () {
-  var RULES_VERSION = '1.0';
+  var RULES_VERSION = '1.2';
   var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   var MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
@@ -1334,7 +1522,8 @@ var FinancialInsight = (function () {
     var budget = 0, row = null;
     (d.budgets || []).forEach(function (b) { if (b.month === M) row = b; });
     if (row && !blank(row.plannedAmount)) budget = c(row.plannedAmount); else budget = c(st.defaultMonthlyBudget || 0);
-    var spent = paid + other;
+    var cardPaidM = CardMath.paidInMonth(d.cardPayments, M);
+    var spent = paid + other + cardPaidM;
     var budgetRemaining = budget - spent;
     var budgetUsed = budget > 0 ? spent / budget : 0;
 
@@ -1356,6 +1545,34 @@ var FinancialInsight = (function () {
     (d.expenses || []).forEach(function (e) { if (!bool(e.isDeleted) && String(e.date) >= openingDate && String(e.date) <= today) cash -= c(e.amount); });
     (d.loans || []).forEach(function (l) { if (!bool(l.isDeleted) && String(l.dateLent) >= openingDate && String(l.dateLent) <= today) cash -= c(l.amount); });
     (d.loanRepayments || []).forEach(function (r) { if (!bool(r.isVoid) && String(r.date) >= openingDate && String(r.date) <= today) cash += c(r.amount); });
+    (d.debts || []).forEach(function (x) { if (!bool(x.isDeleted) && bool(x.addToCash) && String(x.dateBorrowed) >= openingDate && String(x.dateBorrowed) <= today) cash += c(x.amount); });
+    (d.debtPayments || []).forEach(function (r) { if (!bool(r.isVoid) && String(r.date) >= openingDate && String(r.date) <= today) cash -= c(r.amount); });
+    (d.cardPayments || []).forEach(function (r) { if (!bool(r.isVoid) && String(r.date) >= openingDate && String(r.date) <= today) cash -= c(r.amount); });
+    /* credit cards: the open statement balance due by month end is reserved like a bill */
+    var cardsDue = 0, cardDueList = [], overdueCards = [], dueSoonCards = [], cardBalance = 0;
+    CardMath.derive(d.cards, d.cardStatements, d.cardPayments, today).open.forEach(function (o) {
+      cardBalance += o.remainingCents;
+      if (mode === 'past' || !o.dueDate || o.dueDate > monthEnd) return;
+      cardsDue += o.remainingCents;
+      cardDueList.push({ name: o.cardName, amount: o.remainingCents, dueDate: o.dueDate });
+      if (o.dueDate < today) overdueCards.push({ name: o.cardName, amount: o.remainingCents, minLeft: o.minLeftCents, dueDate: o.dueDate, status: o.status });
+      else if (o.dueDate <= addDaysStr(today, 7)) dueSoonCards.push({ name: o.cardName, amount: o.remainingCents, dueDate: o.dueDate });
+    });
+    /* your own utang (money you owe): what is due by month end is reserved like a bill */
+    var utangOwed = 0, utangDue = 0, utangDueList = [], overdueDebts = [], dueSoonDebts = [];
+    (d.debts || []).forEach(function (x) {
+      if (bool(x.isDeleted)) return;
+      var paidOff = 0;
+      (d.debtPayments || []).forEach(function (r) { if (r.debtId === x.debtId && !bool(r.isVoid)) paidOff += c(r.amount); });
+      var rem = c(x.amount) - paidOff;
+      if (rem <= 0) return;
+      utangOwed += rem;
+      if (mode === 'past' || !x.dueDate || x.dueDate > monthEnd) return;
+      utangDue += rem;
+      utangDueList.push({ name: x.lender, amount: rem, dueDate: x.dueDate });
+      if (x.dueDate < today) overdueDebts.push({ lender: x.lender, amount: rem, dueDate: x.dueDate });
+      else if (x.dueDate <= addDaysStr(today, 7)) dueSoonDebts.push({ lender: x.lender, amount: rem, dueDate: x.dueDate });
+    });
     /* money lent out that is still owed (expected back, but never counted as spendable) */
     var owed = 0, overdueLoans = [], dueSoonLoans = [];
     (d.loans || []).forEach(function (l) {
@@ -1371,15 +1588,15 @@ var FinancialInsight = (function () {
     var available, stillComing;
     if (mode === 'current') { available = cash; stillComing = upcomingInc; }
     else if (mode === 'future') { available = 0; stillComing = pending; }
-    else { available = actInc - paid - other; stillComing = 0; }
-    var safe = available + stillComing - totalRemaining - planned - buffer;
+    else { available = actInc - paid - other - cardPaidM; stillComing = 0; }
+    var safe = available + stillComing - totalRemaining - utangDue - cardsDue - planned - buffer;
 
     /* ---------- next income & cash crunch (current month) ---------- */
     var nextIncome = incomingItems[0] || null;
     var crunch = null;
     if (mode === 'current') {
       var horizon = nextIncome ? nextIncome.date : monthEnd;
-      var before = obligations.filter(function (o) { return o.dueDate <= horizon && (!nextIncome || o.dueDate < nextIncome.date); });
+      var before = obligations.concat(utangDueList, cardDueList).filter(function (o) { return o.dueDate <= horizon && (!nextIncome || o.dueDate < nextIncome.date); });
       var beforeAmt = before.reduce(function (s, o) { return s + o.amount; }, 0);
       if (beforeAmt > 0 && beforeAmt > cash) crunch = { amount: beforeAmt, cash: cash, count: before.length, until: nextIncome ? nextIncome.date : '' };
     }
@@ -1390,14 +1607,14 @@ var FinancialInsight = (function () {
       .sort(function (a, b) { return a.dueDate < b.dueDate ? -1 : 1; });
     var E = Math.max(expInc, 1);
     var money = available + stillComing;
-    var need = totalRemaining + planned;
+    var need = totalRemaining + utangDue + cardsDue + planned;
     var coverage = need > 0 ? money / need : 99;
     var lateRatio = late / E;
 
     /* ---------- status ---------- */
     var status, reasons = [];
     if (mode === 'past') {
-      var result = actInc - paid - other;
+      var result = actInc - paid - other - cardPaidM;
       if ((result < 0 && remaining > 0) || budgetUsed >= 1.25) status = 'CRITICAL';
       else if (result < 0 || overdue.length >= 2 || budgetUsed > 1) status = 'WARNING';
       else if (remaining > 0 || late > 0 || budgetUsed >= 0.9) status = 'CAUTION';
@@ -1433,9 +1650,9 @@ var FinancialInsight = (function () {
     var nextText = nextIncome ? (nextIncome.source + ' on ' + dshort(nextIncome.date)) : '';
     var headline, comment;
     if (mode === 'past') {
-      var res = actInc - paid - other;
+      var res = actInc - paid - other - cardPaidM;
       headline = { COMFORTABLE: mn + ' finished comfortably.', STABLE: mn + ' finished on budget, with a thin margin.', CAUTION: mn + ' closed with loose ends.', WARNING: mn + ' cost more than it brought in.', CRITICAL: mn + ' ended in a serious shortfall.' }[status];
-      comment = 'The household received ' + peso(actInc) + ' and paid out ' + peso(paid + other) + ', ' + (res >= 0 ? 'leaving ' + peso(res) + '.' : 'a shortfall of ' + peso(-res) + '.') +
+      comment = 'The household received ' + peso(actInc) + ' and paid out ' + peso(paid + other + cardPaidM) + ', ' + (res >= 0 ? 'leaving ' + peso(res) + '.' : 'a shortfall of ' + peso(-res) + '.') +
         (remaining > 0 ? ' ' + plural(unpaid.length, 'bill') + ' from that month (' + peso(remaining) + ') are still unpaid.' : ' Every bill for the month was paid.');
     } else if (mode === 'future') {
       headline = { COMFORTABLE: mn + ' looks comfortable on paper.', STABLE: mn + ' looks manageable.', CAUTION: mn + ' will be tight.', WARNING: mn + ' needs planning now.', CRITICAL: mn + ' does not add up yet.' }[status];
@@ -1478,6 +1695,10 @@ var FinancialInsight = (function () {
     function add(type, text) { reminders.push({ type: type, text: text }); }
     if (overdue.length === 1) add('overdue', overdue[0].name + ' (' + peso(overdue[0].amount) + ') was due ' + dshort(overdue[0].dueDate) + ' and is still unpaid.');
     else if (overdue.length > 1) add('overdue', plural(overdue.length, 'bill') + ' are overdue, totaling ' + peso(overdueAmt) + '.');
+    if (mode !== 'past' && overdueCards.length) { var oc = overdueCards.sort(function (a, b) { return a.dueDate < b.dueDate ? -1 : 1; })[0]; add('cardOverdue', oc.status === 'MIN PAID' ? 'Your ' + oc.name + ' minimum was paid, but ' + peso(oc.amount) + ' is still on the card (due ' + dshort(oc.dueDate) + ') and will collect interest.' : 'Your ' + oc.name + ' payment was due ' + dshort(oc.dueDate) + ' — pay at least the ' + peso(oc.minLeft) + ' minimum now to avoid late fees (' + peso(oc.amount) + ' to clear it).'); }
+    else if (mode === 'current' && dueSoonCards.length) { var dc = dueSoonCards.sort(function (a, b) { return a.dueDate < b.dueDate ? -1 : 1; })[0]; add('cardDue', 'Your ' + dc.name + ' balance (' + peso(dc.amount) + ') is due ' + dshort(dc.dueDate) + '. It is already set aside in your safe-to-spend.'); }
+    if (mode !== 'past' && overdueDebts.length) { var od = overdueDebts.sort(function (a, b) { return a.dueDate < b.dueDate ? -1 : 1; }); add('debtOverdue', od.length === 1 ? 'Your utang to ' + od[0].lender + ' (' + peso(od[0].amount) + ') was due ' + dshort(od[0].dueDate) + '.' : plural(od.length, 'utang', 'utang') + ' are past due, totaling ' + peso(od.reduce(function (s, x) { return s + x.amount; }, 0)) + '.'); }
+    else if (mode === 'current' && dueSoonDebts.length) { var ds = dueSoonDebts.sort(function (a, b) { return a.dueDate < b.dueDate ? -1 : 1; })[0]; add('debtDue', 'Your utang to ' + ds.lender + ' (' + peso(ds.amount) + ') is due ' + dshort(ds.dueDate) + '. It is already set aside in your safe-to-spend.'); }
     if (crunch && reasons[0] !== 'crunch') add('crunch', peso(crunch.amount) + ' in bills is due before ' + (crunch.until ? dshort(crunch.until) : 'month end') + ', but only ' + peso(Math.max(0, crunch.cash)) + ' is on hand.');
     if (mode === 'current') {
       var big = upcoming.filter(function (o) { return o.dueDate >= today && o.dueDate <= addDaysStr(today, 7) && o.amount >= Math.max(500000, expInc * 0.05); })
@@ -1488,7 +1709,7 @@ var FinancialInsight = (function () {
     if (mode !== 'past' && overdueLoans.length) { var ol = overdueLoans.sort(function (a, b) { return b.amount - a.amount; }); add('loanOverdue', (ol.length === 1 ? ol[0].borrower + ' still owes ' + peso(ol[0].amount) + ' (was due ' + dshort(ol[0].dueDate) + ')' : plural(ol.length, 'person', 'people') + ' are past their repayment date, owing ' + peso(ol.reduce(function (s, x) { return s + x.amount; }, 0))) + '. It isn\u2019t counted as spendable until it\u2019s repaid.'); }
     else if (mode === 'current' && dueSoonLoans.length) add('loanDue', dueSoonLoans[0].borrower + ' is expected to repay ' + peso(dueSoonLoans[0].amount) + ' by ' + dshort(dueSoonLoans[0].dueDate) + '.');
     if (spent > budget && budget > 0) add('overBudget', 'Household spending is currently ' + peso(spent - budget) + ' above your monthly budget.');
-    else if (mode !== 'past' && budget > 0 && paid + totalRemaining + other + planned > budget) add('projectedOver', 'At this pace the month will end about ' + peso(paid + totalRemaining + other + planned - budget) + ' over your ' + peso(budget) + ' budget.');
+    else if (mode !== 'past' && budget > 0 && paid + totalRemaining + other + cardPaidM + cardsDue + planned > budget) add('projectedOver', 'At this pace the month will end about ' + peso(paid + totalRemaining + other + cardPaidM + cardsDue + planned - budget) + ' over your ' + peso(budget) + ' budget.');
     if (mode !== 'past' && safe >= 0 && safe < 500000) add('lowRoom', 'Your safe-to-spend amount is below ' + peso(500000) + '. Consider limiting discretionary spending.');
     if (unpaid.length >= 2) add('unpaid', 'You still have ' + plural(unpaid.length, 'unpaid recurring bill') + ' this month totaling ' + peso(remaining) + '.');
     if (overBills.length) { var ob = overBills.sort(function (a, b) { return b.over - a.over; })[0]; add('billAbove', ob.name + ' came in ' + peso(ob.over) + ' above its expected amount.'); }
@@ -1499,7 +1720,7 @@ var FinancialInsight = (function () {
       });
     }
     if (mode === 'future' && pending > 0) add('plan', 'This is a plan: it assumes all ' + peso(pending) + ' of expected income arrives on time.');
-    if (!reminders.length || ((status === 'COMFORTABLE' || status === 'STABLE') && reminders.every(function (r) { return r.type === 'unpaid' || r.type === 'category' || r.type === 'billAbove' || r.type === 'loanDue'; }))) {
+    if (!reminders.length || ((status === 'COMFORTABLE' || status === 'STABLE') && reminders.every(function (r) { return r.type === 'unpaid' || r.type === 'category' || r.type === 'billAbove' || r.type === 'loanDue' || r.type === 'debtDue' || r.type === 'cardDue'; }))) {
       if (mode === 'current' && (status === 'COMFORTABLE' || status === 'STABLE')) reminders.unshift({ type: 'healthy', text: 'You’re on track. Your bills are covered, spending is within budget, and you still have ' + peso(Math.max(0, safe)) + ' available for discretionary spending.' });
     }
 
@@ -1512,6 +1733,8 @@ var FinancialInsight = (function () {
       overdueBills: f(overdueAmt), overdueCount: overdue.length, unpaidCount: unpaid.length,
       otherExpenses: f(other), plannedExpenses: f(planned), safetyBuffer: f(buffer),
       available: f(available), cashOnHand: f(cash), safeToSpend: f(safe), owedToYou: f(owed), overdueLoans: overdueLoans.length,
+      utangDue: f(utangDue), utangOwed: f(utangOwed), overdueDebts: overdueDebts.length,
+      cardsDue: f(cardsDue), cardBalance: f(cardBalance), cardPayments: f(cardPaidM), overdueCards: overdueCards.length,
       budget: f(budget), budgetRemaining: f(budgetRemaining), budgetUsedPercent: Math.round(budgetUsed * 100),
       daysLeft: daysLeft,
       nextIncome: nextIncome ? { incomeId: nextIncome.incomeId, source: nextIncome.source, date: nextIncome.date, expectedAmount: f(c(nextIncome.expectedAmount)) } : null,
@@ -1544,6 +1767,8 @@ const ICON = {
   settings: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/>',
   savings: '<path d="M19 7c0-1.7-2.2-3-5-3H9C6.2 4 4 6.2 4 9v3c0 2 1 3.5 2.5 4.3V20h3v-2h5v2h3v-3.2c1.2-.7 2-1.8 2.3-3H21v-4h-1.3c-.2-.8-.6-1.5-1.2-2.1L19 7z"/><circle cx="15.5" cy="10" r=".8"/>',
   loans: '<path d="M11 17l-1.5 1.5a2.1 2.1 0 01-3-3L9 13"/><path d="M13 7l1.5-1.5a2.1 2.1 0 013 3L15 11"/><path d="M8 12l4-4 4 4-4 4z"/><path d="M3 21l3-3M21 3l-3 3"/>',
+  utang: '<path d="M4 7h16v12H4z"/><path d="M4 11h16"/><path d="M8 3v4M16 3v4"/><path d="M9 15h3"/><circle cx="16" cy="15.5" r="1.2"/>',
+  cards: '<rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19M6 15h4"/>',
   more: '<circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>',
   plus: '<path d="M12 5v14M5 12h14"/>'
 };
@@ -1551,7 +1776,7 @@ const svgIcon = (name, w) => `<svg viewBox="0 0 24 24" width="${w || 18}" height
 
 const VIEWS = [
   { id: 'dashboard', label: 'Dashboard' }, { id: 'bills', label: 'Bills' }, { id: 'expenses', label: 'Expenses' },
-  { id: 'income', label: 'Income' }, { id: 'savings', label: 'Savings' }, { id: 'loans', label: 'Lent Money' }, { id: 'recurring', label: 'Recurring Bills' }, { id: 'payments', label: 'Payments' },
+  { id: 'income', label: 'Income' }, { id: 'savings', label: 'Savings' }, { id: 'loans', label: 'Lent Money' }, { id: 'utang', label: 'My Utang' }, { id: 'cards', label: 'Credit Cards' }, { id: 'recurring', label: 'Recurring Bills' }, { id: 'payments', label: 'Payments' },
   { id: 'reports', label: 'Reports' }, { id: 'sync', label: 'Sync / Offline' }, { id: 'settings', label: 'Settings' }
 ];
 const MONTH_VIEWS = ['dashboard', 'bills', 'expenses', 'income', 'payments'];
@@ -1559,7 +1784,7 @@ const MONTH_VIEWS = ['dashboard', 'bills', 'expenses', 'income', 'payments'];
 /* ------------------------------------------------------------------ UI core */
 const UI = {
   view: 'dashboard',
-  filters: { bills: { search: '', status: '', category: '' }, expenses: { search: '', category: '', from: '', to: '', allMonths: false }, income: { search: '', category: '', from: '', to: '', allMonths: false }, payments: { search: '', bill: '', method: '', from: '', to: '', allMonths: false }, reports: { type: 'summary', from: '', to: '' }, loans: { status: 'open', search: '', borrower: '', open: {} } },
+  filters: { bills: { search: '', status: '', category: '' }, expenses: { search: '', category: '', from: '', to: '', allMonths: false }, income: { search: '', category: '', from: '', to: '', allMonths: false }, payments: { search: '', bill: '', method: '', from: '', to: '', allMonths: false }, reports: { type: 'summary', from: '', to: '' }, loans: { status: 'open', search: '', borrower: '', open: {} }, utang: { status: 'open', search: '', open: {} }, cards: { open: {} } },
   deferredInstall: null,
 
   init() {
@@ -1569,6 +1794,7 @@ const UI = {
     document.addEventListener('click', e => this.onClick(e));
     document.addEventListener('input', e => this.onInput(e));
     document.addEventListener('change', e => this.onChange(e));
+    document.addEventListener('toggle', e => { const d = e.target; if (d && d.dataset && d.dataset.cardHist) UI.filters.cards.open[d.dataset.cardHist] = d.open; }, true);
     document.addEventListener('keydown', e => { if (e.key === 'Escape') Modal.close(); });
     window.addEventListener('hashchange', () => { const v = this.hashView(); if (v && v !== this.view) this.route(v); });
     window.addEventListener('resize', U.debounce(() => Charts.drawAll(), 150));
@@ -1642,6 +1868,10 @@ const UI = {
     const today = U.today();
     const overdue = Calc.instances(today).filter(i => i.status === ST.OVERDUE).length;
     document.querySelectorAll('[data-badge="bills"]').forEach(b => { b.hidden = !overdue; b.textContent = overdue; });
+    const lateUtang = Calc.debts(today).filter(x => x.status === 'OVERDUE' || (x.dueSoon && x.daysToDue <= 3)).length;
+    document.querySelectorAll('[data-badge="utang"]').forEach(b => { b.hidden = !lateUtang; b.textContent = lateUtang; });
+    const lateCards = Calc.cardSnap(today).open.filter(o => o.status === 'OVERDUE' || (o.dueDate && U.ymdToDays(o.dueDate) - U.ymdToDays(today) <= 3)).length;
+    document.querySelectorAll('[data-badge="cards"]').forEach(b => { b.hidden = !lateCards; b.textContent = lateCards; });
     if (this._completeTimer) clearTimeout(this._completeTimer);
     if (s.state === 'complete') this._completeTimer = setTimeout(() => this.updateStatus(), 4100);
   },
@@ -1705,6 +1935,15 @@ const UI = {
 };
 
 const tagFor = st => `<span class="tag ${st === 'OVER BUDGET' ? 'OVER' : U.esc(st)}">${U.esc(st)}</span>`;
+/** Bill status tag — a settled bill shows SETTLED (it counts as PAID everywhere). */
+const billTag = i => (i.settled && i.status === ST.PAID ? `<span class="tag SETTLED" title="Marked settled${i.underBudget > 0 ? ' · ' + U.esc(U.peso(i.underBudget)) + ' under budget' : ''}">SETTLED</span>` : tagFor(i.status));
+/** Action buttons for an open bill: pay, plus "Settled" once something was paid (done for the period, less than budgeted). */
+const billActions = (i, details) => {
+  const done = i.status === ST.PAID || i.status === ST.OVER;
+  if (done) return details ? `<button class="btn sm" data-action="bill-details" data-id="${U.esc(i.billInstanceId)}">Details</button>` : '';
+  return `<button class="btn sm pay" data-action="pay" data-id="${U.esc(i.billInstanceId)}">${i.paymentCount ? 'Pay balance' : 'Mark as Paid'}</button>` +
+    (i.paymentCount ? `<button class="btn sm" data-action="settle-bill" data-id="${U.esc(i.billInstanceId)}" title="Done for this period — no more payments expected">Settled</button>` : '');
+};
 const localTag = r => r && r.syncStatus && r.syncStatus !== 'synced' ? `<span class="tag local" title="${U.esc(r.syncError || 'Not yet synced to Google Sheets')}">${r.syncStatus === 'failed' ? 'Sync failed' : r.syncStatus === 'conflict' ? 'Needs review' : 'Saved locally'}</span>` : '';
 
 /* ------------------------------------------------------------------ Tooltip */
@@ -1884,8 +2123,8 @@ const Views = {
     const trend = U.monthRange(U.addMonths(Store.month, -5), Store.month).map(m => { const x = Calc.summary(m, inst, today); return { month: m, actualIncome: x.actualIncome, totalSpent: x.totalSpent }; });
     const miniRow = i => `<div class="row cols-mini">
         <div class="primary-cell"><div class="name">${U.esc(i.billName)} ${localTag(i.hasLocal ? { syncStatus: 'pending' } : null)}</div><div class="sub">${i.status === ST.OVERDUE ? '<span class="neg">Overdue · </span>' : ''}${U.esc(Calc.datesText(i))}${i.paymentCount ? ' · paid ' + U.peso(i.actualAmount, true) : ''}</div></div>
-        <div class="num"><b>${U.peso(i.status === ST.OVER ? i.actualAmount : Math.max(0, i.remainingAmount))}</b><div>${tagFor(i.status)}</div></div>
-        <div class="actions">${i.status === ST.PAID || i.status === ST.OVER ? `<button class="btn sm" data-action="bill-details" data-id="${U.esc(i.billInstanceId)}">Details</button>` : `<button class="btn sm pay" data-action="pay" data-id="${U.esc(i.billInstanceId)}">${i.paymentCount ? 'Pay balance' : 'Mark as Paid'}</button>`}</div>
+        <div class="num"><b>${U.peso(i.status === ST.OVER || i.settled ? (i.actualAmount || 0) : Math.max(0, i.remainingAmount))}</b><div>${billTag(i)}</div></div>
+        <div class="actions">${billActions(i, true)}</div>
       </div>`;
     return `
       <div class="hero">
@@ -1900,8 +2139,8 @@ const Views = {
       ${this.insightCard()}
       <div class="kpis">
         ${kpi('Monthly Budget', s.monthlyBudget, `${s.budgetSource === 'month' ? 'Planned for ' + U.monthLabel(Store.month) : 'Default budget'} · <a href="#" data-action="edit-budget" style="color:inherit">Adjust</a>`, 'lead')}
-        ${kpi('Expected', s.expectedBills, `${scheduled} bill${scheduled === 1 ? '' : 's'} scheduled this month`)}
-        ${kpi('Actual', s.totalSpent, `Bills ${U.peso(s.actualBills, true)} · Other ${U.peso(s.otherExpenses, true)}`)}
+        ${kpi('Expected', s.expectedBills, `${scheduled} bill${scheduled === 1 ? '' : 's'} scheduled this month${s.settledUnderBudget > 0 ? ` · <span class="under">${U.peso(s.settledUnderBudget, true)} under on settled bills</span>` : ''}`)}
+        ${kpi('Actual', s.totalSpent, `Bills ${U.peso(s.actualBills, true)} · Other ${U.peso(s.otherExpenses, true)}${s.cardPayments ? ' · Cards ' + U.peso(s.cardPayments, true) : ''}`)}
         ${kpi('Remaining', s.remaining, s.remaining < 0 ? 'Over the planned budget' : 'Budget left after spending', '', s.remaining < 0 ? '--overdue' : '--paid')}
         ${kpi('Unpaid', s.unpaidAmount, `${unpaidN} open · ${s.counts.OVERDUE} overdue`, '', s.counts.OVERDUE ? '--overdue' : '')}
         ${kpi('Over Budget', s.overBudgetAmount, `${s.counts['OVER BUDGET']} bill${s.counts['OVER BUDGET'] === 1 ? '' : 's'} above expected`, '', s.overBudgetAmount > 0 ? '--over' : '')}
@@ -1958,11 +2197,11 @@ const Views = {
     const P = v => U.peso(v, true);
     const tile = (lab, val, note, cls) => `<div class="ins-tile"><div class="t-label">${lab}</div><div class="t-value ${cls || ''}">${val}</div>${note ? `<div class="t-note">${note}</div>` : ''}</div>`;
     const short = r.safeToSpend < 0;
-    const icon = { loanOverdue: '↺', loanDue: '↺', overdue: '!', crunch: '!', largeBill: '₱', lateIncome: '↓', overBudget: '%', projectedOver: '%', lowRoom: '·', unpaid: '#', billAbove: '+', category: '+', plan: 'i', healthy: '✓' };
+    const icon = { cardOverdue: '!', cardDue: '▭', debtOverdue: '!', debtDue: '⏱', loanOverdue: '↺', loanDue: '↺', overdue: '!', crunch: '!', largeBill: '₱', lateIncome: '↓', overBudget: '%', projectedOver: '%', lowRoom: '·', unpaid: '#', billAbove: '+', category: '+', plan: 'i', healthy: '✓' };
     const monthWord = r.mode === 'current' ? 'this month' : U.monthLabel(Store.month);
     const incomeRows = (r.lateIncomeItems || []).map(x => Object.assign({ late: true }, x)).concat(r.incomeToCome || []).slice(0, 3);
     const formula = r.mode === 'past' ? `Income ${P(r.actualIncome)} − bills paid ${P(r.paidBills)} − other expenses ${P(r.otherExpenses)}` :
-      `${r.mode === 'current' ? 'On hand ' + P(r.available) + ' + still coming ' : 'Expected income '}${P(r.incomeStillComing)} − unpaid bills ${P(r.remainingBills)}${r.plannedExpenses ? ' − everyday spending ' + P(r.plannedExpenses) : ''} − buffer ${P(r.safetyBuffer)}`;
+      `${r.mode === 'current' ? 'On hand ' + P(r.available) + ' + still coming ' : 'Expected income '}${P(r.incomeStillComing)} − unpaid bills ${P(r.remainingBills)}${r.utangDue ? ' − utang due ' + P(r.utangDue) : ''}${r.cardsDue ? ' − credit cards ' + P(r.cardsDue) : ''}${r.plannedExpenses ? ' − everyday spending ' + P(r.plannedExpenses) : ''} − buffer ${P(r.safetyBuffer)}`;
     return `<section class="card insight st-${r.status}" aria-label="Household financial status">
       <div class="ins-top"><div class="eyebrow">Household Financial Status · ${U.esc(U.monthLabel(Store.month))}</div><span class="ins-pill"><i></i>${label}</span></div>
       <div class="ins-body">
@@ -2108,6 +2347,123 @@ const Views = {
     }).join('')}</div>`;
   },
 
+  /* ============================== CREDIT CARDS ============================== */
+  cards() {
+    const t = Calc.cardTotals();
+    const stat = (cls, label, value, meta) => `<div class="loan-stat ${cls}"><div class="label">${label}</div><div class="value">${value}</div><div class="meta">${meta}</div></div>`;
+    const nx = t.next;
+    const nxMeta = nx ? `${U.esc(nx.name)} · ${U.peso(nx.balance, true)}${nx.daysToDue < 0 ? ' · <span class="neg">' + (-nx.daysToDue) + ' day' + (nx.daysToDue === -1 ? '' : 's') + ' late</span>' : nx.daysToDue === 0 ? ' · today' : ' · in ' + nx.daysToDue + ' day' + (nx.daysToDue === 1 ? '' : 's')}` : 'Nothing due';
+    const oldBill = Store.list('recurringBills').find(b => U.bool(b.isActive) && (b.recurringBillId === 'RB-SEED-CREDITCARD' || String(b.name).trim().toLowerCase() === 'credit card'));
+    return `${UI.cachedBanner()}
+      <div class="toolbar"><div class="left"><h2 class="section-title">Credit Cards</h2><span class="sub" style="color:var(--muted)">Balances, due dates and payments per card</span></div><button class="btn primary" data-action="add-card">${svgIcon('plus', 16)} Add card</button></div>
+      ${oldBill && !t.list.length ? `<div class="banner" style="margin-bottom:14px">When you add your first card, the old <b>${U.esc(oldBill.name)}</b> recurring bill (${U.peso(oldBill.amount, true)}/month) is switched off so card payments aren't counted twice. Past payments stay in your history.</div>` : ''}
+      ${t.list.length ? `<div class="loan-stats">
+        ${stat('cs-owe', 'Total card balance', U.peso(t.owed, true), t.openCount ? `${t.openCount} card${t.openCount === 1 ? '' : 's'} to pay` : 'All cards paid 🎉')}
+        ${stat('cs-next', 'Next due', nx ? U.esc(U.fmtDate(nx.latest.dueDate).replace(/, \d{4}$/, '')) : '—', nxMeta)}
+        ${stat('cs-paid', 'Paid this month', U.peso(t.paidThisMonth, true), t.late.length ? `<span class="neg">${t.late.length} past due</span>` : 'Nothing past due')}
+        ${stat('cs-avail', 'Available credit', t.available === null ? '—' : U.peso(t.available, true), t.available === null ? 'Add credit limits to see this' : 'of ' + U.peso(t.limit, true) + ' total limit')}
+      </div>` : ''}
+      <div id="listBody">${this.cardsList()}</div>`;
+  },
+  cardsList() {
+    const list = Calc.cards();
+    if (!list.length) return `<div class="card empty"><div class="section-title">No cards yet</div>Add each credit card (for example your 2 BPI cards and your RCBC card). Then every month, type in the statement balance, minimum due and due date, and record what you pay.<div style="margin-top:14px"><button class="btn primary" data-action="add-card">Add card</button></div></div>`;
+    const stTag = st => `<span class="tag ${st === 'PAID' ? 'PAID' : st === 'OVERDUE' ? 'OVERDUE' : st === 'MIN PAID' ? 'MIN_PAID' : st === 'CARRIED OVER' ? 'CARRIED_OVER' : st === 'PARTIAL' ? 'PARTIAL' : 'UNPAID'}">${U.esc(st)}</span>`;
+    return `<div class="cc-grid">${list.map(k => {
+      const L = k.latest, bankCls = 'b-' + String(k.bank || 'Other').replace(/\s+/g, '_');
+      let dueLine;
+      if (!L) dueLine = `<span>No statement yet</span>`;
+      else if (L.status === 'PAID') dueLine = `<span><b>Paid in full</b>${L.lastPaymentDate ? ' · ' + U.esc(U.fmtDate(L.lastPaymentDate)) : ''}</span>${stTag('PAID')}`;
+      else {
+        const when = k.daysToDue < 0 ? `<b class="neg">${-k.daysToDue} day${k.daysToDue === -1 ? '' : 's'} past due</b>` : k.daysToDue === 0 ? '<b>Due today</b>' : `Due <b>${U.esc(U.fmtDay(L.dueDate))}</b>${k.daysToDue <= 7 ? ' · in ' + k.daysToDue + ' day' + (k.daysToDue === 1 ? '' : 's') : ''}`;
+        dueLine = `<span>${when}${L.minimumCents ? ' · Min ' + (L.minLeftCents ? U.peso(U.fromCents(L.minLeftCents), true) + ' left' : '<span class="under">paid</span>') : ''}</span>${stTag(L.status)}`;
+      }
+      const use = k.usage === null ? '' : `<div class="cc-use"><div class="bar"><i class="${k.usage >= 0.9 ? 'max' : k.usage >= 0.5 ? 'hi' : ''}" style="--p:${k.usage.toFixed(3)}"></i></div><div class="meta"><span>${Math.round(k.usage * 100)}% of limit used</span><span>${U.peso(Math.max(0, k.limit - k.balance), true)} available</span></div></div>`;
+      const hist = k.statements.length ? `<details class="cc-hist" ${UI.filters.cards.open[k.id] ? 'open' : ''} data-card-hist="${U.esc(k.id)}"><summary>Statements &amp; payments (${k.statements.length}) ›</summary>${k.statements.map(x => `<div class="cc-st">
+          <div class="cc-st-head"><span><b>${U.peso(U.fromCents(x.balanceCents))}</b> <span class="sub">statement ${U.esc(U.fmtDate(x.statementDate))} · due ${U.esc(U.fmtDate(x.dueDate))}${x.minimumCents ? ' · min ' + U.peso(U.fromCents(x.minimumCents), true) : ''}</span> ${localTag(x.raw)}</span><span style="display:flex;gap:6px;align-items:center">${stTag(x.status)}<button class="btn sm ghost" data-action="edit-statement" data-id="${U.esc(x.id)}">Edit</button></span></div>
+          ${x.payments.length ? `<ol class="timeline">${x.payments.map(r => `<li><span class="dot"></span><span class="tl-main"><b>${U.peso(r.amount)}</b> · ${U.esc(U.fmtDate(r.date))} · ${U.esc(r.paymentMethod || '')} ${localTag(r)}${r.notes ? `<span class="sub">${U.esc(r.notes)}</span>` : ''}</span><button class="btn sm ghost" data-action="void-card-payment" data-id="${U.esc(r.id)}">Undo</button></li>`).join('')}</ol>` : '<div class="sub">No payments on this statement.</div>'}
+          ${x.remainingCents > 0 && x.isLatest ? '' : x.status === 'CARRIED OVER' ? `<div class="sub">${U.peso(U.fromCents(x.remainingCents), true)} unpaid — carried into the next statement.</div>` : ''}
+        </div>`).join('')}</details>` : '';
+      return `<article class="cc">
+        <div class="cc-face ${U.esc(bankCls)}">
+          <div class="cc-top"><div><div class="cc-bank">${U.esc(k.bank || 'Card')}</div><div class="cc-name">${U.esc(k.name)} ${localTag(k)}</div></div><span class="cc-chip" aria-hidden="true"></span></div>
+          <div class="cc-bottom"><div><div class="cc-bal-l">${L && L.status !== 'PAID' ? 'Balance to pay' : 'Balance'}</div><div class="cc-bal">${U.peso(k.balance, true)}</div></div><div class="cc-num">${k.last4 ? '•••• ' + U.esc(k.last4) : ''}</div></div>
+        </div>
+        <div class="cc-body">
+          <div class="cc-due">${dueLine}</div>
+          ${L && L.status !== 'PAID' && L.paidCents ? `<div class="sub" style="margin-top:6px;font-size:12.5px;color:var(--muted)">Paid ${U.peso(U.fromCents(L.paidCents), true)} of ${U.peso(U.fromCents(L.balanceCents), true)} statement</div>` : ''}
+          ${use}
+          <div class="cc-actions">
+            ${L && L.remainingCents > 0 ? `<button class="btn sm pay" data-action="card-pay" data-id="${U.esc(k.id)}">Record payment</button>` : ''}
+            <button class="btn sm ${L ? '' : 'pay'}" data-action="add-statement" data-id="${U.esc(k.id)}">${L ? 'New statement' : 'Add statement'}</button>
+            <button class="btn sm ghost" data-action="edit-card" data-id="${U.esc(k.id)}">Edit card</button>
+          </div>
+          ${hist}
+        </div>
+      </article>`;
+    }).join('')}</div>`;
+  },
+
+  /* ============================== MY UTANG ============================== */
+  utang() {
+    const f = UI.filters.utang;
+    const t = Calc.debtTotals();
+    const counts = { open: 0, soon: 0, OVERDUE: 0, PAID: 0, all: t.list.length };
+    t.list.forEach(x => { if (x.status !== 'PAID') counts.open++; if (x.dueSoon) counts.soon++; if (counts[x.status] !== undefined) counts[x.status]++; });
+    const stat = (cls, label, value, meta) => `<div class="loan-stat ${cls}"><div class="label">${label}</div><div class="value">${value}</div><div class="meta">${meta}</div></div>`;
+    const nx = t.next;
+    const nextMeta = nx ? `${U.esc(nx.lender)} · ${U.peso(nx.remainingAmount, true)}${nx.daysToDue < 0 ? ' · <span class="neg">' + (-nx.daysToDue) + ' day' + (nx.daysToDue === -1 ? '' : 's') + ' late</span>' : nx.daysToDue === 0 ? ' · today' : ' · in ' + nx.daysToDue + ' day' + (nx.daysToDue === 1 ? '' : 's')}` : 'No due dates set';
+    return `${UI.cachedBanner()}
+      <div class="toolbar"><div class="left"><h2 class="section-title">My Utang</h2><span class="sub" style="color:var(--muted)">Money you owe to other people</span></div><button class="btn primary" data-action="add-debt">${svgIcon('plus', 16)} Add utang</button></div>
+      <div class="loan-stats">
+        ${stat('us-owe', 'Total utang left', U.peso(t.owed, true), t.openCount ? `${t.openCount} utang to pay` : 'You don’t owe anyone 🎉')}
+        ${stat('us-next', 'Next due', nx ? U.esc(U.fmtDate(nx.dueDate).replace(/, \d{4}$/, '')) : '—', nextMeta)}
+        ${stat('us-soon', 'Due in 7 days', U.peso(t.dueSoonAmount, true), t.dueSoon.length ? `${t.dueSoon.length} utang · set aside in safe-to-spend` : 'Nothing due this week')}
+        ${stat('us-paid', 'Paid this month', U.peso(t.paidThisMonth, true), t.overdue.length ? `<span class="neg">${t.overdue.length} overdue · ${U.peso(t.overdue.reduce((a, x) => a + x.remainingAmount, 0), true)}</span>` : 'Nothing overdue')}
+      </div>
+      <div class="chips" style="margin-top:4px">${[['open', 'Still to pay'], ['soon', 'Due soon'], ['OVERDUE', 'Overdue'], ['PAID', 'Fully paid'], ['all', 'All']].map(c => `<button class="chip ${f.status === c[0] ? 'on' : ''}" data-action="debt-chip" data-status="${c[0]}">${c[1]} <b>${counts[c[0]]}</b></button>`).join('')}</div>
+      <div class="filters" style="margin-bottom:14px"><div class="field grow"><label for="fuS">Search</label><input id="fuS" class="input" type="search" placeholder="Name or note" value="${U.esc(f.search)}" data-filter="utang.search"></div></div>
+      <div id="listBody">${this.utangList()}</div>`;
+  },
+  utangList() {
+    const f = UI.filters.utang, q = f.search.trim().toLowerCase();
+    const rank = x => (x.status === 'OVERDUE' ? 0 : x.status === 'PAID' ? 3 : x.dueDate ? 1 : 2);
+    const list = Calc.debts().filter(x => (f.status === 'all' || (f.status === 'open' ? x.status !== 'PAID' : f.status === 'soon' ? x.dueSoon : x.status === f.status)) &&
+      (!q || [x.lender, x.notes].join(' ').toLowerCase().includes(q)))
+      .sort((a, b) => (rank(a) - rank(b)) || ((a.dueDate || '9999') < (b.dueDate || '9999') ? -1 : (a.dueDate || '9999') > (b.dueDate || '9999') ? 1 : 0));
+    if (!list.length) return `<div class="card empty"><div class="section-title">${Store.list('debts').length ? 'Nothing here' : 'No utang yet'}</div>${Store.list('debts').length ? 'Try another filter.' : 'Add what you owe — who, how much and when it’s due — and the app will remind you and set the money aside before the due date.'}<div style="margin-top:14px"><button class="btn primary" data-action="add-debt">Add utang</button></div></div>`;
+    return `<div class="loan-grid">${list.map(x => {
+      const color = avatarColor(x.lender);
+      const open = f.open[x.id];
+      const done = x.status === 'PAID';
+      let due = 'No due date', dueCls = '';
+      if (!done && x.dueDate) {
+        if (x.daysToDue < 0) { due = `Overdue · ${-x.daysToDue} day${x.daysToDue === -1 ? '' : 's'} late (was due ${U.fmtDate(x.dueDate).replace(/, \d{4}$/, '')})`; dueCls = 'late'; }
+        else if (x.daysToDue === 0) { due = 'Due today'; dueCls = 'soon'; }
+        else if (x.daysToDue <= 7) { due = `Due soon · in ${x.daysToDue} day${x.daysToDue === 1 ? '' : 's'} · ${U.fmtDay(x.dueDate)}`; dueCls = 'soon'; }
+        else due = 'Due ' + U.fmtDate(x.dueDate);
+      } else if (done) { const last = x.payments[x.payments.length - 1]; due = 'Fully paid' + (last ? ' · ' + U.fmtDate(last.date) : ''); dueCls = 'done'; }
+      return `<article class="loan-card s-${x.status} ${open ? 'open' : ''}" style="--av:${color}">
+        <button class="loan-head" data-action="debt-toggle" data-id="${U.esc(x.id)}" aria-expanded="${open ? 'true' : 'false'}">
+          <span class="avatar">${U.esc(initials(x.lender))}</span>
+          <span class="who"><b>${U.esc(x.lender)}</b> ${localTag(x)}<span class="sub">Borrowed ${U.esc(U.fmtDate(x.dateBorrowed))}${x.paymentMethod ? ' · pay via ' + U.esc(x.paymentMethod) : ''}</span></span>
+          <span class="amt"><b>${U.peso(done ? x.amount : x.remainingAmount, true)}</b><span class="sub">${done ? 'paid off' : 'left of ' + U.peso(x.amount, true)}</span></span>
+          <span class="chev" aria-hidden="true">›</span>
+        </button>
+        <div class="loan-prog"><div class="bar utang"><i style="--p:${x.progress}"></i></div><div class="prog-meta"><span>${Math.round(x.progress * 100)}% paid</span><span class="due ${dueCls}">${U.esc(due)}</span></div></div>
+        <div class="loan-more">
+          ${x.notes ? `<p class="loan-note">${U.esc(x.notes)}</p>` : ''}
+          <div class="t-label" style="margin-bottom:6px">Payments</div>
+          ${x.payments.length ? `<ol class="timeline">${x.payments.map(r => `<li><span class="dot"></span><span class="tl-main"><b>${U.peso(r.amount)}</b> · ${U.esc(U.fmtDate(r.date))} · ${U.esc(r.paymentMethod || '')} ${localTag(r)}${r.notes ? `<span class="sub">${U.esc(r.notes)}</span>` : ''}</span><button class="btn sm ghost" data-action="void-debt-payment" data-id="${U.esc(r.id)}" title="Remove this payment">Undo</button></li>`).join('')}</ol>` : '<p class="sub" style="margin:0 0 10px;color:var(--muted)">No payments yet.</p>'}
+          <div class="loan-actions">
+            ${!done ? `<button class="btn sm pay" data-action="debt-pay" data-id="${U.esc(x.id)}">Record payment</button>` : ''}
+            <button class="btn sm" data-action="edit-debt" data-id="${U.esc(x.id)}">Edit</button>
+          </div>
+        </div>
+      </article>`;
+    }).join('')}</div>`;
+  },
+
   /* ============================== SAVINGS ============================== */
   savings() {
     const sv = Calc.savings();
@@ -2122,7 +2478,7 @@ const Views = {
         <div class="card kpi lead"><div class="label">Saved in ${U.esc(U.monthLabel(cur.month).split(' ')[0])} so far</div><div class="value ${cur.saved < 0 ? 'neg-light' : ''}">${U.peso(cur.saved, true)}</div><div class="meta">${cur.rate === null ? 'No income received yet this month' : 'Saved ' + pct(cur.rate) + ' of income received'}</div></div>
         <div class="card kpi"><div class="label">Total saved</div><div class="value ${tone(sv.totalSaved)}">${U.peso(sv.totalSaved, true)}</div><div class="meta">${pct(sv.overallRate)} of ${U.peso(sv.totalIncome, true)} income</div></div>
         <div class="card kpi"><div class="label">Average per month</div><div class="value ${tone(sv.average || 0)}">${sv.average === null ? '—' : U.peso(sv.average, true)}</div><div class="meta">${sv.average === null ? 'Shows after your first full month' : 'Completed months only'}</div></div>
-        <div class="card kpi"><div class="label">Cash on hand</div><div class="value ${tone(sv.openingBalance + sv.totalSaved - sv.netLent)}">${U.peso(sv.openingBalance + sv.totalSaved - sv.netLent, true)}</div><div class="meta">Starting ${U.peso(sv.openingBalance, true)} + saved${sv.netLent ? ' − lent out ' + U.peso(sv.netLent, true) : ''}${sv.owedToYou ? ' · <a href="#/loans">' + U.peso(sv.owedToYou, true) + ' owed to you</a>' : ''}</div></div>
+        <div class="card kpi"><div class="label">Cash on hand</div><div class="value ${tone(sv.openingBalance + sv.totalSaved - sv.netLent + sv.netUtang)}">${U.peso(sv.openingBalance + sv.totalSaved - sv.netLent + sv.netUtang, true)}</div><div class="meta">Starting ${U.peso(sv.openingBalance, true)} + saved${sv.netLent ? ' − lent out ' + U.peso(sv.netLent, true) : ''}${sv.netUtang ? (sv.netUtang > 0 ? ' + borrowed ' : ' − utang paid ') + U.peso(Math.abs(sv.netUtang), true) : ''}${sv.owedToYou ? ' · <a href="#/loans">' + U.peso(sv.owedToYou, true) + ' owed to you</a>' : ''}${sv.utangOwed ? ' · <a href="#/utang">' + U.peso(sv.utangOwed, true) + ' utang left</a>' : ''}</div></div>
       </div>
       <div class="card" style="margin-bottom:18px">
         <div class="card-head"><h3 class="card-title">Saved per month</h3><span class="sub" style="font-size:12.5px;color:var(--muted)">${sv.best ? 'Best: ' + U.esc(U.monthLabel(sv.best.month)) + ' · ' + U.peso(sv.best.saved, true) : ''}</span></div>
@@ -2131,7 +2487,7 @@ const Views = {
       </div>
       <div class="card">
         <div class="table-scroll" style="padding:6px 12px 14px"><table class="report-table">
-          <thead><tr><th>Month</th><th class="n">Income received</th><th class="n">Bills paid</th><th class="n">Other expenses</th><th class="n">Saved</th><th class="n">Savings rate</th><th class="n">Running total</th></tr></thead>
+          <thead><tr><th>Month</th><th class="n">Income received</th><th class="n">Bills &amp; cards paid</th><th class="n">Other expenses</th><th class="n">Saved</th><th class="n">Savings rate</th><th class="n">Running total</th></tr></thead>
           <tbody>${rows.map(r => `<tr><td>${U.esc(U.monthLabel(r.month))}${r.partial ? ' <span class="sub" style="color:var(--muted)">(so far)</span>' : ''}</td><td class="n">${U.peso(r.income)}</td><td class="n">${U.peso(r.bills)}</td><td class="n">${U.peso(r.other)}</td><td class="n ${tone(r.saved)}"><b>${U.peso(r.saved)}</b></td><td class="n">${pct(r.rate)}</td><td class="n">${U.peso(r.running)}</td></tr>`).join('')}</tbody>
         </table></div>
         <div class="list-foot"><span class="sub" style="font-weight:500">Counted by the date money actually came in or went out.${sv.openingDate ? '' : ' Set a starting balance in Settings to fix the start date.'}</span></div>
@@ -2164,15 +2520,14 @@ const Views = {
     let te = 0, tp = 0, tr = 0;
     const rows = list.map(i => {
       te += U.cents(i.expectedAmount); tp += U.cents(i.actualAmount); tr += Math.max(0, U.cents(i.remainingAmount));
-      const done = i.status === ST.PAID || i.status === ST.OVER;
       return `<div class="row cols-bills">
         <div class="primary-cell"><div class="name">${U.esc(i.billName)} ${localTag(i.hasLocal ? { syncStatus: 'pending' } : null)}</div><div class="sub">${i.arrivalDate && i.arrivalDate !== i.dueDate ? (i.arrivalDate > U.today() ? 'Arrives ' : 'Arrived ') + U.esc(U.fmtDate(i.arrivalDate)) + ' · ' : ''}${U.esc(i.category || '')}${i.frequency ? ' · ' + U.esc(i.frequency.toLowerCase()) : ''}${i.notes ? ' · ' + U.esc(i.notes) : ''}</div></div>
         <div data-label="Due">${U.fmtDate(i.dueDate)}</div>
         <div class="num" data-label="Expected">${U.peso(i.expectedAmount)}</div>
         <div class="num" data-label="Paid">${i.paymentCount ? U.peso(i.actualAmount) : '<span style="color:var(--muted)">—</span>'}</div>
-        <div class="num c-diff" data-label="${i.remainingAmount < 0 ? 'Overpaid' : 'Remaining'}">${i.remainingAmount < 0 ? '<span style="color:var(--over)">+' + U.peso(-i.remainingAmount) + '</span>' : U.peso(i.remainingAmount)}</div>
-        <div class="status-cell">${tagFor(i.status)}</div>
-        <div class="actions">${done ? '' : `<button class="btn sm pay" data-action="pay" data-id="${U.esc(i.billInstanceId)}">${i.paymentCount ? 'Pay balance' : 'Mark as Paid'}</button>`}<button class="btn sm" data-action="bill-details" data-id="${U.esc(i.billInstanceId)}">Details</button></div>
+        <div class="num c-diff" data-label="${i.remainingAmount < 0 ? 'Overpaid' : i.underBudget > 0 ? 'Under budget' : 'Remaining'}">${i.remainingAmount < 0 ? '<span style="color:var(--over)">+' + U.peso(-i.remainingAmount) + '</span>' : i.underBudget > 0 ? '<span class="under">' + U.peso(i.underBudget) + ' under</span>' : U.peso(i.remainingAmount)}</div>
+        <div class="status-cell">${billTag(i)}</div>
+        <div class="actions">${billActions(i, false)}<button class="btn sm" data-action="bill-details" data-id="${U.esc(i.billInstanceId)}">Details</button></div>
       </div>`;
     }).join('');
     return `<div class="list"><div class="row head cols-bills"><div>Bill</div><div>Due</div><div class="num">Expected</div><div class="num">Paid</div><div class="num c-diff">Remaining</div><div>Status</div><div></div></div>${rows}</div>
@@ -2340,7 +2695,7 @@ const Views = {
     const online = navigator.onLine && Sync.reachable !== false;
     const q = Store.queue;
     const pending = Store.pendingCount(), failed = Store.failedCount();
-    const label = o => ({ EXPENSE: 'Expense', INCOME: 'Income', PAYMENT: 'Payment', RECURRING_BILL: 'Recurring bill', BILL_INSTANCE: 'Bill', BUDGET: 'Budget', SETTINGS: 'Settings', LOAN: 'Lent money', LOAN_REPAYMENT: 'Loan repayment', RECURRING_INCOME: 'Income schedule' }[o.entityType] || o.entityType) + ' · ' + ({ CREATE: 'create', UPDATE: 'update', DELETE: o.entityType === 'PAYMENT' ? 'void' : 'delete', PAYMENT: 'payment', DISABLE: 'disable', ENABLE: 'enable' }[o.action] || o.action.toLowerCase());
+    const label = o => ({ EXPENSE: 'Expense', INCOME: 'Income', PAYMENT: 'Payment', RECURRING_BILL: 'Recurring bill', BILL_INSTANCE: 'Bill', BUDGET: 'Budget', SETTINGS: 'Settings', LOAN: 'Lent money', LOAN_REPAYMENT: 'Loan repayment', RECURRING_INCOME: 'Income schedule', DEBT: 'Utang', DEBT_PAYMENT: 'Utang payment', CARD: 'Credit card', CARD_STATEMENT: 'Card statement', CARD_PAYMENT: 'Card payment' }[o.entityType] || o.entityType) + ' · ' + ({ CREATE: 'create', UPDATE: 'update', DELETE: o.entityType === 'PAYMENT' || o.entityType === 'DEBT_PAYMENT' || o.entityType === 'CARD_PAYMENT' ? 'void' : 'delete', PAYMENT: 'payment', DISABLE: 'disable', ENABLE: 'enable', SETTLE: o.payload && o.payload.settled === false ? 'undo settled' : 'mark settled' }[o.action] || o.action.toLowerCase());
     const describe = o => { const p = o.payload || {}; return [p.description || p.source || p.name || p.billName || '', p.amount !== undefined ? U.peso(p.amount) : p.actualAmount ? U.peso(p.actualAmount) : p.plannedAmount !== undefined ? U.peso(p.plannedAmount) : '', p.date || p.paymentDate || p.month || ''].filter(Boolean).join(' · '); };
     return `
       <div class="stat-grid">
@@ -2623,10 +2978,28 @@ const Data = {
       UI.refresh();
       return 'discarded';
     }
-    if (store === 'payments' || store === 'loanRepayments') cur.isVoid = true; else cur.isDeleted = true;
+    if (store === 'payments' || store === 'loanRepayments' || store === 'debtPayments' || store === 'cardPayments') cur.isVoid = true; else cur.isDeleted = true;
     cur.updatedAt = U.nowIso(); cur.syncStatus = 'pending';
     await Store.save(store, cur);
     return Sync.commit({ operationId: U.opId(), entityType: type, action: 'DELETE', localId: id, entityId: id, payload: { [idField]: id }, baseUpdatedAt: cur.serverUpdatedAt || '' });
+  }
+};
+
+/* ------------------------------------------------------------------ Bills: "settled" (done for the period, even if under budget) */
+const Bills = {
+  /**
+   * Marks a bill settled (or undoes it) locally first, then queues BILL_INSTANCE:SETTLE.
+   * withSync=false only queues it (used when a payment saved right after will push both).
+   */
+  async markSettled(id, on, date, withSync) {
+    const raw = Store.get('billInstances', id);
+    if (!raw) { UI.toast('That bill is not on this device yet. Try syncing.', 'err'); return 'missing'; }
+    raw.settled = !!on; raw.settledDate = on ? (date || U.today()) : '';
+    raw.syncStatus = 'pending'; raw.updatedAt = U.nowIso();
+    await Store.save('billInstances', raw);
+    const op = { operationId: U.opId(), entityType: 'BILL_INSTANCE', action: 'SETTLE', localId: raw.id, entityId: raw.id, payload: { billInstanceId: raw.id, settled: !!on, date: raw.settledDate, billingPeriod: raw.billingPeriod } };
+    if (withSync === false) { await Sync.enqueue(op); return 'queued'; }
+    return Sync.commit(op);
   }
 };
 
@@ -2645,21 +3018,32 @@ const Forms = {
           ${F.money('amount', 'Payment amount', remaining > 0 ? remaining : inst.expectedAmount, { required: true, hint: 'Enter less than the remaining amount for a partial payment.' })}
           ${F.date('paymentDate', 'Payment date', today, { required: true })}
           ${F.select('paymentMethod', 'Payment method', PAYMENT_METHODS, inst.paymentMethod || 'Cash', { full: true })}
+          <label class="check-row full" id="settleRow" hidden><input type="checkbox" name="settle" value="1"><span><b>That's the whole bill — mark as settled</b><br><span id="settleNote">Use this when the bill came in lower than budgeted, or you're done buying for this period. It will show as paid, not partial.</span></span></label>
           ${F.notes('')}
         </div>`,
       foot: `<button type="button" class="btn" data-close>Cancel</button><button type="submit" class="btn primary" data-busy-label="Saving…">Save payment</button>`,
       onOpen(form) {
         const amt = form.querySelector('[name=amount]'), hint = form.querySelector('#h_amount');
-        const upd = () => { const v = U.parseMoney(amt.value); if (isNaN(v) || v === '') { hint.textContent = 'Enter the amount paid.'; return; } const after = U.fromCents(U.cents(inst.actualAmount) + U.cents(v)); const left = U.fromCents(U.cents(inst.expectedAmount) - U.cents(after)); hint.innerHTML = left > 0 ? `After this payment: <b>PARTIAL</b>, ${U.esc(U.peso(left))} remaining.` : left === 0 ? 'After this payment: <b>PAID</b> in full.' : `After this payment: <b style="color:var(--over)">OVER BUDGET</b> by ${U.esc(U.peso(-left))}.`; };
-        amt.addEventListener('input', upd); upd();
+        const row = form.querySelector('#settleRow'), chk = form.querySelector('[name=settle]'), note = form.querySelector('#settleNote');
+        const upd = () => {
+          const v = U.parseMoney(amt.value);
+          if (isNaN(v) || v === '') { hint.textContent = 'Enter the amount paid.'; row.hidden = true; return; }
+          const after = U.fromCents(U.cents(inst.actualAmount) + U.cents(v)); const left = U.fromCents(U.cents(inst.expectedAmount) - U.cents(after));
+          row.hidden = !(left > 0);
+          if (left > 0) note.innerHTML = `Total paid ${U.esc(U.peso(after))} of ${U.esc(U.peso(inst.expectedAmount))} — the ${U.esc(U.peso(left))} left in the budget goes back to your safe-to-spend.`;
+          hint.innerHTML = left > 0 ? (chk.checked ? `After this payment: <b style="color:var(--paid)">SETTLED</b> · ${U.esc(U.peso(left))} under budget.` : `After this payment: <b>PARTIAL</b>, ${U.esc(U.peso(left))} remaining.`) : left === 0 ? 'After this payment: <b>PAID</b> in full.' : `After this payment: <b style="color:var(--over)">OVER BUDGET</b> by ${U.esc(U.peso(-left))}.`;
+        };
+        amt.addEventListener('input', upd); chk.addEventListener('change', upd); upd();
       },
       async onSubmit(fd) {
         const rec = { paymentId, billInstanceId: inst.billInstanceId, paymentDate: F.date10(fd, 'paymentDate', 'Payment date'), amount: F.amount(fd, 'amount', 'Payment amount', { positive: true }), paymentMethod: fd.get('paymentMethod'), notes: String(fd.get('notes') || '').trim(), recurringBillId: inst.recurringBillId, billName: inst.billName, billingPeriod: inst.billingPeriod, isVoid: false };
+        const willSettle = fd.get('settle') === '1' && U.cents(inst.actualAmount) + U.cents(rec.amount) < U.cents(inst.expectedAmount);
+        if (willSettle) await Bills.markSettled(inst.billInstanceId, true, rec.paymentDate, false);
         const outcome = await Data.create('payments', rec, Modal.current.opId);
         Modal.close();
         const after = Calc.instances().find(i => i.billInstanceId === inst.billInstanceId);
         UI.saveOutcome(outcome, 'Payment');
-        if (after && outcome !== 'rejected') UI.toast(`${inst.billName}: ${after.status}${after.status === ST.PARTIAL ? ' · ' + U.peso(after.remainingAmount) + ' remaining' : ''}`);
+        if (after && outcome !== 'rejected') UI.toast(`${inst.billName}: ${after.settled && after.status === ST.PAID ? 'SETTLED' + (after.underBudget > 0 ? ' · ' + U.peso(after.underBudget) + ' under budget' : '') : after.status}${after.status === ST.PARTIAL ? ' · ' + U.peso(after.remainingAmount) + ' remaining' : ''}`);
         UI.refresh();
       }
     });
@@ -2671,8 +3055,10 @@ const Forms = {
     const done = inst.status === ST.PAID || inst.status === ST.OVER;
     Modal.open({
       title: inst.billName, eyebrow: U.monthLabel(inst.billingPeriod) + ' · ' + (inst.category || ''), wide: true,
-      body: `<div style="margin-bottom:14px">${tagFor(inst.status)}</div>
-        <div class="summary-box"><div><span>Expected</span><b>${U.peso(inst.expectedAmount)}</b></div><div><span>Paid</span><b>${inst.paymentCount ? U.peso(inst.actualAmount) : '—'}</b></div><div><span>${inst.remainingAmount < 0 ? 'Over by' : 'Remaining'}</span><b>${U.peso(Math.abs(inst.remainingAmount))}</b></div></div>
+      body: `<div style="margin-bottom:14px">${billTag(inst)}</div>
+        <div class="summary-box"><div><span>Expected</span><b>${U.peso(inst.expectedAmount)}</b></div><div><span>Paid</span><b>${inst.paymentCount ? U.peso(inst.actualAmount) : '—'}</b></div><div><span>${inst.remainingAmount < 0 ? 'Over by' : inst.underBudget > 0 ? 'Under budget' : 'Remaining'}</span><b class="${inst.underBudget > 0 ? 'under' : ''}">${U.peso(inst.underBudget > 0 ? inst.underBudget : Math.abs(inst.remainingAmount))}</b></div></div>
+        ${inst.settled ? `<div class="settle-box"><span class="grow"><b>Settled${inst.settledDate ? ' on ' + U.esc(U.fmtDate(inst.settledDate)) : ''}.</b> This bill is done for ${U.esc(U.monthLabel(inst.billingPeriod))}${inst.underBudget > 0 ? ` — ${U.esc(U.peso(inst.underBudget))} under budget, which is back in your safe-to-spend` : ''}.</span><button type="button" class="btn sm" data-action="unsettle-bill" data-id="${U.esc(instId)}">Undo</button></div>`
+          : (!done && !inst.isVoid ? `<div class="settle-box off"><span class="grow"><b>Done with this bill for now?</b> If it came in lower than the budget, or you won't buy more this period${inst.paymentCount ? '' : ' (even if nothing was spent)'}, mark it settled so it stops showing as ${inst.paymentCount ? 'partial' : 'unpaid'}.</span><button type="button" class="btn sm" data-action="settle-bill" data-id="${U.esc(instId)}">Mark settled</button></div>` : '')}
         <div class="card-title" style="margin:6px 0 8px">Payments</div>
         <div class="card" style="box-shadow:none;margin-bottom:16px">${pays.length ? pays.map(p => `<div class="row" style="grid-template-columns:1fr auto auto;padding:10px 16px;${U.bool(p.isVoid) ? 'opacity:.5;text-decoration:line-through' : ''}"><div><div class="name">${U.fmtDate(p.paymentDate)} · ${U.esc(p.paymentMethod)} ${localTag(p)}</div>${p.notes ? `<div class="sub">${U.esc(p.notes)}</div>` : ''}</div><div class="num"><b>${U.peso(p.amount)}</b></div><div>${U.bool(p.isVoid) ? '<span class="sub">voided</span>' : `<button type="button" class="btn sm danger" data-action="void-payment" data-id="${U.esc(p.id)}">Void</button>`}</div></div>`).join('') : '<div class="empty" style="padding:18px">No payments yet — actual amount is blank, so this bill is unpaid.</div>'}</div>
         <div class="form-grid">
@@ -2990,6 +3376,176 @@ const Forms = {
       }
     });
   },
+  debt(id) {
+    const cur = id ? Store.get('debts', id) : null;
+    const debtId = cur ? cur.id : U.uid('DEBT');
+    const names = Array.from(new Set(Store.list('debts').map(x => String(x.lender || '').trim()).filter(Boolean))).sort();
+    const opening = Store.settings.openingBalanceDate || '';
+    Modal.open({
+      title: cur ? 'Edit utang' : 'Add utang', eyebrow: 'My utang',
+      body: `<div class="form-grid">
+        <div class="field full"><label for="f_lender">Who do you owe?</label><input id="f_lender" name="lender" class="input" list="lenderList" maxlength="120" value="${U.esc(cur ? cur.lender : '')}" placeholder="e.g. Tita Nena, Home Credit, BPI loan" required><datalist id="lenderList">${names.map(n => `<option value="${U.esc(n)}">`).join('')}</datalist></div>
+        ${F.money('amount', 'How much do you owe?', cur ? cur.amount : '', { required: true, hint: cur ? 'The full amount you borrowed. Payments are recorded separately.' : 'If you already paid some of it, enter the full amount and record what you paid with “Record payment”.' })}
+        ${F.date('dueDate', 'Due date', cur ? cur.dueDate : '', { hint: 'When you need to pay it. Leave blank if there is no fixed date.' })}
+        ${F.date('dateBorrowed', 'Date borrowed', cur ? cur.dateBorrowed : U.today(), { required: true })}
+        ${F.select('paymentMethod', 'Usually pay via', PAYMENT_METHODS, cur ? cur.paymentMethod : 'GCash')}
+        <label class="check-row full"><input type="checkbox" name="addToCash" value="1" ${cur && U.bool(cur.addToCash) ? 'checked' : ''}><span><b>Add this money to my cash on hand</b><br>Tick only if you received the cash${opening ? ' on or after your starting balance date (' + U.esc(U.fmtDate(opening)) + ')' : ''}. Leave unticked for older utang — that money is already in your starting balance or already spent.</span></label>
+        ${F.notes(cur ? cur.notes : '')}
+        <p class="full sub" style="margin:0;color:var(--muted)">Payments you record take money out of your cash on hand. If there's a due date, what's still unpaid is set aside in your safe-to-spend before it's due — like a bill. Utang is not counted as an expense in your monthly budget.</p></div>`,
+      foot: `${cur ? `<button type="button" class="btn danger" data-action="delete-debt" data-id="${U.esc(cur.id)}" style="margin-right:auto">Delete</button>` : ''}<button type="button" class="btn" data-close>Cancel</button><button type="submit" class="btn primary">${cur ? 'Save changes' : 'Save utang'}</button>`,
+      async onSubmit(fd) {
+        const rec = { lender: F.req(fd, 'lender', 'Who you owe'), amount: F.amount(fd, 'amount', 'Amount owed', { positive: true }), dateBorrowed: F.date10(fd, 'dateBorrowed', 'Date borrowed'), dueDate: F.date10(fd, 'dueDate', 'Due date', true), paymentMethod: fd.get('paymentMethod'), addToCash: fd.get('addToCash') === '1', notes: String(fd.get('notes') || '').trim() };
+        if (rec.dueDate && rec.dueDate < rec.dateBorrowed) throw new Error('The due date cannot be before the date you borrowed it.');
+        const outcome = cur ? await Data.update('debts', cur.id, rec, Modal.current.opId) : await Data.create('debts', Object.assign({ debtId, isDeleted: false }, rec), Modal.current.opId);
+        Modal.close();
+        if (outcome === 'nochange') UI.toast('No changes to save.'); else UI.saveOutcome(outcome, cur ? 'Utang' : 'Utang to ' + rec.lender);
+        UI.refresh();
+      }
+    });
+  },
+  debtPayment(debtIdArg) {
+    const raw = Store.get('debts', debtIdArg);
+    if (!raw) return UI.toast('Utang not found on this device.', 'err');
+    const x = Calc.debt(raw);
+    const debtPaymentId = U.uid('DPY');
+    Modal.open({
+      title: 'Record payment', eyebrow: 'Utang · ' + x.lender,
+      body: `<div class="summary-box"><div><span>Owed</span><b>${U.peso(x.amount)}</b></div><div><span>Paid so far</span><b>${U.peso(x.paidAmount)}</b></div><div><span>Still to pay</span><b>${U.peso(x.remainingAmount)}</b></div></div>
+        <div class="form-grid">
+          ${F.money('amount', 'Amount paid', x.remainingAmount, { required: true, hint: '&nbsp;' })}
+          ${F.date('date', 'Date paid', U.today(), { required: true })}
+          ${F.select('paymentMethod', 'Paid via', PAYMENT_METHODS, x.paymentMethod || 'Cash', { full: true })}
+          ${F.notes('')}
+        </div>`,
+      foot: `<button type="button" class="btn" data-close>Cancel</button><button type="submit" class="btn primary">Save payment</button>`,
+      onOpen(form) {
+        const amt = form.querySelector('[name=amount]'), hint = form.querySelector('#h_amount');
+        const upd = () => { const v = U.parseMoney(amt.value); if (isNaN(v) || v === '') { hint.textContent = ''; return; } const left = U.fromCents(U.cents(x.remainingAmount) - U.cents(v)); hint.innerHTML = left > 0 ? `You will still owe <b>${U.esc(U.peso(left))}</b>.` : left === 0 ? '<b>Fully paid</b> after this.' : `That is <b>${U.esc(U.peso(-left))}</b> more than what you owe.`; };
+        amt.addEventListener('input', upd); upd();
+      },
+      async onSubmit(fd) {
+        const amount = F.amount(fd, 'amount', 'Amount paid', { positive: true });
+        const outcome = await Data.create('debtPayments', { debtPaymentId, debtId: x.debtId, lender: x.lender, date: F.date10(fd, 'date', 'Date paid'), amount, paymentMethod: fd.get('paymentMethod'), notes: String(fd.get('notes') || '').trim(), isVoid: false }, Modal.current.opId);
+        Modal.close();
+        const after = Calc.debt(Store.get('debts', x.id));
+        if (outcome === 'synced' || outcome === 'local') UI.toast(after.status === 'PAID' ? `✓ Your utang to ${x.lender} is fully paid.` : `Paid ${U.peso(amount, true)} to ${x.lender} · ${U.peso(after.remainingAmount, true)} left.`);
+        if (outcome !== 'synced') UI.saveOutcome(outcome, 'Payment');
+        UI.filters.utang.open[x.id] = true;
+        UI.refresh();
+      }
+    });
+  },
+  card(id) {
+    const cur = id ? Store.get('cards', id) : null;
+    const cardId = cur ? cur.id : U.uid('CARD');
+    const banks = ['BPI', 'RCBC', 'BDO', 'Metrobank', 'Security Bank', 'UnionBank', 'EastWest', 'HSBC', 'Citi', 'Other'];
+    Modal.open({
+      title: cur ? 'Edit card' : 'Add credit card', eyebrow: 'Credit cards',
+      body: `<div class="form-grid">
+        ${F.text('name', 'Card name', cur ? cur.name : '', { required: true, max: 80, attrs: 'placeholder="e.g. BPI Gold, BPI Amore, RCBC Visa"' })}
+        ${F.select('bank', 'Bank', banks, cur ? cur.bank : 'BPI')}
+        ${F.text('last4', 'Last 4 digits (optional)', cur ? cur.last4 : '', { max: 4, attrs: 'inputmode="numeric" pattern="[0-9]*" placeholder="1234"', hint: 'Only to tell your cards apart. Never enter the full card number.' })}
+        ${F.money('creditLimit', 'Credit limit (optional)', cur ? cur.creditLimit : '', { placeholder: 'e.g. 100000' })}
+        ${F.text('statementDay', 'Statement day (optional)', cur ? cur.statementDay : '', { type: 'number', attrs: 'min="1" max="31" placeholder="e.g. 25"' })}
+        ${F.text('dueDay', 'Usual due day', cur ? cur.dueDay : '', { type: 'number', attrs: 'min="1" max="31" placeholder="e.g. 15"', hint: 'Used to fill in the due date when you add a statement.' })}
+        ${F.select('paymentMethod', 'Usually pay via', PAYMENT_METHODS, cur ? cur.paymentMethod : 'Online Bank')}
+        ${F.notes(cur ? cur.notes : '')}
+      </div>`,
+      foot: `${cur ? `<button type="button" class="btn danger" data-action="delete-card" data-id="${U.esc(cur.id)}" style="margin-right:auto">Delete</button>` : ''}<button type="button" class="btn" data-close>Cancel</button><button type="submit" class="btn primary">${cur ? 'Save changes' : 'Save card'}</button>`,
+      async onSubmit(fd) {
+        const day = (k, label) => { const v = String(fd.get(k) || '').trim(); if (!v) return ''; const n = parseInt(v, 10); if (!(n >= 1 && n <= 31)) throw new Error(label + ' must be between 1 and 31.'); return n; };
+        const last4 = String(fd.get('last4') || '').replace(/\D/g, '');
+        if (last4 && last4.length !== 4) throw new Error('Last 4 digits must be exactly 4 numbers.');
+        const rec = { name: F.req(fd, 'name', 'Card name'), bank: fd.get('bank'), last4, creditLimit: F.amount(fd, 'creditLimit', 'Credit limit', { allowBlank: true }), statementDay: day('statementDay', 'Statement day'), dueDay: day('dueDay', 'Due day'), paymentMethod: fd.get('paymentMethod'), notes: String(fd.get('notes') || '').trim() };
+        if (!cur && Store.list('cards').some(k => !U.bool(k.isDeleted) && String(k.name).trim().toLowerCase() === rec.name.toLowerCase())) throw new Error('You already have a card named "' + rec.name + '".');
+        const first = !cur && !Store.list('cards').some(k => !U.bool(k.isDeleted));
+        const outcome = cur ? await Data.update('cards', cur.id, rec, Modal.current.opId) : await Data.create('cards', Object.assign({ cardId, isDeleted: false }, rec), Modal.current.opId);
+        Modal.close();
+        if (outcome === 'nochange') UI.toast('No changes to save.'); else UI.saveOutcome(outcome, cur ? 'Card' : rec.name);
+        if (first && outcome === 'synced') UI.toast('The old Credit Card recurring bill was switched off — your cards replace it.');
+        UI.refresh();
+      }
+    });
+  },
+  cardStatement(cardIdArg, statementIdArg) {
+    const cur = statementIdArg ? Store.get('cardStatements', statementIdArg) : null;
+    const card = Store.get('cards', cur ? cur.cardId : cardIdArg);
+    if (!card) return UI.toast('Card not found on this device.', 'err');
+    const statementId = cur ? cur.id : U.uid('CST');
+    const today = U.today();
+    const dueFor = sd => {
+      const d = +card.dueDay;
+      if (!U.isYmd(sd)) return '';
+      if (!(d >= 1 && d <= 31)) return U.addDays(sd, 21);
+      let ym = sd.slice(0, 7);
+      const at = m => m + '-' + U.pad2(Math.min(d, U.dim(+m.slice(0, 4), +m.slice(5, 7))));
+      let due = at(ym);
+      if (due <= sd) due = at(U.addMonths(ym, 1));
+      return due;
+    };
+    let sdDefault = today;
+    if (!cur && +card.statementDay >= 1) { const m = today.slice(0, 7); const at = mm => mm + '-' + U.pad2(Math.min(+card.statementDay, U.dim(+mm.slice(0, 4), +mm.slice(5, 7)))); sdDefault = at(m) <= today ? at(m) : at(U.addMonths(m, -1)); }
+    Modal.open({
+      title: cur ? 'Edit statement' : 'Add statement', eyebrow: card.name,
+      body: `<div class="form-grid">
+        ${F.money('statementBalance', 'Statement balance (total amount due)', cur ? cur.statementBalance : '', { required: true, hint: 'The total on your statement — this is what the app sets aside so you can pay in full.' })}
+        ${F.money('minimumDue', 'Minimum amount due', cur ? cur.minimumDue : '', { hint: 'Optional. Used to warn you if a payment falls below the minimum.' })}
+        ${F.date('statementDate', 'Statement date', cur ? cur.statementDate : sdDefault, { required: true })}
+        ${F.date('dueDate', 'Payment due date', cur ? cur.dueDate : dueFor(sdDefault), { required: true })}
+        ${F.notes(cur ? cur.notes : '')}
+        ${cur ? '' : '<p class="full sub" style="margin:0;color:var(--muted)">A new statement replaces the previous one for this card — anything you didn’t pay last time is already included in the new balance.</p>'}
+      </div>`,
+      foot: `${cur ? `<button type="button" class="btn danger" data-action="delete-statement" data-id="${U.esc(cur.id)}" style="margin-right:auto">Delete</button>` : ''}<button type="button" class="btn" data-close>Cancel</button><button type="submit" class="btn primary">${cur ? 'Save changes' : 'Save statement'}</button>`,
+      onOpen(form) {
+        if (cur) return;
+        const sd = form.querySelector('[name=statementDate]'), dd = form.querySelector('[name=dueDate]');
+        let touched = false;
+        dd.addEventListener('input', () => { touched = true; });
+        sd.addEventListener('change', () => { if (!touched) dd.value = dueFor(sd.value); });
+      },
+      async onSubmit(fd) {
+        const rec = { statementBalance: F.amount(fd, 'statementBalance', 'Statement balance'), minimumDue: F.amount(fd, 'minimumDue', 'Minimum due', { allowBlank: true }) || 0, statementDate: F.date10(fd, 'statementDate', 'Statement date'), dueDate: F.date10(fd, 'dueDate', 'Due date'), notes: String(fd.get('notes') || '').trim() };
+        if (rec.dueDate < rec.statementDate) throw new Error('The due date cannot be before the statement date.');
+        if (U.cents(rec.minimumDue) > U.cents(rec.statementBalance)) throw new Error('The minimum due cannot be more than the statement balance.');
+        const outcome = cur ? await Data.update('cardStatements', cur.id, rec, Modal.current.opId) : await Data.create('cardStatements', Object.assign({ statementId, cardId: card.cardId, cardName: card.name, isDeleted: false }, rec), Modal.current.opId);
+        Modal.close();
+        if (outcome === 'nochange') UI.toast('No changes to save.'); else UI.saveOutcome(outcome, card.name + ' statement');
+        UI.refresh();
+      }
+    });
+  },
+  cardPayment(cardIdArg) {
+    const k = Calc.cards().find(x => x.id === cardIdArg);
+    if (!k || !k.latest) return UI.toast('Add a statement for this card first.', 'err');
+    const L = k.latest, cardPaymentId = U.uid('CPY');
+    const rem = U.fromCents(L.remainingCents), minLeft = U.fromCents(L.minLeftCents);
+    Modal.open({
+      title: 'Record card payment', eyebrow: k.name,
+      body: `<div class="summary-box"><div><span>Statement</span><b>${U.peso(U.fromCents(L.balanceCents))}</b></div><div><span>Paid so far</span><b>${U.peso(U.fromCents(L.paidCents))}</b></div><div><span>Left to pay</span><b>${U.peso(rem)}</b></div></div>
+        <div class="form-grid">
+          ${F.money('amount', 'Amount paid', rem, { required: true, hint: '&nbsp;' })}
+          ${F.date('date', 'Date paid', U.today(), { required: true })}
+          ${F.select('paymentMethod', 'Paid from', PAYMENT_METHODS, k.paymentMethod || 'Online Bank', { full: true })}
+          ${F.notes('')}
+          <p class="full sub" style="margin:0;color:var(--muted)">Due ${U.esc(U.fmtDay(L.dueDate))}${L.minimumCents ? ' · minimum ' + U.esc(U.peso(U.fromCents(L.minimumCents))) : ''}. This payment comes out of your cash on hand and counts as spending for this month.</p>
+        </div>`,
+      foot: `<button type="button" class="btn" data-close>Cancel</button><button type="submit" class="btn primary">Save payment</button>`,
+      onOpen(form) {
+        const amt = form.querySelector('[name=amount]'), hint = form.querySelector('#h_amount');
+        const upd = () => { const v = U.parseMoney(amt.value); if (isNaN(v) || v === '') { hint.textContent = ''; return; } const left = U.fromCents(U.cents(rem) - U.cents(v)); hint.innerHTML = left === 0 ? '<b style="color:var(--paid)">Paid in full</b> — no interest.' : left < 0 ? `That is <b>${U.esc(U.peso(-left))}</b> more than the statement balance.` : (minLeft > 0 && U.cents(v) < U.cents(minLeft) ? `<b style="color:var(--overdue)">Below the minimum</b> — pay at least ${U.esc(U.peso(minLeft))} to avoid a late fee.` : `<b>${U.esc(U.peso(left))}</b> will stay on the card (interest may apply).`); };
+        amt.addEventListener('input', upd); upd();
+      },
+      async onSubmit(fd) {
+        const amount = F.amount(fd, 'amount', 'Amount paid', { positive: true });
+        const outcome = await Data.create('cardPayments', { cardPaymentId, cardId: k.cardId, statementId: L.statementId, cardName: k.name, date: F.date10(fd, 'date', 'Date paid'), amount, paymentMethod: fd.get('paymentMethod'), notes: String(fd.get('notes') || '').trim(), isVoid: false }, Modal.current.opId);
+        Modal.close();
+        const after = Calc.cards().find(x => x.id === k.id);
+        if (outcome === 'synced' || outcome === 'local') UI.toast(after && after.latest && after.latest.status === 'PAID' ? `✓ ${k.name} paid in full.` : `Paid ${U.peso(amount, true)} on ${k.name} · ${U.peso(after ? after.balance : 0, true)} left.`);
+        if (outcome !== 'synced') UI.saveOutcome(outcome, 'Card payment');
+        UI.refresh();
+      }
+    });
+  },
   installHelp() {
     const ua = navigator.userAgent || '';
     const ios = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -3007,7 +3563,7 @@ const Forms = {
     Modal.open({ title: 'Install Household Finances', eyebrow: ios ? 'iPhone / iPad' : android ? 'Android' : 'This device', body, foot: '<button type="button" class="btn primary" data-close>Got it</button>' });
   },
   more() {
-    Modal.open({ title: 'More', foot: null, body: `<div class="more-sheet">${['savings', 'loans', 'recurring', 'payments', 'reports', 'sync', 'settings'].map(id => `<a href="#/${id}" data-nav="${id}">${svgIcon(id, 20)}${VIEWS.find(v => v.id === id).label}${id === 'sync' && Store.queue.length ? ` <span class="tag PARTIAL" style="margin-left:auto">${Store.queue.length}</span>` : ''}</a>`).join('')}</div>` });
+    Modal.open({ title: 'More', foot: null, body: `<div class="more-sheet">${['savings', 'cards', 'utang', 'loans', 'recurring', 'payments', 'reports', 'sync', 'settings'].map(id => `<a href="#/${id}" data-nav="${id}">${svgIcon(id, 20)}${VIEWS.find(v => v.id === id).label}${id === 'sync' && Store.queue.length ? ` <span class="tag PARTIAL" style="margin-left:auto">${Store.queue.length}</span>` : ''}</a>`).join('')}</div>` });
   }
 };
 
@@ -3018,6 +3574,85 @@ const Actions = {
   'month-prev': () => UI.setMonth(U.addMonths(Store.month, -1)),
   'month-next': () => UI.setMonth(U.addMonths(Store.month, 1)),
   'pay': el => Forms.payment(el.dataset.id),
+  async 'settle-bill'(el) {
+    const i = Calc.instances().find(x => x.billInstanceId === el.dataset.id);
+    if (!i) return UI.toast('That bill is not on this device yet. Try syncing.', 'err');
+    const left = Math.max(0, U.fromCents(U.cents(i.expectedAmount) - U.cents(i.actualAmount)));
+    const msg = i.paymentCount
+      ? `Paid <b>${U.esc(U.peso(i.actualAmount))}</b> of the <b>${U.esc(U.peso(i.expectedAmount))}</b> budget.<br><br>It will show as <b>SETTLED</b> (paid) instead of ${i.status === ST.OVERDUE ? 'overdue' : 'partial'}, and the <b>${U.esc(U.peso(left))}</b> left goes back to your safe-to-spend. You can undo this anytime under Details.`
+      : `Nothing has been paid for this one yet.<br><br>Settling it means you're <b>not spending anything</b> on it this period (₱0), so the <b>${U.esc(U.peso(i.expectedAmount))}</b> budget goes back to your safe-to-spend. You can undo this anytime under Details.`;
+    const ok = await Modal.confirm('Mark ' + i.billName + ' as settled?', msg, 'Mark settled');
+    if (!ok) return;
+    const outcome = await Bills.markSettled(i.billInstanceId, true, U.today(), true);
+    if (outcome === 'missing') return;
+    if (outcome === 'synced' || outcome === 'local') UI.toast(`${i.billName}: settled${left > 0 ? ' · ' + U.peso(left, true) + ' under budget' : ''}.` + (outcome === 'local' ? ' It will sync when you’re online.' : ''));
+    else UI.saveOutcome(outcome, 'Change');
+    UI.refresh();
+  },
+  async 'unsettle-bill'(el) {
+    const i = Calc.instances().find(x => x.billInstanceId === el.dataset.id);
+    if (!i) return;
+    const ok = await Modal.confirm('Undo settled?', `${U.esc(i.billName)} will go back to ${i.paymentCount ? 'partial / unpaid' : 'unpaid'} and the rest of its budget is reserved again.`, 'Undo settled');
+    if (!ok) return;
+    const outcome = await Bills.markSettled(i.billInstanceId, false, '', true);
+    if (outcome === 'synced' || outcome === 'local') UI.toast(i.billName + ': no longer settled.'); else if (outcome !== 'missing') UI.saveOutcome(outcome, 'Change');
+    UI.refresh();
+  },
+  'add-card': () => Forms.card(),
+  'edit-card': el => Forms.card(el.dataset.id),
+  'add-statement': el => Forms.cardStatement(el.dataset.id),
+  'edit-statement': el => Forms.cardStatement(null, el.dataset.id),
+  'card-pay': el => Forms.cardPayment(el.dataset.id),
+  async 'delete-card'(el) {
+    const raw = Store.get('cards', el.dataset.id); if (!raw) return;
+    const ok = await Modal.confirm('Delete ' + raw.name + '?', 'Use this only for a card you added by mistake or closed. It stays in the sheet marked as deleted, and its balance stops being set aside. Payments you already made stay in your history.', 'Delete', true);
+    if (!ok) return;
+    const outcome = await Data.remove('cards', raw.id);
+    UI.toast(outcome === 'discarded' ? 'Card removed.' : 'Card deleted.');
+    UI.refresh();
+  },
+  async 'delete-statement'(el) {
+    const raw = Store.get('cardStatements', el.dataset.id); if (!raw) return;
+    const ok = await Modal.confirm('Delete this statement?', `${U.esc(raw.cardName || '')} · ${U.esc(U.peso(raw.statementBalance))} due ${U.esc(U.fmtDate(raw.dueDate))}<br><br>Use this only for a statement entered by mistake. Payments already recorded still count as money paid out.`, 'Delete', true);
+    if (!ok) return;
+    const outcome = await Data.remove('cardStatements', raw.id);
+    UI.toast(outcome === 'discarded' ? 'Statement removed.' : 'Statement deleted.');
+    UI.refresh();
+  },
+  async 'void-card-payment'(el) {
+    const r = Store.get('cardPayments', el.dataset.id); if (!r) return;
+    const ok = await Modal.confirm('Undo this card payment?', `${U.esc(r.cardName || '')} · ${U.esc(U.peso(r.amount))} on ${U.esc(U.fmtDate(r.date))}<br><br>It stays in the sheet marked as void, and the amount is back on the card.`, 'Undo payment', true);
+    if (!ok) return;
+    const outcome = await Data.remove('cardPayments', r.id);
+    UI.toast(outcome === 'discarded' ? 'Payment removed.' : 'Payment undone.');
+    UI.refresh();
+  },
+  'add-debt': () => Forms.debt(),
+  'edit-debt': el => Forms.debt(el.dataset.id),
+  'debt-pay': el => Forms.debtPayment(el.dataset.id),
+  'debt-chip': el => { UI.filters.utang.status = el.dataset.status; UI.render(); },
+  'debt-toggle': el => {
+    const id = el.dataset.id, card = el.closest('.loan-card');
+    const now = !UI.filters.utang.open[id];
+    UI.filters.utang.open[id] = now;
+    if (card) { card.classList.toggle('open', now); el.setAttribute('aria-expanded', now ? 'true' : 'false'); }
+  },
+  async 'delete-debt'(el) {
+    const raw = Store.get('debts', el.dataset.id); if (!raw) return;
+    const ok = await Modal.confirm('Delete this utang?', `${U.esc(raw.lender)} · ${U.esc(U.peso(raw.amount))}<br><br>Use this only for an utang entered by mistake. It is kept in the sheet marked as deleted.`, 'Delete', true);
+    if (!ok) return;
+    const outcome = await Data.remove('debts', raw.id);
+    UI.toast(outcome === 'discarded' ? 'Utang removed (it had not been synced yet).' : 'Utang deleted.');
+    UI.refresh();
+  },
+  async 'void-debt-payment'(el) {
+    const r = Store.get('debtPayments', el.dataset.id); if (!r) return;
+    const ok = await Modal.confirm('Undo this payment?', `${U.esc(r.lender || '')} · ${U.esc(U.peso(r.amount))} on ${U.esc(U.fmtDate(r.date))}<br><br>It stays in the sheet marked as void, and the amount counts as still owed.`, 'Undo payment', true);
+    if (!ok) return;
+    const outcome = await Data.remove('debtPayments', r.id);
+    UI.toast(outcome === 'discarded' ? 'Payment removed.' : 'Payment undone.');
+    UI.refresh();
+  },
   'bill-details': el => Forms.billDetails(el.dataset.id),
   'bill-chip': el => { UI.filters.bills.status = el.dataset.status; UI.render(); },
   'add-expense': () => Forms.expense(),
